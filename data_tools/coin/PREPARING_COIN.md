@@ -3,6 +3,8 @@
 For more details, please refer to the [official website](https://coin-dataset.github.io/). We provide scripts with documentations. Before we start, please make sure that the directory is located at `$MMACTION/data_tools/coin/`.
 
 ### Prepare annotations
+## Download from the COIN repo: 
+@arpanmangal complete this  
 #First of all, run the following script to prepare annotations.
 #```shell
 #bash download_annotations.sh
