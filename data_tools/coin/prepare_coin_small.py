@@ -18,7 +18,7 @@ for tf in task_folders:
         f_id = f.split('/')[-1]
         coin_small[f_id] = COIN[f_id]
 
-coin_small = {'dataset': coin_small}
+coin_small = {'database': coin_small}
 
 with open(small_coin_json_path, 'w') as outfile:
     json.dump(coin_small, outfile, indent=4)
