@@ -216,16 +216,8 @@ class COINSMALLDB(object):
         """
         import glob
         import os
-        task_folders = glob.glob(os.path.join(frame_path, '*'))
-
-        ids = []
-        folders = []
-        for tf in task_folders:
-            vid_folders = glob.glob(os.path.join(tf, '*'))
-            ids += [folder.split('/')[-1] for folder in vid_folders]
-            folders += vid_folders
-            
-        # ids = [os.path.splitext(name)[0][-11:] for name in folders]
+        folders = glob.glob(os.path.join(frame_path, '*'))
+        ids = [os.path.splitext(name)[0][-11:] for name in folders]
 
         folder_dict = dict(zip(ids, folders))
         print(folder_dict)

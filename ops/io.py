@@ -67,7 +67,7 @@ def parse_directory(path, key_func=lambda x: x[-11:],
     Parse directories holding extracted frames from standard benchmarks
     """
     print('parse frames under folder {}'.format(path))
-    task_folders = glob.glob(os.path.join(path, '*'))
+    frame_folders = glob.glob(os.path.join(path, '*'))
 
     def count_files(directory, prefix_list):
         lst = os.listdir(directory)
@@ -76,20 +76,18 @@ def parse_directory(path, key_func=lambda x: x[-11:],
 
     # check RGB
     frame_dict = {}
-    for tf in task_folders:
-        frame_folders = glob.glob(os.path.join(tf, '*'))
-        for i, f in enumerate(frame_folders):
-            all_cnt = count_files(f, (rgb_prefix, flow_x_prefix, flow_y_prefix))
-            k = key_func(f)
+    for i, f in enumerate(frame_folders):
+        all_cnt = count_files(f, (rgb_prefix, flow_x_prefix, flow_y_prefix))
+        k = key_func(f)
 
-            x_cnt = all_cnt[1]
-            y_cnt = all_cnt[2]
-            if x_cnt != y_cnt:
-                raise ValueError('x and y direction have different number of flow images. video: '+f)
-            if i % 200 == 0:
-                print('{} videos parsed'.format(i))
+        x_cnt = all_cnt[1]
+        y_cnt = all_cnt[2]
+        if x_cnt != y_cnt:
+            raise ValueError('x and y direction have different number of flow images. video: '+f)
+        if i % 200 == 0:
+            print('{} videos parsed'.format(i))
 
-            frame_dict[k] = (f, all_cnt[0], x_cnt)
+        frame_dict[k] = (f, all_cnt[0], x_cnt)
 
     print('frame folder analysis done')
     return frame_dict
