@@ -67,7 +67,7 @@ activitynet1.2:
 
 coin:
   train_list: coin_sw_train
-  test_list: coin_sw_val
+  test_list: coin_sw_test
   num_class: 779
   sampling:
     fg_iou_thresh: 0.5
