@@ -4,7 +4,7 @@ import json
 import os
 
 output_path = '../../data/coin/videos'
-json_path = '../../data/coin/COIN.json'
+json_path = '../../data/coin/COIN_full.json'
 
 if not os.path.exists(output_path):
 	os.mkdir(output_path)
