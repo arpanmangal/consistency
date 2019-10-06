@@ -8,7 +8,7 @@ For data deployment, please refer to [DATASET.md](https://github.com/arpanmangal
 ## An example on COIN
 We first give an example of testing and training temporal action detection models on COIN.
 ### 1. Prepare data
-First of all, please follow [PREPARING_COIN.md](https://github.com/arpanmangal/consistency/blob/master/data_tools/ucf101/PREPARING_UCF101.md) for data preparation.
+First of all, please follow [PREPARING_COIN.md](https://github.com/arpanmangal/consistency/blob/master/data_tools/coin/PREPARING_COIN.md) for data preparation.
 
 ### 2. Generate sliding window proposals
 
@@ -17,3 +17,6 @@ python gen_sliding_window_proposals.py training rgb data/coin/subset_frames data
 python gen_sliding_window_proposals.py testing rgb data/coin/subset_frames data/coin/coin_sw_test_proposal_list.txt --dataset coin
 
 ```
+*Time Needed*: _Negligible_
+
+

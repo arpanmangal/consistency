@@ -128,7 +128,7 @@ class COINSMALLDB(object):
 
         import os
         # raw_db_file = 'data/activity_net.v{}.min.json'.format('-'.join(version.split('.')))
-        raw_db_file = '/home/arpan/BTP/consistency/data/coin/COIN_small.json'
+        raw_db_file = 'data/coin/COIN.json'
 
 
 
@@ -152,7 +152,7 @@ class COINSMALLDB(object):
         # self._video_dict = {k: Video(k, v, self._name_idx_table) for k,v in self._database.items()}
 
         self._video_dict = {k: Video(k, v) for k,v in self._database.items()}
-
+        
         # split testing/training/validation set
         self._testing_dict = OrderedDict(sorted([(k, v) for k, v in self._video_dict.items() if v.subset == 'testing'], key=lambda x: x[0]))
         self._training_dict = OrderedDict(sorted([(k, v) for k, v in self._video_dict.items() if v.subset == 'training'], key=lambda x: x[0]))
@@ -226,4 +226,6 @@ class COINSMALLDB(object):
             if k in folder_dict:
                 self._video_dict[k].path = folder_dict[k]
                 cnt += 1
+            else:
+                raise ValueError("Video ID: %s not found" % k)
         print("loaded {} video folders".format(cnt))

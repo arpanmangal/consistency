@@ -56,9 +56,15 @@ with open(json_path) as json_file:
     COIN = json.load(json_file)['database']
 coin_small = {}
 
+frame_folders = glob.glob(os.path.join(subset_frames_path, '*'))
+video_ids = []
+for f in frame_folders:
+    vid_id = f.split('/')[-1]
+    video_ids.append(vid_id)
+
 for vid_id, annotation in COIN.items():
     task_id = annotation['recipe_type']
-    if task_id in tasks:
+    if task_id in tasks and vid_id in video_ids:
         annotation['recipe_type'] = tasks[task_id]
         coin_small[vid_id] = annotation
 
