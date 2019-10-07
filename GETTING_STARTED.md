@@ -38,7 +38,17 @@ time python binary_test.py coin RGB testing _rgb_model_best.pth.tar data/coin/rg
 
 ### 5. Generating TAG Proposals
 ```
-python gen_bottom_up_proposals.py data/coin/rgb_actioness.pkl --dataset coin --subset training --write_proposals data/coin/coin_tag_train_proposal_list.txt  --frame_path data/coin/subset_frames/
-python gen_bottom_up_proposals.py data/coin/rgb_actioness_test.pkl --dataset coin --subset testing --write_proposals data/coin/coin_tag_test_proposal_list.txt  --frame_path data/coin/subset_frames/
-
+time python gen_bottom_up_proposals.py data/coin/rgb_actioness.pkl --dataset coin --subset training --write_proposals data/coin/coin_tag_train_proposal_list.txt  --frame_path data/coin/subset_frames/
+time python gen_bottom_up_proposals.py data/coin/rgb_actioness_test.pkl --dataset coin --subset testing --write_proposals data/coin/coin_tag_test_proposal_list.txt  --frame_path data/coin/subset_frames/
 ```
+
+*Time Needed*: _Negligible_
+
+
+### 6. Training SSN
+#### 6.1 With ImageNet pretrained
+```
+time python ssn_train.py coin RGB -b 4 --lr_steps 3 6 --epochs 7 --gpus 0
+```
+*Time Needed*: _Plants and Fruits -- Train 178 mins_  
+
