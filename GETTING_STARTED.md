@@ -13,9 +13,8 @@ First of all, please follow [PREPARING_COIN.md](https://github.com/arpanmangal/c
 ### 2. Generate sliding window proposals
 
 ```
-python gen_sliding_window_proposals.py training rgb data/coin/subset_frames data/coin/coin_sw_train_proposal_list.txt --dataset coin
-python gen_sliding_window_proposals.py testing rgb data/coin/subset_frames data/coin/coin_sw_test_proposal_list.txt --dataset coin
-
+time python gen_sliding_window_proposals.py training rgb data/coin/subset_frames data/coin/coin_sw_train_proposal_list.txt --dataset coin
+time python gen_sliding_window_proposals.py testing rgb data/coin/subset_frames data/coin/coin_sw_test_proposal_list.txt --dataset coin
 ```
 *Time Needed*: _Negligible_
 
@@ -32,8 +31,8 @@ time python binary_test.py coin RGB training _rgb_model_best.pth.tar data/coin/r
 time python binary_test.py coin RGB testing _rgb_model_best.pth.tar data/coin/rgb_actioness_test.pkl
 ```
 
-*Time Needed*: _Plants and Fruits -- Train 67 mins_
-*Time Needed*: _Plants and Fruits -- Test mins_
+*Time Needed*: _Plants and Fruits -- Train 67 mins_  
+*Time Needed*: _Plants and Fruits -- Test 39 mins_
 
 
 ### 5. Generating TAG Proposals
@@ -52,3 +51,22 @@ time python ssn_train.py coin RGB -b 4 --lr_steps 3 6 --epochs 7 --gpus 0
 ```
 *Time Needed*: _Plants and Fruits -- Train 178 mins_  
 
+
+### 7. Evaluating on the dataset
+#### 7.1 Extract detection scores for all proposals
+```
+time python ssn_test.py coin RGB ssn_coin_BNInception_rgb_checkpoint.pth.tar data/coin/rgb_plants.pkl --gpus 0
+time python ssn_test.py coin RGB _rgb_model_best.pth.tar data/coin/rgb_plants_best.pkl --gpus 0
+```
+*Time Taken*: _end: 49 mins, best: 49 mins_
+
+#### 7.2 Evaluate detection performance
+```
+time python eval_detection_results.py coin data/coin/rgb_plants.pkl
+time python eval_detection_results.py coin data/coin/rgb_plants_best.pkl
+```
+
+**MaP Scores**
+Method | 0.1 | 0.2 | 0.3 | 0.4 | 0.5
+--- | --- | --- | --- | --- | ---
+*SSN* | 1 | 2 | 1 | 2 | 3

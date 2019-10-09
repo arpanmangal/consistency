@@ -4,3 +4,6 @@
 [submodule "model_zoo"]
 	path = model_zoo
 	url = https://github.com/yjxiong/tensorflow-model-zoo.torch
+[submodule "anet_toolkit"]
+	path = anet_toolkit
+	url = https://github.com/yjxiong/ActivityNet-Toolkit
