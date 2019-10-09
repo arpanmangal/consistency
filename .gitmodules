@@ -7,3 +7,6 @@
 [submodule "anet_toolkit"]
 	path = anet_toolkit
 	url = https://github.com/yjxiong/ActivityNet-Toolkit
+[submodule "code"]
+	path = code
+	url = https://github.com/coin-dataset/code
