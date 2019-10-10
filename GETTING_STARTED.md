@@ -21,9 +21,10 @@ time python gen_sliding_window_proposals.py testing rgb data/coin/subset_frames 
 
 ### 3. Training binary actionness classifier
 ```
-time python binary_train.py coin RGB -b 16 --lr_steps 3 6 --epochs 7 --gpus 0
+time python binary_train.py coin RGB -b 16 --lr_steps 3 6 --epochs 20 --gpus 0
 ```
-*Time Needed*: _64 mins for 1 domain (Plants and Fruits) (7 tasks)_ 
+*Time Needed*: _64 mins for 1 domain (Plants and Fruits) (7 tasks) (epoch 7)_ 
+*Time Needed*: _76 mins for 1 domain (Plants and Fruits) (7 tasks) (epoch 20)_ 
 
 ### 4. Obtaining actionness score
 ```
@@ -34,6 +35,9 @@ time python binary_test.py coin RGB testing _rgb_model_best.pth.tar data/coin/rg
 *Time Needed*: _Plants and Fruits -- Train 67 mins_  
 *Time Needed*: _Plants and Fruits -- Test 39 mins_
 
+59
+40
+
 
 ### 5. Generating TAG Proposals
 ```
@@ -43,11 +47,15 @@ time python gen_bottom_up_proposals.py data/coin/rgb_actioness_test.pkl --datase
 
 *Time Needed*: _Negligible_
 
+### 5.mid Normalize
+```
+python gen_proposal_list.py coin data/coin/subset_frames
+```
 
 ### 6. Training SSN
 #### 6.1 With ImageNet pretrained
 ```
-time python ssn_train.py coin RGB -b 4 --lr_steps 3 6 --epochs 7 --gpus 0
+time python ssn_train.py coin RGB -b 4 --lr_steps 5 10 --epochs 20 --gpus 0
 ```
 *Time Needed*: _Plants and Fruits -- Train 178 mins_  
 
@@ -62,11 +70,21 @@ time python ssn_test.py coin RGB _rgb_model_best.pth.tar data/coin/rgb_plants_be
 
 #### 7.2 Evaluate detection performance
 ```
-time python eval_detection_results.py coin data/coin/rgb_plants.pkl
-time python eval_detection_results.py coin data/coin/rgb_plants_best.pkl
+time python code/tc-ssn/eval_detection_results.py coin data/coin/rgb_plants_best.pkl
+<!-- time python eval_detection_results.py coin data/coin/rgb_plants.pkl
+time python eval_detection_results.py coin data/coin/rgb_plants_best.pkl -->
 ```
 
 **MaP Scores**
-Method | 0.1 | 0.2 | 0.3 | 0.4 | 0.5
+<!-- Method | 0.1 | 0.2 | 0.3 | 0.4 | 0.5
 --- | --- | --- | --- | --- | ---
-*SSN* | 1 | 2 | 1 | 2 | 3
+*SSN* | 1 | 2 | 1 | 2 | 3 -->
++Detection Performance on coin---+--------+--------+--------+--------+--------+--------+--------+---------+
+| IoU thresh   | 0.10   | 0.20   | 0.30   | 0.40   | 0.50   | 0.60   | 0.70   | 0.80   | 0.90   | Average |
++--------------+--------+--------+--------+--------+--------+--------+--------+--------+--------+---------+
+| mean AP      | 0.0062 | 0.0043 | 0.0029 | 0.0020 | 0.0011 | 0.0009 | 0.0005 | 0.0003 | 0.0000 | 0.0020  |
++--------------+--------+--------+--------+--------+--------+--------+--------+--------+--------+---------+
+| mean AR      | 0.0206 | 0.0172 | 0.0136 | 0.0106 | 0.0073 | 0.0059 | 0.0040 | 0.0024 | 0.0007 | 0.0091  |
++--------------+--------+--------+--------+--------+--------+--------+--------+--------+--------+---------+
+| F1 criterion | 0.1020 | 0.0869 | 0.0706 | 0.0555 | 0.0396 | 0.0318 | 0.0206 | 0.0116 | 0.0035 | 0.0469  |
++--------------+--------+--------+--------+--------+--------+--------+--------+--------+--------+---------+
