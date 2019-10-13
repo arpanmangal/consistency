@@ -28,9 +28,9 @@ def read_block (file):
         yield obj
 
 
-def modify_block (block, subset_frames_path, mapping_dict, test_time=False):
+def modify_block (block, subset_frames_path, prefix_path, mapping_dict, test_time=False):
     id = block['id']
-    block['path'] = os.path.join(subset_frames_path, id)
+    block['path'] = os.path.join(prefix_path, id)
     new_frames = len(glob.glob(os.path.join(subset_frames_path, id, '*')))
     old_frames = block['frames']
     block['frames'] = new_frames
@@ -74,7 +74,7 @@ def write_block (block, ofile, idx):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description="Generate subset tag file from full tag file")
-    parser.add_argument('--prefix', '-p', type=str, help="Path to prepend to the video ID in frames path")
+    parser.add_argument('--prefix', '-p', default=False, action='store_true', help="Whether path (to prepend to the video ID in frames path) should be empty")
     parser.add_argument('--ignore_background', '-i', default=False, action='store_true',
                         help="Whether to ignore the background class in test file")
     args = parser.parse_args()
@@ -82,7 +82,8 @@ if __name__ == '__main__':
     absolute_consistency_path = '/home/cse/btech/cs1160321/scratch/BTP/consistency' # Change this path for your machine
     subset_frames_path = os.path.join(absolute_consistency_path, 'data/coin/subset_frames')
 
-    prefix = args.prefix if args.prefix is not None else subset_frames_path
+    prefix = '' if args.prefix is True else subset_frames_path
+    print ('prfix: ', prefix)
 
     coin_path = os.path.join(absolute_consistency_path, 'data/coin/')
     train_full_tag = os.path.join(coin_path, 'coin_full_tag_train_proposal_list.txt')
@@ -108,7 +109,7 @@ if __name__ == '__main__':
     for block in blocks:
         id = block['id']
         if id in vid_ids:
-            modify_block(block, subset_frames_path, mapping_dict)
+            modify_block(block, subset_frames_path, prefix, mapping_dict)
             write_block(block, outfile, idx)
             idx += 1
      
@@ -123,7 +124,7 @@ if __name__ == '__main__':
     for block in blocks:
         id = block['id']
         if id in vid_ids:
-            modify_block(block, subset_frames_path, mapping_dict, test_time=True)
+            modify_block(block, subset_frames_path, prefix, mapping_dict, test_time=True)
             write_block(block, outfile, idx)
             idx += 1
 
