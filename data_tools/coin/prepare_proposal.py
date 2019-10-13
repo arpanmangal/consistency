@@ -5,6 +5,7 @@ import os
 import glob
 import sys
 import json
+import argparse
 
 # Start reading
 def read_block (file):
@@ -27,7 +28,7 @@ def read_block (file):
         yield obj
 
 
-def modify_block (block, subset_frames_path, mapping_dict):
+def modify_block (block, subset_frames_path, mapping_dict, test_time=False):
     id = block['id']
     block['path'] = os.path.join(subset_frames_path, id)
     new_frames = len(glob.glob(os.path.join(subset_frames_path, id, '*')))
@@ -36,7 +37,7 @@ def modify_block (block, subset_frames_path, mapping_dict):
     scaling = new_frames / old_frames
 
     for c in block['correct']:
-        if c[0] not in mapping_dict:
+        if not test_time and c[0] not in mapping_dict:
             mapping_dict[c[0]] = str(len(mapping_dict))
         c[0] = mapping_dict[c[0]]
 
@@ -44,7 +45,7 @@ def modify_block (block, subset_frames_path, mapping_dict):
         c[2] = str(int(int(c[2]) * scaling))
 
     for p in block['preds']:
-        if p[0] not in mapping_dict:
+        if not test_time and p[0] not in mapping_dict:
             mapping_dict[p[0]] = str(len(mapping_dict))
         p[0] = mapping_dict[p[0]]
 
@@ -72,22 +73,32 @@ def write_block (block, ofile, idx):
 
 
 if __name__ == '__main__':
-    absolute_consistency_path = '/home/arpan/consistency' # Change this path for your machine
+    parser = argparse.ArgumentParser(description="Generate subset tag file from full tag file")
+    parser.add_argument('--prefix', '-p', type=str, help="Path to prepend to the video ID in frames path")
+    parser.add_argument('--ignore_background', '-i', default=False, action='store_true',
+                        help="Whether to ignore the background class in test file")
+    args = parser.parse_args()
+
+    absolute_consistency_path = '/home/cse/btech/cs1160321/scratch/BTP/consistency' # Change this path for your machine
     subset_frames_path = os.path.join(absolute_consistency_path, 'data/coin/subset_frames')
 
-    assert (len(sys.argv) >= 4)
-    infile = sys.argv[1]; outfile = sys.argv[2]
-    load_json = True if sys.argv[3] == 'y' else False
-    prefix = '' if len(sys.argv) == 4 else subset_frames_path
+    prefix = args.prefix if args.prefix is not None else subset_frames_path
 
-    infile = os.path.join(absolute_consistency_path, 'data/coin/', infile)
-    outfile = os.path.join(absolute_consistency_path, 'data/coin/', outfile)
-    mapping_json_path = os.path.join(absolute_consistency_path, 'data/coin/proposal_mapping1.json')
+    coin_path = os.path.join(absolute_consistency_path, 'data/coin/')
+    train_full_tag = os.path.join(coin_path, 'coin_full_tag_train_proposal_list.txt')
+    test_full_tag = os.path.join(coin_path, 'coin_full_tag_test_proposal_list.txt')
+    train_tag = os.path.join(coin_path, 'coin_tag_train_proposal_list.txt')
+    test_tag = os.path.join(coin_path, 'coin_tag_test_proposal_list.txt')
+    mapping_json_path = os.path.join(coin_path, 'proposal_mapping.json')
 
     vid_ids = glob.glob(os.path.join(subset_frames_path, '*'))
     vid_ids = [id.split('/')[-1] for id in vid_ids]
 
-    mapping_dict = {"0": "0"} if not load_json else json.load(open(mapping_json_path, 'r'))
+
+    # Train file
+    infile = train_full_tag; outfile = train_tag
+
+    mapping_dict = {"0": "0"} 
 
     with open(outfile, 'w') as f:
         f.write('')
@@ -100,11 +111,22 @@ if __name__ == '__main__':
             modify_block(block, subset_frames_path, mapping_dict)
             write_block(block, outfile, idx)
             idx += 1
+     
+    # Test file
+    infile = test_full_tag; outfile = test_tag
 
-    print (load_json)
-    if not load_json:
-        with open(mapping_json_path, 'w', encoding='utf-8') as f:
-            json.dump(mapping_dict, f, ensure_ascii=False, indent=2)
-    else:
-        print (json.dumps(mapping_dict, indent=2))
+    with open(outfile, 'w') as f:
+        f.write('')
+
+    blocks = read_block(infile)
+    idx = 1
+    for block in blocks:
+        id = block['id']
+        if id in vid_ids:
+            modify_block(block, subset_frames_path, mapping_dict, test_time=True)
+            write_block(block, outfile, idx)
+            idx += 1
+
+    with open(mapping_json_path, 'w', encoding='utf-8') as f:
+        json.dump(mapping_dict, f, ensure_ascii=False, indent=2)
 
