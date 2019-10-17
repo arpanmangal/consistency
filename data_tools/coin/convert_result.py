@@ -32,7 +32,7 @@ if __name__ == '__main__':
     absolute_consistency_path = '/home/cse/btech/cs1160321/scratch/BTP/consistency' # Change this path for your machine
     coin_path = os.path.join(absolute_consistency_path, 'data/coin/')
     test_tag = os.path.join(coin_path, 'coin_tag_test_proposal_list.txt')
-    result_file = os.path.join(coin_path, 'result.pkl')
+    result_file = os.path.join(absolute_consistency_path, 'work_dirs/coin/', 'result.pkl')
 
     assert (len(sys.argv) == 2)
     mm_result_file = sys.argv[1]
@@ -48,12 +48,9 @@ if __name__ == '__main__':
     for id, p, r in zip(vid_ids, ps, results):
         r1, r2, r3, r4 = r
         n, k = r3.shape
-        print (p, k)
         assert (n == p)
         result[id] = r
 
-    print (len(results))
-    print (len(results[0]))
     pickle.dump(result, open(result_file, 'wb'))
 
 

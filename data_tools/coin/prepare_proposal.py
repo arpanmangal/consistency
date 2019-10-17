@@ -8,7 +8,7 @@ import json
 import argparse
 
 # Start reading
-def read_block (file):
+def read_block (file, ignore_background=False):
     f = open(file, 'r')
     while (len(f.readline()) > 0):
         # Keep reading the block
@@ -19,11 +19,19 @@ def read_block (file):
         obj['correct'] = []
         corrects = int(f.readline().strip())
         for _c in range(corrects):
-            obj['correct'].append(f.readline().strip().split(' '))
+            c_tuple = f.readline().strip().split(' ')
+            if c_tuple[0] == '0' and ignore_backgound:
+                continue
+            obj['correct'].append(c_tuple)
+            #obj['correct'].append(f.readline().strip().split(' '))
         obj['preds'] = []
         preds = int(f.readline().strip())
         for _p in range(preds):
-            obj['preds'].append(f.readline().strip().split(' '))
+            p_tuple = f.readline().strip().split(' ')
+            if p_tuple[0] == '0' and ignore_background:
+                continue
+            obj['preds'].append(p_tuple)
+            #obj['preds'].append(f.readline().strip().split(' '))
 
         yield obj
 
@@ -119,7 +127,7 @@ if __name__ == '__main__':
     with open(outfile, 'w') as f:
         f.write('')
 
-    blocks = read_block(infile)
+    blocks = read_block(infile, ignore_background=args.ignore_background)
     idx = 1
     for block in blocks:
         id = block['id']
