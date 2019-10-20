@@ -7,8 +7,8 @@ if [[ ! -d "${DATA_DIR}" ]]; then
   mkdir -p ${DATA_DIR}
 fi
 
-wget http://crcv.ucf.edu/THUMOS14/Validation_set/TH14_Temporal_annotations_validation.zip
-wget http://crcv.ucf.edu/THUMOS14/test_set/TH14_Temporal_annotations_test.zip
+wget --no-check-certificate http://crcv.ucf.edu/THUMOS14/Validation_set/TH14_Temporal_annotations_validation.zip
+wget --no-check-certificate http://crcv.ucf.edu/THUMOS14/test_set/TH14_Temporal_annotations_test.zip
 
 unzip -j TH14_Temporal_annotations_validation.zip -d $DATA_DIR/annotations_val
 unzip -j TH14_Temporal_annotations_test.zip -d $DATA_DIR/annotations_test

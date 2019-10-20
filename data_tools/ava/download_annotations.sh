@@ -7,6 +7,6 @@ if [[ ! -d "${DATA_DIR}" ]]; then
   mkdir -p ${DATA_DIR}
 fi
 
-wget https://research.google.com/ava/download/ava_v2.1.zip
+wget --no-check-certificate https://research.google.com/ava/download/ava_v2.1.zip
 unzip -j ava_v2.1.zip -d ${DATA_DIR}/
 rm ava_v2.1.zip
