@@ -53,7 +53,7 @@ def parse_args():
         help='Number of processes per GPU')
     parser.add_argument('--out', help='output result file')
     parser.add_argument('--eval', type=str,
-                        choices=['activitynet', 'thumos14'], help='eval types')
+                        choices=['activitynet', 'thumos14', 'coin'], help='eval types')
     parser.add_argument('--no_regression', default=False, action='store_true')
     args = parser.parse_args()
     return args
@@ -146,7 +146,7 @@ def main():
 
         if eval_type == 'activitynet':
             iou_range = np.arange(0.5, 1.0, 0.05)
-        elif eval_type == 'thumos14':
+        elif eval_type in ['thumos14', 'coin']:
             iou_range = np.arange(0.1, 1.0, .1)
 
         # get gt
