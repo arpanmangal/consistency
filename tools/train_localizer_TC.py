@@ -6,13 +6,14 @@ import shlex
 import argparse
 import json
 import subprocess
+import pickle
 
 def parse_args():
     parser = argparse.ArgumentParser(description='Train an action localizer with TC')
     parser.add_argument('data_path', help='path to data containing the JSON and TAG files')
     parser.add_argument('base_config', help='base config file path')
     parser.add_argument('work_dir', help='the dir to save logs and models')
-    parser.add_argument('mode', type=str, choices=['setup', 'train', 'test'])
+    parser.add_argument('mode', type=str, choices=['setup', 'train', 'test', 'all', 'eval'])
     parser.add_argument(
         '--validate',
         action='store_true',
@@ -28,11 +29,12 @@ def parse_args():
     return args
 
 
-def setup(args):
+def create_task_list_n_dirs(args):
+    """
+    Returns a tuple of (COIN dataset, set of task_ids, task_dirs)
+    """
     # Path of various files
     json_file = os.path.join(args.data_path, 'COIN.json')
-    tag_train_file = os.path.join(args.data_path, 'coin_tag_train_proposal_list.txt')
-    tag_test_file = os.path.join(args.data_path, 'coin_tag_test_proposal_list.txt')
 
     # First parse the JSON path
     with open(json_file) as json_file:
@@ -41,13 +43,23 @@ def setup(args):
     for v_id, vid in COIN.items():
         task_ids.add(vid['recipe_type'])
 
-    # Create different folders for different task training
+    # Different folders for different task training
     dirs = dict()
     for task in task_ids:
         task_dir = os.path.join(args.work_dir, str(task))
+        dirs[task] = task_dir
+
+    return COIN, task_ids, dirs
+
+
+def setup(args):
+    # Generating the task IDs and folders
+    COIN, task_ids, dirs = create_task_list_n_dirs(args)
+
+    # Create different folders for different task training
+    for task, task_dir in dirs.items():
         shutil.rmtree(task_dir)
         os.makedirs(task_dir)
-        dirs[task] = task_dir
 
     # Creating mapping files
     task_step_ids = dict() # Containing set of step_ids corresponding to each task
@@ -166,6 +178,22 @@ def modify_block (block, mapping_dict, task_step_ids):
             p[0] = mapping_dict[step_id]
 
 
+def modify_block_rev (block, indv_overall_mapping):
+    block['path'] = block['id']
+
+    for c in block['correct']:
+        if c[0] != '0':
+            c[0] = indv_overall_mapping[c[0]]
+
+    for p in block['preds']:
+        if p[0] != '0':
+            p[0] = indv_overall_mapping[p[0]]
+
+    return len(block['preds'])
+    
+
+
+
 def write_block (block, ofile, idx):
     with open(ofile, 'a') as f:
         f.write('# %d\n' % idx)
@@ -187,23 +215,86 @@ def write_block (block, ofile, idx):
 
 # Training code
 def train(args):
-    print ('hey')
-    json_file = os.path.join(args.data_path, 'COIN.json')
-    tag_train_file = os.path.join(args.data_path, 'coin_tag_train_proposal_list.txt')
-    tag_test_file = os.path.join(args.data_path, 'coin_tag_test_proposal_list.txt')
+    # Generating the task IDs and folders
+    COIN, task_ids, dirs = create_task_list_n_dirs(args)
 
-    # First parse the JSON path
-    with open(json_file) as json_file:
-        COIN = json.load(json_file)['database']
-    task_ids = set()
-    for v_id, vid in COIN.items():
-        task_ids.add(vid['recipe_type'])
-
-    for i in task_ids:
-        args = shlex.split("/usr/bin/bash tools/dist_train_localizer.sh work_dirs/plants/%d/config.py 2 --work_dir work_dirs/plants/%d"%(i,i))
-        print(args)
-        process = subprocess.Popen(args)
+    for task, task_dir in dirs.items():
+        config_file = os.path.join(task_dir, 'config.py')
+        command = "/usr/bin/bash tools/dist_train_localizer.sh %s %d --work_dir %s" % (config_file, args.gpus, task_dir)
+        command = shlex.split(command)
+        # args = shlex.split("/usr/bin/bash tools/dist_train_localizer.sh work_dirs/plants/%d/config.py %d \
+                            # --work_dir work_dirs/plants/%d" % (task, args.gpus, task))
+        print(command)
+        process = subprocess.Popen(command)
         process.wait()
+
+
+def test(args):
+    # Generating the task IDs and folders
+    COIN, task_ids, dirs = create_task_list_n_dirs(args)
+
+    for task, task_dir in dirs.items():
+        config_file = os.path.join(task_dir, 'config.py')
+        pth_file = os.path.join(task_dir, 'latest.pth')
+        out_pkl = os.path.join(task_dir, 'result_with0.pkl')
+        command = "python3 tools/test_localizer.py %s %s --gpus %d --out %s" % (config_file, pth_file, args.gpus, out_pkl)
+        command = shlex.split(command)
+        # args = shlex.split("/usr/bin/bash tools/dist_train_localizer.sh work_dirs/plants/%d/config.py %d \
+                            # --work_dir work_dirs/plants/%d" % (task, args.gpus, task))
+        print(command)
+        process = subprocess.Popen(command)
+        process.wait()
+
+
+def evaluate(args):
+    """
+    Combine the scores of all the pkl files
+    Combine all the tag files
+    Evaluate
+    """
+    # Generating the task IDs and folders
+    COIN, task_ids, dirs = create_task_list_n_dirs(args)
+
+    tag_test_file = os.path.join(args.work_dir, 'coin_tag_test_proposal_list.txt')
+    with open(tag_test_file, 'w') as f:
+        status = 'File created'
+
+    all_results = []
+
+    vid_count = 0
+    for task, task_dir in dirs.items():
+        task_tag_test = os.path.join(task_dir, 'coin_tag_test_proposal_list.txt')
+        out_pkl = os.path.join(task_dir, 'result_with0.pkl')
+        mapping_file = os.path.join(task_dir, 'mapping.json')
+        with open(mapping_file) as jf:
+            indv_overall_mapping = json.load(jf)
+
+        results = pickle.load(open(out_pkl, 'rb'))
+        print (type(results))
+        for block, r in zip(read_block(task_tag_test), results):
+            r1, r2, r3, r4 = r
+            n, k = r3.shape
+            all_results.append(r)
+
+            vid_count += 1
+            p = modify_block_rev (block, indv_overall_mapping)
+            write_block(block, tag_test_file, vid_count)
+
+            # Both should have exactly the same number of proposals
+            assert (n == p)
+
+    final_result = os.path.join(args.work_dir, 'final_result_with0.pkl')
+    with open(final_result, 'wb') as f:
+        pickle.dump(all_results, f)
+
+    # Final Evaluation
+    config_file = os.path.join(args.work_dir, 'config.py')
+    command = "python3 tools/eval_localize_results.py %s %s --eval coin" % (config_file, final_result)
+    command = shlex.split(command)
+    print(command)
+    process = subprocess.Popen(command)
+    process.wait()
+
 
 
 if __name__ == '__main__':
@@ -212,3 +303,11 @@ if __name__ == '__main__':
         setup(args)
     elif args.mode == 'train':
         train(args)
+    elif args.mode == 'test':
+        test(args)
+    elif args.mode == 'eval':
+        evaluate(args)
+    elif args.mode == 'all':
+        setup(args)
+        train(args)
+        # test(args)
