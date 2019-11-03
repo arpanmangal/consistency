@@ -52,6 +52,7 @@ def main():
     if args.resume_from is not None:
         cfg.resume_from = args.resume_from
     cfg.gpus = args.gpus
+    print (cfg.gpus)
     if cfg.checkpoint_config is not None:
         # save mmaction version in checkpoints as meta data
         cfg.checkpoint_config.meta = dict(

@@ -2,6 +2,7 @@ from __future__ import division
 
 import os
 import shutil
+import shlex
 import argparse
 import json
 import subprocess
@@ -48,19 +49,6 @@ def setup(args):
         os.makedirs(task_dir)
         dirs[task] = task_dir
 
-    # Setup the config files
-    for task, task_dir in dirs.items():
-        config_file = os.path.join(task_dir, 'config.py')
-
-        with open(args.base_config, 'r') as f:
-            lines = f.readlines()
-
-        with open(config_file, 'w') as f:
-            for line in lines:
-                if line[:13] == 'ann_file_root':
-                    line = "ann_file_root = '%s'\n" % task_dir 
-                f.write(line)
-
     # Creating mapping files
     task_step_ids = dict() # Containing set of step_ids corresponding to each task
     for task in task_ids:
@@ -90,6 +78,20 @@ def setup(args):
     with open(overall_mapping_file, 'w', encoding='utf-8') as f:
         json.dump(overall_indv_mapping, f, ensure_ascii=False, indent=2, sort_keys=True)
     
+    # Setup the config files
+    for task, task_dir in dirs.items():
+        config_file = os.path.join(task_dir, 'config.py')
+
+        with open(args.base_config, 'r') as f:
+            lines = f.readlines()
+
+        with open(config_file, 'w') as f:
+            for line in lines:
+                if line[:13] == 'ann_file_root':
+                    line = "ann_file_root = '%s/'\n" % task_dir 
+                elif line[:19] == '        num_classes':
+                    line = '        num_classes=%d,\n' % len(task_step_ids[task])
+                f.write(line)
 
     # Setting up the tag file
     tag_vid_count = dict()
@@ -186,14 +188,22 @@ def write_block (block, ofile, idx):
 # Training code
 def train(args):
     print ('hey')
-    process = subprocess.Popen([
-        "/usr/bin/bash",
-        "tools/dist_train_localizer.sh",
-        "work_dirs/plants/0/config.py",
-        "2",
-        "work_dir=work_dirs/plants/0"
-    ])
-    process.wait()
+    json_file = os.path.join(args.data_path, 'COIN.json')
+    tag_train_file = os.path.join(args.data_path, 'coin_tag_train_proposal_list.txt')
+    tag_test_file = os.path.join(args.data_path, 'coin_tag_test_proposal_list.txt')
+
+    # First parse the JSON path
+    with open(json_file) as json_file:
+        COIN = json.load(json_file)['database']
+    task_ids = set()
+    for v_id, vid in COIN.items():
+        task_ids.add(vid['recipe_type'])
+
+    for i in task_ids:
+        args = shlex.split("/usr/bin/bash tools/dist_train_localizer.sh work_dirs/plants/%d/config.py 2 --work_dir work_dirs/plants/%d"%(i,i))
+        print(args)
+        process = subprocess.Popen(args)
+        process.wait()
 
 
 if __name__ == '__main__':
