@@ -7,6 +7,7 @@ import argparse
 import json
 import subprocess
 import pickle
+import numpy as np
 
 def parse_args():
     parser = argparse.ArgumentParser(description='Train an action localizer with TC')
@@ -14,6 +15,8 @@ def parse_args():
     parser.add_argument('base_config', help='base config file path')
     parser.add_argument('work_dir', help='the dir to save logs and models')
     parser.add_argument('mode', type=str, choices=['setup', 'train', 'test', 'all', 'eval'])
+    parser.add_argument('--model', default='latest.pth', help='name of the pth file to use for testing')
+    parser.add_argument('--out_pkl', default='result.pkl', help='name of the pth file to use for testing')
     parser.add_argument(
         '--validate',
         action='store_true',
@@ -58,7 +61,10 @@ def setup(args):
 
     # Create different folders for different task training
     for task, task_dir in dirs.items():
-        shutil.rmtree(task_dir)
+        try:
+            shutil.rmtree(task_dir)
+        except:
+            pass
         os.makedirs(task_dir)
 
     # Creating mapping files
@@ -222,8 +228,6 @@ def train(args):
         config_file = os.path.join(task_dir, 'config.py')
         command = "/usr/bin/bash tools/dist_train_localizer.sh %s %d --work_dir %s" % (config_file, args.gpus, task_dir)
         command = shlex.split(command)
-        # args = shlex.split("/usr/bin/bash tools/dist_train_localizer.sh work_dirs/plants/%d/config.py %d \
-                            # --work_dir work_dirs/plants/%d" % (task, args.gpus, task))
         print(command)
         process = subprocess.Popen(command)
         process.wait()
@@ -235,12 +239,10 @@ def test(args):
 
     for task, task_dir in dirs.items():
         config_file = os.path.join(task_dir, 'config.py')
-        pth_file = os.path.join(task_dir, 'latest.pth')
-        out_pkl = os.path.join(task_dir, 'result_with0.pkl')
-        command = "python3 tools/test_localizer.py %s %s --gpus %d --out %s" % (config_file, pth_file, args.gpus, out_pkl)
+        pth_file = os.path.join(task_dir, args.model)
+        out_pkl = os.path.join(task_dir, args.out_pkl)
+        command = "python3 tools/test_localizer.py %s %s --gpus %d --out %s --eval coin" % (config_file, pth_file, args.gpus, out_pkl)
         command = shlex.split(command)
-        # args = shlex.split("/usr/bin/bash tools/dist_train_localizer.sh work_dirs/plants/%d/config.py %d \
-                            # --work_dir work_dirs/plants/%d" % (task, args.gpus, task))
         print(command)
         process = subprocess.Popen(command)
         process.wait()
@@ -259,29 +261,54 @@ def evaluate(args):
     with open(tag_test_file, 'w') as f:
         status = 'File created'
 
+    overall_mapping_file = os.path.join(args.work_dir, 'overall_mapping.json')
+    with open(overall_mapping_file, 'r') as f:
+        overall_mapping = json.load(f)
+
+    K = len(overall_mapping) # Num of step classes
+    # print ('K=',K)
+    # exit(1)
+
     all_results = []
 
     vid_count = 0
     for task, task_dir in dirs.items():
         task_tag_test = os.path.join(task_dir, 'coin_tag_test_proposal_list.txt')
-        out_pkl = os.path.join(task_dir, 'result_with0.pkl')
+        out_pkl = os.path.join(task_dir, args.out_pkl)
         mapping_file = os.path.join(task_dir, 'mapping.json')
         with open(mapping_file) as jf:
             indv_overall_mapping = json.load(jf)
 
         results = pickle.load(open(out_pkl, 'rb'))
-        print (type(results))
         for block, r in zip(read_block(task_tag_test), results):
-            r1, r2, r3, r4 = r
-            n, k = r3.shape
-            all_results.append(r)
-
+            # Write the block
             vid_count += 1
             p = modify_block_rev (block, indv_overall_mapping)
             write_block(block, tag_test_file, vid_count)
 
+            # Write the results
+            r1, r2, r3, r4 = r
+            n, k = r3.shape
             # Both should have exactly the same number of proposals
             assert (n == p)
+
+            N = n
+            m1 = r1 # Proposals are same as before
+            m2 = np.ones((N, K + 1)) * -100 # Giving a large negative score to the non useful ones
+            m3 = np.ones((N, K)) * -100 # Giving a large negative score to the non useful ones
+            m4 = np.zeros((N, K, 2)) # All regression parameters zero
+
+            m2[:, 0] = r2[:, 0]
+            for ind_id, overall_id in indv_overall_mapping.items():
+                ind_id = int(ind_id)
+                overall_id = int(overall_id)
+                
+                m2[:, overall_id] = r2[:, ind_id]
+                m3[:, overall_id - 1] = r3[:, ind_id - 1]
+                m4[:, overall_id - 1, :] = r4[:, ind_id - 1, :]
+
+            m = m1, m2, m3, m4
+            all_results.append(m)
 
     final_result = os.path.join(args.work_dir, 'final_result_with0.pkl')
     with open(final_result, 'wb') as f:
