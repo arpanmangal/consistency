@@ -306,11 +306,6 @@ def evaluate(args):
             # Both should have exactly the same number of proposals
             n, k = r3.shape
             assert (n == p)
-            # print (n, k, p)
-            # print (background_indices)
-            # for _r in r:
-            #     print (_r.shape)
-            # exit(0)
 
             N = n
             m1 = r1 # Proposals are same as before
@@ -354,7 +349,6 @@ if __name__ == '__main__':
         test(args)
     elif args.mode == 'eval':
         evaluate(args)
-    elif args.mode == 'all':
-        setup(args)
-        train(args)
-        # test(args)
+    # elif args.mode == 'all':
+    #     setup(args)
+    #     train(args)
