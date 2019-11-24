@@ -17,6 +17,7 @@ def parse_args():
     parser.add_argument('mode', type=str, choices=['setup', 'train', 'test', 'all', 'eval'])
     parser.add_argument('--model', default='latest.pth', help='name of the pth file to use for testing')
     parser.add_argument('--out_pkl', default='result.pkl', help='name of the pth file to use for testing')
+    parser.add_argument('--no_background', action='store_true', help='Remove the background class (0) proposals')
     parser.add_argument(
         '--validate',
         action='store_true',
@@ -184,18 +185,25 @@ def modify_block (block, mapping_dict, task_step_ids):
             p[0] = mapping_dict[step_id]
 
 
-def modify_block_rev (block, indv_overall_mapping):
+def modify_block_rev (block, indv_overall_mapping, remove_background=False):
+    background_indices = []
     block['path'] = block['id']
 
     for c in block['correct']:
         if c[0] != '0':
             c[0] = indv_overall_mapping[c[0]]
 
-    for p in block['preds']:
+    for idx, p in enumerate(block['preds']):
         if p[0] != '0':
             p[0] = indv_overall_mapping[p[0]]
+        else:
+            background_indices.append(idx)
 
-    return len(block['preds'])
+    if remove_background:
+        # Throw away the proposals with 0 class
+        block['preds'] = np.delete(block['preds'], background_indices, 0)
+
+    return len(block['preds']), background_indices
     
 
 
@@ -266,8 +274,7 @@ def evaluate(args):
         overall_mapping = json.load(f)
 
     K = len(overall_mapping) # Num of step classes
-    # print ('K=',K)
-    # exit(1)
+    remove_background = args.no_background
 
     all_results = []
 
@@ -283,14 +290,27 @@ def evaluate(args):
         for block, r in zip(read_block(task_tag_test), results):
             # Write the block
             vid_count += 1
-            p = modify_block_rev (block, indv_overall_mapping)
+            p, background_indices = modify_block_rev (block, indv_overall_mapping, remove_background=remove_background)
             write_block(block, tag_test_file, vid_count)
 
             # Write the results
             r1, r2, r3, r4 = r
-            n, k = r3.shape
+            if remove_background:
+                # Remove the background classes
+                r1 = np.delete(r1, background_indices, 0)
+                r2 = np.delete(r2, background_indices, 0)
+                r3 = np.delete(r3, background_indices, 0)
+                r4 = np.delete(r4, background_indices, 0)
+                r = (r1, r2, r3, r4)
+
             # Both should have exactly the same number of proposals
+            n, k = r3.shape
             assert (n == p)
+            # print (n, k, p)
+            # print (background_indices)
+            # for _r in r:
+            #     print (_r.shape)
+            # exit(0)
 
             N = n
             m1 = r1 # Proposals are same as before
