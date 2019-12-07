@@ -32,6 +32,20 @@ bash extract_frames.sh
 ```
 
 -------------------------------------------------------------
+### Split the data into training, validation and testing
+
+Given dataset only has train+test split, so run the following script to split the data.
+
+```
+python prepare_split.py --root <PATH_OF_THIS_REPO>
+```
+
+After doing hyperparameter tuning, train on full train-set. Merge the validation split into the train split.
+```
+python prepare_split.py --root <PATH_OF_THIS_REPO> --no_val 
+```
+
+-------------------------------------------------------
 
 ### Prepare subset of data for training
 For initial experiments, it is recommended to work with a small subset of the dataset. We work with a subset consisting of selected tasks out of the total 180 tasks.
