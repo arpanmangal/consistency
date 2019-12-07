@@ -2,7 +2,7 @@ import os, shutil
 import glob
 import json
 
-absolute_consistency_path = '/home/cse/btech/cs1160321/scratch/BTP/consistency' # Change this path for your machine
+absolute_consistency_path = '/home/arpan/BTP/consistency' # Change this path for your machine
 
 json_path = os.path.join(absolute_consistency_path, 'data/coin/COIN_full.json')
 coin_json_path = os.path.join(absolute_consistency_path, 'data/coin/COIN.json')

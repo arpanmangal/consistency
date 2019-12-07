@@ -87,7 +87,7 @@ if __name__ == '__main__':
                         help="Whether to ignore the background class in test file")
     args = parser.parse_args()
 
-    absolute_consistency_path = '/home/cse/btech/cs1160321/scratch/BTP/consistency' # Change this path for your machine
+    absolute_consistency_path = '/home/arpan/BTP/consistency' # Change this path for your machine
     subset_frames_path = os.path.join(absolute_consistency_path, 'data/coin/subset_frames')
 
     prefix = '' if args.prefix is True else subset_frames_path
