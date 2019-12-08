@@ -14,7 +14,7 @@ from ops.utils import get_configs, get_reference_model_url
 
 parser = argparse.ArgumentParser(
     description="SSN Testing Tool")
-parser.add_argument('dataset', type=str, choices=['activitynet1.2', 'thumos14'])
+parser.add_argument('dataset', type=str, choices=['activitynet1.2', 'thumos14', 'coin'])
 parser.add_argument('modality', type=str, choices=['RGB', 'Flow', 'RGBDiff'])
 parser.add_argument('weights', type=str)
 parser.add_argument('save_scores', type=str)

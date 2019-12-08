@@ -67,6 +67,7 @@ activitynet1.2:
 
 coin:
   train_list: coin/coin_tag_train
+  val_list: coin/coin_tag_val
   test_list: coin/coin_tag_test
   num_class: 31
   sampling:

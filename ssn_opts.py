@@ -1,6 +1,6 @@
 import argparse
 parser = argparse.ArgumentParser(description="PyTorch code to train Structured Segment Networks (SSN)")
-parser.add_argument('dataset', type=str, choices=['activitynet1.2', 'thumos14'])
+parser.add_argument('dataset', type=str, choices=['activitynet1.2', 'thumos14', 'coin'])
 parser.add_argument('modality', type=str, choices=['RGB', 'Flow', 'RGBDiff'])
 
 # ========================= Model Configs ==========================
@@ -42,6 +42,8 @@ parser.add_argument('--print-freq', '-p', default=20, type=int,
                     metavar='N', help='print frequency (default: 10)')
 parser.add_argument('--eval-freq', '-ef', default=1, type=int,
                     metavar='N', help='evaluation frequency (default: 5)')
+parser.add_argument('--save_path', default='work_dirs', type=str,
+                    help='path of folder to save the models')
 
 # ========================= Runtime Configs ==========================
 parser.add_argument('-j', '--workers', default=4, type=int, metavar='N',

@@ -95,7 +95,7 @@ def main():
         raise ValueError("unknown modality {}".format(args.modality))
 
     train_prop_file = 'data/{}_proposal_list.txt'.format(dataset_configs['train_list'])
-    val_prop_file = 'data/{}_proposal_list.txt'.format(dataset_configs['test_list'])
+    val_prop_file = 'data/{}_proposal_list.txt'.format(dataset_configs['val_list'])
     train_loader = torch.utils.data.DataLoader(
         SSNDataSet("", train_prop_file,
                    epoch_multiplier=args.training_epoch_multiplier,
@@ -166,7 +166,12 @@ def main():
                 'state_dict': model.state_dict(),
                 'best_loss': best_loss,
                 'reg_stats': torch.from_numpy(train_loader.dataset.stats)
-            }, is_best)
+            }, is_best,
+            foldername=args.save_path,
+            filename="checkpoint_{}.pth".format(epoch))
+            print ('======================================================')
+            print (epoch, is_best, loss, best_loss)
+            print ('======================================================')
 
 
 def train(train_loader, model, act_criterion, comp_criterion, regression_criterion, optimizer, epoch):
@@ -362,11 +367,12 @@ def validate(val_loader, model, act_criterion, comp_criterion, regression_criter
     return losses.avg
 
 
-def save_checkpoint(state, is_best, filename='checkpoint.pth.tar'):
-    filename = 'ssn'+'_'.join((args.snapshot_pref, args.dataset, args.arch, args.modality.lower(), filename))
+def save_checkpoint(state, is_best, foldername, filename='checkpoint.pth'):
+    filename = os.path.join(foldername, 
+                            'ssn'+'_'.join((args.snapshot_pref, args.dataset, args.arch, args.modality.lower(), filename)))
     torch.save(state, filename)
     if is_best:
-        best_name = '_'.join((args.snapshot_pref, args.modality.lower(), 'model_best.pth.tar'))
+        best_name = os.path.join(foldername, '_'.join((args.snapshot_pref, args.modality.lower(), 'model_best.pth')))
         shutil.copyfile(filename, best_name)
 
 
