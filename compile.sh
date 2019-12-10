@@ -3,7 +3,7 @@
 PYTHON=${PYTHON:-"python"}
 
 echo "Building package resample2d"
-cd ./mmaction/ops/resample2d_package
+cd ./mtlaction/ops/resample2d_package
 if [ -d "build" ]; then
     rm -r build
 fi

@@ -16,7 +16,7 @@ PATCH = 'rc0'
 SUFFIX = ''
 SHORT_VERSION = '{}.{}.{}{}'.format(MAJOR, MINOR, PATCH, SUFFIX)
 
-version_file = 'mmaction/version.py'
+version_file = 'mtlaction/version.py'
 
 
 def get_git_hash():
@@ -50,7 +50,7 @@ def get_hash():
         sha = get_git_hash()[:7]
     elif os.path.exists(version_file):
         try:
-            from mmaction.version import __version__
+            from mtlaction.version import __version__
             sha = __version__.split('+')[-1]
         except ImportError:
             raise ImportError('Unable to get git version')
@@ -83,14 +83,14 @@ def get_version():
 if __name__ == '__main__':
     write_version_py()
     setup(
-        name='mmaction',
+        name='mtlaction',
         version=get_version(),
         description='Open MMLab Action Toolbox',
         long_description=readme(),
         keywords='computer vision, action recognition',
-        url='https://github.com/open-mmlab/mmaction',
+        url='https://github.com/arpanmangal/consistency',
         packages=find_packages(exclude=('configs', 'tools', 'demo')),
-        package_data={'mmaction.ops': ['*/*.so']},
+        package_data={'mtlaction.ops': ['*/*.so']},
         classifiers=[
             'Development Status :: 4 - Beta',
             'License :: OSI Approved :: Apache Software License',
