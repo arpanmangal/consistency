@@ -255,6 +255,28 @@ def test(args):
         process = subprocess.Popen(command)
         process.wait()
 
+def find_background_classes(act_scores):
+    """
+    Find which classes are background class based on the actioness scores
+    """
+    def softmax(x, dim=1):
+        """Compute softmax values for each sets of scores in x."""
+        e_x = np.exp(x - np.max(x, axis=dim, keepdims=True))
+        return e_x / e_x.sum(axis=dim, keepdims=True)
+
+    scores = softmax(act_scores)
+    class_0_scores = scores[:, 0]
+    rankings = np.argsort(-class_0_scores)
+    return rankings[:2] # First two background classes
+
+    # assert (len(rankings) == )
+    # predictions = np.argmax(scores, axis=1)
+    assert(len(class_0_scores) == act_scores.shape[0])
+
+    # np.set_printoptions(suppress=True)
+    # print (act_scores[:,0])
+    # print (class_0_scores)
+    return np.nonzero(class_0_scores > 0.95)[0]
 
 def evaluate(args):
     """
@@ -290,22 +312,29 @@ def evaluate(args):
         for block, r in zip(read_block(task_tag_test), results):
             # Write the block
             vid_count += 1
-            p, background_indices = modify_block_rev (block, indv_overall_mapping, remove_background=remove_background)
+            p, background_indices = modify_block_rev (block, indv_overall_mapping, remove_background=False)
             write_block(block, tag_test_file, vid_count)
 
             # Write the results
             r1, r2, r3, r4 = r
             if remove_background:
                 # Remove the background classes
+                # print (background_indices)
+                background_indices = find_background_classes(r2)
+                if (len(background_indices) >= r3.shape[0] / 2):
+                    print ("here's a case")
+                    background_indices = []
+                # print (background_indices)
                 r1 = np.delete(r1, background_indices, 0)
                 r2 = np.delete(r2, background_indices, 0)
                 r3 = np.delete(r3, background_indices, 0)
                 r4 = np.delete(r4, background_indices, 0)
                 r = (r1, r2, r3, r4)
+                # exit(0)
 
             # Both should have exactly the same number of proposals
             n, k = r3.shape
-            assert (n == p)
+            # assert (n == p)
 
             N = n
             m1 = r1 # Proposals are same as before

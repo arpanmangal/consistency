@@ -84,9 +84,9 @@ coin:
   stpp: [1, 1, 1]
 
   evaluation:
-    top_k: 60
-    nms_threshold: 0.6
-    softmax_before_filter: false
+    top_k: 2000
+    nms_threshold: 0.35
+    softmax_before_filter: true
 
   flow_init:
     BNInception: https://yjxiong.blob.core.windows.net/ssn-models/bninception_activitynet1.2_flow_init-0090e716bd1563.pth
