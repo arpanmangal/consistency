@@ -4,8 +4,8 @@ import mmcv
 import numpy as np
 from mmcv.runner import obj_from_dict
 
-from mmaction import datasets
-from mmaction.core.evaluation.localize_utils import (results2det,
+from mtlaction import datasets
+from mtlaction.core.evaluation.localize_utils import (results2det,
                                                      perform_regression,
                                                      temporal_nms,
                                                      eval_ap_parallel,

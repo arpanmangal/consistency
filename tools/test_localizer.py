@@ -8,11 +8,11 @@ import mmcv
 from mmcv.runner import load_checkpoint, parallel_test, obj_from_dict
 from mmcv.parallel import scatter, collate, MMDataParallel
 
-from mmaction import datasets
-from mmaction.datasets import build_dataloader
-from mmaction.models import build_localizer, localizers
-from mmaction.models.tenons.segmental_consensuses import parse_stage_config
-from mmaction.core.evaluation.localize_utils import (results2det,
+from mtlaction import datasets
+from mtlaction.datasets import build_dataloader
+from mtlaction.models import build_localizer, localizers
+from mtlaction.models.tenons.segmental_consensuses import parse_stage_config
+from mtlaction.core.evaluation.localize_utils import (results2det,
                                                      perform_regression,
                                                      temporal_nms,
                                                      eval_ap_parallel,

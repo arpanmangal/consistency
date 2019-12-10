@@ -37,12 +37,12 @@ bash extract_frames.sh
 Given dataset only has train+test split, so run the following script to split the data.
 
 ```
-python prepare_split.py --root <PATH_OF_THIS_REPO>
+python split_data.py --root <PATH_OF_THIS_REPO>
 ```
 
 After doing hyperparameter tuning, train on full train-set. Merge the validation split into the train split.
 ```
-python prepare_split.py --root <PATH_OF_THIS_REPO> --no_val 
+python split_data.py --root <PATH_OF_THIS_REPO> --no_val 
 ```
 
 -------------------------------------------------------
@@ -53,7 +53,7 @@ For initial experiments, it is recommended to work with a small subset of the da
 Firstly, put down the `task` ids (folder numbers from the downloaded videos folder) in the file `subset`, with each id in a new line. Then run the following to generate a subset of the dataset.
 
 ```
-python prepare_coin.py
+python prepare_coin.py --root <PATH_OF_THIS_REPO> --tag_prefix empty
 ```
 
 This code will generate the `json` file for the subset of the dataset, mapping the original `task ID`s to new IDs starting from 0. It will also create soft links to respective videos and extracted frames in the folders `subset` and `subset_frames` respectively.

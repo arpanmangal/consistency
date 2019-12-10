@@ -3,11 +3,11 @@ from __future__ import division
 import argparse
 from mmcv import Config
 
-from mmaction import __version__
-from mmaction.datasets import get_trimmed_dataset
-from mmaction.apis import (train_network, init_dist, get_root_logger,
+from mtlaction import __version__
+from mtlaction.datasets import get_trimmed_dataset
+from mtlaction.apis import (train_network, init_dist, get_root_logger,
                            set_random_seed)
-from mmaction.models import build_localizer
+from mtlaction.models import build_localizer
 import torch
 import os, ssl
 
@@ -53,8 +53,9 @@ def main():
         cfg.resume_from = args.resume_from
     cfg.gpus = args.gpus
     print (cfg.gpus)
+    print (args.validate)
     if cfg.checkpoint_config is not None:
-        # save mmaction version in checkpoints as meta data
+        # save mtlaction version in checkpoints as meta data
         cfg.checkpoint_config.meta = dict(
             mmact_version=__version__, config=cfg.text)
 

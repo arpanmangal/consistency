@@ -5,10 +5,10 @@ import mmcv
 from mmcv.runner import load_checkpoint, parallel_test, obj_from_dict
 from mmcv.parallel import scatter, collate, MMDataParallel
 
-from mmaction import datasets
-from mmaction.datasets import build_dataloader
-from mmaction.models import build_detector, detectors
-from mmaction.core.evaluation.ava_utils import results2csv, ava_eval
+from mtlaction import datasets
+from mtlaction.datasets import build_dataloader
+from mtlaction.models import build_detector, detectors
+from mtlaction.core.evaluation.ava_utils import results2csv, ava_eval
 
 import os.path as osp
 

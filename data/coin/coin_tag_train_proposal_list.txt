@@ -1,5 +1,5 @@
 # 1
-/home/arpan/BTP/consistency/data/coin/subset_frames/-0X2mXPy3Mc
+-0X2mXPy3Mc
 1393
 1
 4
@@ -64,7 +64,7 @@
 2 0.0091 1.0000 672 679
 0 0.0000 0.0000 158 164
 # 2
-/home/arpan/BTP/consistency/data/coin/subset_frames/-djWPMSfpZM
+-djWPMSfpZM
 1742
 1
 2
@@ -119,7 +119,7 @@
 0 0.0000 0.0000 1335 1341
 0 0.0000 0.0000 0 3
 # 3
-/home/arpan/BTP/consistency/data/coin/subset_frames/-na1ykjeWR4
+-na1ykjeWR4
 1759
 1
 3
@@ -162,7 +162,7 @@
 11 0.0833 1.0000 853 863
 11 0.0278 1.0000 840 843
 # 4
-/home/arpan/BTP/consistency/data/coin/subset_frames/09A6DD53ad4
+09A6DD53ad4
 1857
 1
 3
@@ -247,7 +247,7 @@
 0 0.0000 0.0000 956 963
 0 0.0000 0.0000 1551 1555
 # 5
-/home/arpan/BTP/consistency/data/coin/subset_frames/0JHFaCl9Zb4
+0JHFaCl9Zb4
 1168
 1
 5
@@ -373,7 +373,7 @@
 0 0.0000 0.0000 0 8
 8 0.4169 1.0000 391 398
 # 6
-/home/arpan/BTP/consistency/data/coin/subset_frames/0OsP1icacOY
+0OsP1icacOY
 1458
 1
 4
@@ -429,7 +429,7 @@
 0 0.0000 0.0000 1144 1156
 7 0.0521 1.0000 389 398
 # 7
-/home/arpan/BTP/consistency/data/coin/subset_frames/0R5wAQ93N_o
+0R5wAQ93N_o
 1222
 1
 5
@@ -492,7 +492,7 @@
 0 0.0000 0.0000 443 461
 13 0.0637 1.0000 830 840
 # 8
-/home/arpan/BTP/consistency/data/coin/subset_frames/0VVeeWT3AAc
+0VVeeWT3AAc
 1317
 1
 5
@@ -553,7 +553,7 @@
 21 0.0763 1.0000 826 840
 20 0.1460 1.0000 1068 1080
 # 9
-/home/arpan/BTP/consistency/data/coin/subset_frames/0xybXrdeSTk
+0xybXrdeSTk
 927
 1
 5
@@ -580,7 +580,7 @@
 0 0.0000 0.0000 471 511
 0 0.0000 0.0000 865 893
 # 10
-/home/arpan/BTP/consistency/data/coin/subset_frames/1588Hbzjtsk
+1588Hbzjtsk
 1213
 1
 2
@@ -641,7 +641,7 @@
 0 0.0000 0.0000 271 283
 0 0.0000 0.0000 1147 1156
 # 11
-/home/arpan/BTP/consistency/data/coin/subset_frames/1BeAGQRnf8c
+1BeAGQRnf8c
 195
 1
 4
@@ -655,7 +655,7 @@
 27 0.3284 0.3284 45 166
 13 0.3425 0.3425 103 150
 # 12
-/home/arpan/BTP/consistency/data/coin/subset_frames/1ItTtshaBko
+1ItTtshaBko
 2162
 1
 2
@@ -757,7 +757,7 @@
 0 0.0000 0.0000 1951 1963
 0 0.0000 0.0000 1828 1838
 # 13
-/home/arpan/BTP/consistency/data/coin/subset_frames/1PS6X_Kg3-M
+1PS6X_Kg3-M
 1870
 1
 3
@@ -838,7 +838,7 @@
 15 0.0202 1.0000 926 936
 15 0.0135 1.0000 711 718
 # 14
-/home/arpan/BTP/consistency/data/coin/subset_frames/1Qygb3v62NI
+1Qygb3v62NI
 915
 1
 6
@@ -879,7 +879,7 @@
 19 0.1061 1.0000 251 263
 22 0.0490 1.0000 579 588
 # 15
-/home/arpan/BTP/consistency/data/coin/subset_frames/1eYgUa5tuIs
+1eYgUa5tuIs
 1691
 1
 4
@@ -920,7 +920,7 @@
 0 0.0000 0.0000 228 246
 0 0.0000 0.0000 1443 1460
 # 16
-/home/arpan/BTP/consistency/data/coin/subset_frames/2RkxW3KCs-o
+2RkxW3KCs-o
 710
 1
 2
@@ -968,7 +968,7 @@
 12 0.1259 0.7155 558 571
 0 0.0000 0.0000 611 623
 # 17
-/home/arpan/BTP/consistency/data/coin/subset_frames/2Ty6dTMg-wk
+2Ty6dTMg-wk
 2050
 1
 6
@@ -1050,7 +1050,7 @@
 0 0.0000 0.0000 1401 1411
 15 0.1484 1.0000 1439 1446
 # 18
-/home/arpan/BTP/consistency/data/coin/subset_frames/2iNg0yzIs30
+2iNg0yzIs30
 2057
 1
 2
@@ -1130,7 +1130,7 @@
 0 0.0000 0.0000 1135 1139
 0 0.0000 0.0000 1285 1288
 # 19
-/home/arpan/BTP/consistency/data/coin/subset_frames/2jNFCMVe-B8
+2jNFCMVe-B8
 1268
 1
 2
@@ -1151,7 +1151,7 @@
 0 0.0000 0.0000 0 69
 0 0.0000 0.0000 0 61
 # 20
-/home/arpan/BTP/consistency/data/coin/subset_frames/2xzq5Jp2uxo
+2xzq5Jp2uxo
 1298
 1
 4
@@ -1196,7 +1196,7 @@
 25 0.0667 1.0000 558 584
 25 0.0500 1.0000 668 688
 # 21
-/home/arpan/BTP/consistency/data/coin/subset_frames/2yQqVY-CsPk
+2yQqVY-CsPk
 366
 1
 2
@@ -1217,7 +1217,7 @@
 0 0.0000 0.0000 325 335
 7 0.0832 1.0000 119 122
 # 22
-/home/arpan/BTP/consistency/data/coin/subset_frames/30sdUwDcNoQ
+30sdUwDcNoQ
 1217
 1
 5
@@ -1272,7 +1272,7 @@
 30 0.0664 1.0000 835 858
 30 0.0379 1.0000 893 906
 # 23
-/home/arpan/BTP/consistency/data/coin/subset_frames/3_6evBYjBwk
+3_6evBYjBwk
 1038
 1
 2
@@ -1298,7 +1298,7 @@
 12 0.0214 1.0000 549 557
 0 0.0000 0.0000 996 1002
 # 24
-/home/arpan/BTP/consistency/data/coin/subset_frames/3tGLs-jURcA
+3tGLs-jURcA
 1516
 1
 5
@@ -1324,7 +1324,7 @@
 0 0.0000 0.0000 129 181
 8 0.1103 1.0000 986 1012
 # 25
-/home/arpan/BTP/consistency/data/coin/subset_frames/42XxWRpS-P8
+42XxWRpS-P8
 1103
 1
 5
@@ -1379,7 +1379,7 @@
 0 0.0000 0.0000 403 424
 0 0.0000 0.0000 961 969
 # 26
-/home/arpan/BTP/consistency/data/coin/subset_frames/4PCNwYY6F1E
+4PCNwYY6F1E
 408
 1
 3
@@ -1402,7 +1402,7 @@
 18 0.2675 1.0000 314 329
 8 0.0339 0.8204 134 141
 # 27
-/home/arpan/BTP/consistency/data/coin/subset_frames/4XX-iqiTFTs
+4XX-iqiTFTs
 1546
 1
 2
@@ -1464,7 +1464,7 @@
 0 0.0000 0.0000 339 346
 0 0.0000 0.0000 313 319
 # 28
-/home/arpan/BTP/consistency/data/coin/subset_frames/4bW99Yv2kL8
+4bW99Yv2kL8
 817
 1
 3
@@ -1494,7 +1494,7 @@
 0 0.0000 0.0000 163 178
 0 0.0000 0.0000 248 253
 # 29
-/home/arpan/BTP/consistency/data/coin/subset_frames/4j1Xb4_R5IY
+4j1Xb4_R5IY
 1187
 1
 2
@@ -1565,7 +1565,7 @@
 9 0.0393 1.0000 491 498
 0 0.0000 0.0000 1168 1173
 # 30
-/home/arpan/BTP/consistency/data/coin/subset_frames/4tyISpv1wXg
+4tyISpv1wXg
 1910
 1
 3
@@ -1626,7 +1626,7 @@
 0 0.0000 0.0000 1433 1441
 0 0.0000 0.0000 1274 1281
 # 31
-/home/arpan/BTP/consistency/data/coin/subset_frames/53kXE6Jd0hU
+53kXE6Jd0hU
 580
 1
 2
@@ -1653,7 +1653,7 @@
 0 0.0000 0.0000 108 141
 0 0.0000 0.0000 485 503
 # 32
-/home/arpan/BTP/consistency/data/coin/subset_frames/54v0IRwl_uw
+54v0IRwl_uw
 2025
 1
 2
@@ -1706,7 +1706,7 @@
 0 0.0000 0.0000 1754 1763
 0 0.0000 0.0000 399 403
 # 33
-/home/arpan/BTP/consistency/data/coin/subset_frames/5Dmmaemw4jo
+5Dmmaemw4jo
 2140
 1
 9
@@ -1783,7 +1783,7 @@
 22 0.0329 1.0000 1098 1109
 20 0.1483 1.0000 1589 1596
 # 34
-/home/arpan/BTP/consistency/data/coin/subset_frames/5nHBRoMfdbU
+5nHBRoMfdbU
 2177
 1
 4
@@ -1853,7 +1853,7 @@
 0 0.0000 0.0000 188 198
 0 0.0000 0.0000 1706 1713
 # 35
-/home/arpan/BTP/consistency/data/coin/subset_frames/6Uip8riRXSo
+6Uip8riRXSo
 1347
 1
 4
@@ -1899,7 +1899,7 @@
 26 0.5524 0.8407 1083 1120
 14 0.4003 1.0000 1038 1058
 # 36
-/home/arpan/BTP/consistency/data/coin/subset_frames/6VEPqD08syw
+6VEPqD08syw
 1689
 1
 3
@@ -1974,7 +1974,7 @@
 0 0.0000 0.0000 1245 1259
 0 0.0000 0.0000 1349 1357
 # 37
-/home/arpan/BTP/consistency/data/coin/subset_frames/79kyaJxHXLE
+79kyaJxHXLE
 1429
 1
 2
@@ -2041,7 +2041,7 @@
 0 0.0000 0.0000 278 286
 0 0.0000 0.0000 1121 1128
 # 38
-/home/arpan/BTP/consistency/data/coin/subset_frames/7HmrFO1HRpo
+7HmrFO1HRpo
 788
 1
 3
@@ -2060,7 +2060,7 @@
 29 0.6661 0.6661 199 229
 24 0.3670 1.0000 279 298
 # 39
-/home/arpan/BTP/consistency/data/coin/subset_frames/7N8x4TFxZTs
+7N8x4TFxZTs
 2075
 1
 3
@@ -2129,7 +2129,7 @@
 0 0.0000 0.0000 2065 2076
 0 0.0000 0.0000 1596 1601
 # 40
-/home/arpan/BTP/consistency/data/coin/subset_frames/7_vZ6a_p80E
+7_vZ6a_p80E
 535
 1
 3
@@ -2150,7 +2150,7 @@
 17 0.2399 1.0000 451 481
 0 0.0000 0.0000 0 4
 # 41
-/home/arpan/BTP/consistency/data/coin/subset_frames/7c_JSqIu4OA
+7c_JSqIu4OA
 791
 1
 3
@@ -2182,7 +2182,7 @@
 0 0.0000 0.0000 310 338
 0 0.0000 0.0000 0 10
 # 42
-/home/arpan/BTP/consistency/data/coin/subset_frames/892IyQKIe94
+892IyQKIe94
 2170
 1
 3
@@ -2284,7 +2284,7 @@
 24 0.0115 1.0000 1794 1801
 0 0.0000 0.0000 873 878
 # 43
-/home/arpan/BTP/consistency/data/coin/subset_frames/8AoZY_826JY
+8AoZY_826JY
 1115
 1
 3
@@ -2338,7 +2338,7 @@
 0 0.0000 0.0000 998 1009
 14 0.0093 1.0000 746 749
 # 44
-/home/arpan/BTP/consistency/data/coin/subset_frames/8NvFB4GqSQE
+8NvFB4GqSQE
 1136
 1
 2
@@ -2350,7 +2350,7 @@
 10 0.9711 0.9711 0 504
 11 0.6141 1.0000 616 911
 # 45
-/home/arpan/BTP/consistency/data/coin/subset_frames/8PF5MYr0CSk
+8PF5MYr0CSk
 2012
 1
 2
@@ -2403,7 +2403,7 @@
 8 0.0152 1.0000 1430 1438
 0 0.0000 0.0000 604 611
 # 46
-/home/arpan/BTP/consistency/data/coin/subset_frames/8rQBQnwxY5o
+8rQBQnwxY5o
 1554
 1
 5
@@ -2485,7 +2485,7 @@
 0 0.0000 0.0000 454 464
 0 0.0000 0.0000 1509 1517
 # 47
-/home/arpan/BTP/consistency/data/coin/subset_frames/8spdWaXXc4A
+8spdWaXXc4A
 625
 1
 3
@@ -2515,7 +2515,7 @@
 0 0.0000 0.0000 546 563
 0 0.0000 0.0000 501 514
 # 48
-/home/arpan/BTP/consistency/data/coin/subset_frames/984RhdTqvTI
+984RhdTqvTI
 2098
 1
 5
@@ -2641,7 +2641,7 @@
 6 0.0456 1.0000 1879 1889
 6 0.0114 1.0000 1469 1474
 # 49
-/home/arpan/BTP/consistency/data/coin/subset_frames/9Jkz5dwdAqI
+9Jkz5dwdAqI
 2357
 1
 4
@@ -2767,7 +2767,7 @@
 0 0.0000 0.0000 268 273
 28 0.0193 1.0000 590 595
 # 50
-/home/arpan/BTP/consistency/data/coin/subset_frames/9eYaLek9hKg
+9eYaLek9hKg
 1954
 1
 2
@@ -2823,7 +2823,7 @@
 0 0.0000 0.0000 1002 1007
 0 0.0000 0.0000 1737 1740
 # 51
-/home/arpan/BTP/consistency/data/coin/subset_frames/A8doS3qA-AU
+A8doS3qA-AU
 1212
 1
 2
@@ -2892,7 +2892,7 @@
 9 0.0078 1.0000 766 773
 9 0.0058 1.0000 708 713
 # 52
-/home/arpan/BTP/consistency/data/coin/subset_frames/ACX3LFym4tc
+ACX3LFym4tc
 2337
 1
 3
@@ -3040,7 +3040,7 @@
 0 0.0000 0.0000 0 6
 24 0.0349 0.4374 1155 1163
 # 53
-/home/arpan/BTP/consistency/data/coin/subset_frames/AGUASZftBfY
+AGUASZftBfY
 634
 1
 2
@@ -3071,7 +3071,7 @@
 9 0.0500 1.0000 520 535
 9 0.0278 1.0000 547 555
 # 54
-/home/arpan/BTP/consistency/data/coin/subset_frames/AZzBkOivaZ0
+AZzBkOivaZ0
 1839
 1
 2
@@ -3143,7 +3143,7 @@
 0 0.0000 0.0000 1542 1547
 0 0.0000 0.0000 1837 1840
 # 55
-/home/arpan/BTP/consistency/data/coin/subset_frames/BB8HRgAFg3k
+BB8HRgAFg3k
 841
 1
 2
@@ -3202,7 +3202,7 @@
 8 0.0379 1.0000 647 654
 0 0.0000 0.0000 281 286
 # 56
-/home/arpan/BTP/consistency/data/coin/subset_frames/BNAtm16kVkc
+BNAtm16kVkc
 303
 1
 3
@@ -3214,7 +3214,7 @@
 18 0.1225 0.1225 43 304
 18 0.1564 0.1564 49 254
 # 57
-/home/arpan/BTP/consistency/data/coin/subset_frames/BZkvMPXfrT0
+BZkvMPXfrT0
 910
 1
 5
@@ -3280,7 +3280,7 @@
 0 0.0000 0.0000 813 834
 0 0.0000 0.0000 131 149
 # 58
-/home/arpan/BTP/consistency/data/coin/subset_frames/BaTvKGvMMcU
+BaTvKGvMMcU
 1526
 1
 2
@@ -3320,7 +3320,7 @@
 0 0.0000 0.0000 1120 1144
 0 0.0000 0.0000 1337 1352
 # 59
-/home/arpan/BTP/consistency/data/coin/subset_frames/BvK7lGichF8
+BvK7lGichF8
 854
 1
 2
@@ -3340,7 +3340,7 @@
 0 0.0000 0.0000 786 810
 8 0.0304 1.0000 585 596
 # 60
-/home/arpan/BTP/consistency/data/coin/subset_frames/CT-1JfOaP2g
+CT-1JfOaP2g
 1952
 1
 9
@@ -3468,7 +3468,7 @@
 0 0.0000 0.0000 80 84
 9 0.1000 1.0000 1315 1318
 # 61
-/home/arpan/BTP/consistency/data/coin/subset_frames/ClMgXmmLIFU
+ClMgXmmLIFU
 1200
 1
 3
@@ -3516,7 +3516,7 @@
 25 0.0618 1.0000 710 726
 30 0.5562 1.0000 975 991
 # 62
-/home/arpan/BTP/consistency/data/coin/subset_frames/DFw6ay52vSY
+DFw6ay52vSY
 2256
 1
 4
@@ -3616,7 +3616,7 @@
 7 0.0185 1.0000 606 613
 0 0.0000 0.0000 2250 2257
 # 63
-/home/arpan/BTP/consistency/data/coin/subset_frames/DMuIUqts-qE
+DMuIUqts-qE
 1293
 1
 5
@@ -3680,7 +3680,7 @@
 0 0.0000 0.0000 678 689
 0 0.0000 0.0000 703 708
 # 64
-/home/arpan/BTP/consistency/data/coin/subset_frames/DUX2aMIHFVQ
+DUX2aMIHFVQ
 1164
 1
 3
@@ -3723,7 +3723,7 @@
 0 0.0000 0.0000 1070 1081
 3 0.0348 1.0000 193 201
 # 65
-/home/arpan/BTP/consistency/data/coin/subset_frames/E8x5I9evcCE
+E8x5I9evcCE
 709
 1
 3
@@ -3768,7 +3768,7 @@
 0 0.0000 0.0000 118 126
 0 0.0000 0.0000 648 656
 # 66
-/home/arpan/BTP/consistency/data/coin/subset_frames/EIJ9hwBD-_g
+EIJ9hwBD-_g
 1571
 1
 3
@@ -3835,7 +3835,7 @@
 17 0.0241 1.0000 1237 1247
 0 0.0000 0.0000 554 562
 # 67
-/home/arpan/BTP/consistency/data/coin/subset_frames/EdpI0c55B_0
+EdpI0c55B_0
 2127
 1
 3
@@ -3872,7 +3872,7 @@
 0 0.0000 0.0000 372 389
 0 0.0000 0.0000 1506 1517
 # 68
-/home/arpan/BTP/consistency/data/coin/subset_frames/F5JeSnLF_N0
+F5JeSnLF_N0
 540
 1
 6
@@ -3950,7 +3950,7 @@
 0 0.0000 0.0000 0 8
 14 0.0087 0.0412 283 289
 # 69
-/home/arpan/BTP/consistency/data/coin/subset_frames/Fdlw53GRBjA
+Fdlw53GRBjA
 1055
 1
 2
@@ -4004,7 +4004,7 @@
 12 0.0139 1.0000 766 774
 10 0.0222 1.0000 298 301
 # 70
-/home/arpan/BTP/consistency/data/coin/subset_frames/G65at6rkmQY
+G65at6rkmQY
 1094
 1
 7
@@ -4104,7 +4104,7 @@
 0 0.0000 0.0000 795 805
 0 0.0000 0.0000 305 313
 # 71
-/home/arpan/BTP/consistency/data/coin/subset_frames/GADTjKlIg8A
+GADTjKlIg8A
 637
 1
 3
@@ -4132,7 +4132,7 @@
 0 0.0000 0.0000 591 615
 0 0.0000 0.0000 0 13
 # 72
-/home/arpan/BTP/consistency/data/coin/subset_frames/GGdqBefHjhk
+GGdqBefHjhk
 1095
 1
 5
@@ -4171,7 +4171,7 @@
 0 0.0000 0.0000 1085 1096
 14 0.0110 1.0000 801 805
 # 73
-/home/arpan/BTP/consistency/data/coin/subset_frames/H4IR0Gh1GSs
+H4IR0Gh1GSs
 1330
 1
 3
@@ -4220,7 +4220,7 @@
 14 0.0242 0.3326 1084 1106
 13 0.0389 1.0000 773 784
 # 74
-/home/arpan/BTP/consistency/data/coin/subset_frames/HAUOEItfkao
+HAUOEItfkao
 519
 1
 4
@@ -4285,7 +4285,7 @@
 14 0.3600 1.0000 288 303
 0 0.0000 0.0000 0 6
 # 75
-/home/arpan/BTP/consistency/data/coin/subset_frames/HtPwQcGhbj4
+HtPwQcGhbj4
 2327
 1
 3
@@ -4402,7 +4402,7 @@
 0 0.0000 0.0000 2318 2328
 0 0.0000 0.0000 2213 2218
 # 76
-/home/arpan/BTP/consistency/data/coin/subset_frames/I7ADgRr1umY
+I7ADgRr1umY
 1302
 1
 5
@@ -4464,7 +4464,7 @@
 27 0.1001 1.0000 698 708
 0 0.0000 0.0000 608 613
 # 77
-/home/arpan/BTP/consistency/data/coin/subset_frames/IrNydQeLQKo
+IrNydQeLQKo
 1018
 1
 5
@@ -4534,7 +4534,7 @@
 17 0.0270 1.0000 553 561
 0 0.0000 0.0000 51 58
 # 78
-/home/arpan/BTP/consistency/data/coin/subset_frames/JCZl4ki-8gY
+JCZl4ki-8gY
 781
 1
 2
@@ -4553,7 +4553,7 @@
 0 0.0000 0.0000 75 101
 8 0.0483 1.0000 520 532
 # 79
-/home/arpan/BTP/consistency/data/coin/subset_frames/Jb47Qdh3PTQ
+Jb47Qdh3PTQ
 909
 1
 5
@@ -4629,7 +4629,7 @@
 0 0.0000 0.0000 474 489
 0 0.0000 0.0000 454 461
 # 80
-/home/arpan/BTP/consistency/data/coin/subset_frames/JnPjcSZAglM
+JnPjcSZAglM
 1246
 1
 3
@@ -4685,7 +4685,7 @@
 0 0.0000 0.0000 809 816
 0 0.0000 0.0000 1099 1105
 # 81
-/home/arpan/BTP/consistency/data/coin/subset_frames/K0BshvEwln0
+K0BshvEwln0
 1372
 1
 4
@@ -4758,7 +4758,7 @@
 12 0.0185 1.0000 1051 1060
 0 0.0000 0.0000 641 646
 # 82
-/home/arpan/BTP/consistency/data/coin/subset_frames/K3Srmwe9264
+K3Srmwe9264
 1811
 1
 4
@@ -4827,7 +4827,7 @@
 0 0.0000 0.0000 1347 1353
 0 0.0000 0.0000 700 706
 # 83
-/home/arpan/BTP/consistency/data/coin/subset_frames/KARsyOl_Hg4
+KARsyOl_Hg4
 2354
 1
 2
@@ -4893,7 +4893,7 @@
 0 0.0000 0.0000 2220 2231
 25 0.0351 0.4405 1115 1123
 # 84
-/home/arpan/BTP/consistency/data/coin/subset_frames/KAnBRysoEN0
+KAnBRysoEN0
 1420
 1
 4
@@ -4962,7 +4962,7 @@
 14 0.3275 0.9976 1174 1213
 25 0.0414 1.0000 774 794
 # 85
-/home/arpan/BTP/consistency/data/coin/subset_frames/KRWcYsJw7Qg
+KRWcYsJw7Qg
 1394
 1
 4
@@ -5020,7 +5020,7 @@
 0 0.0000 0.0000 503 515
 0 0.0000 0.0000 1387 1395
 # 86
-/home/arpan/BTP/consistency/data/coin/subset_frames/L-PR8XR9FMI
+L-PR8XR9FMI
 2209
 1
 7
@@ -5135,7 +5135,7 @@
 0 0.0000 0.0000 705 715
 0 0.0000 0.0000 321 326
 # 87
-/home/arpan/BTP/consistency/data/coin/subset_frames/L5kJHhIIgbc
+L5kJHhIIgbc
 527
 1
 2
@@ -5161,7 +5161,7 @@
 13 0.1299 0.5799 360 395
 26 0.1168 1.0000 190 213
 # 88
-/home/arpan/BTP/consistency/data/coin/subset_frames/LBBONYDTcw0
+LBBONYDTcw0
 2050
 1
 2
@@ -5240,7 +5240,7 @@
 0 0.0000 0.0000 1704 1716
 0 0.0000 0.0000 1364 1368
 # 89
-/home/arpan/BTP/consistency/data/coin/subset_frames/LTqG8-OhElY
+LTqG8-OhElY
 2373
 1
 5
@@ -5323,7 +5323,7 @@
 0 0.0000 0.0000 1846 1856
 12 0.0222 1.0000 1619 1626
 # 90
-/home/arpan/BTP/consistency/data/coin/subset_frames/LVONn-nbanE
+LVONn-nbanE
 2125
 1
 2
@@ -5367,7 +5367,7 @@
 13 0.0069 1.0000 609 619
 13 0.0057 1.0000 1033 1041
 # 91
-/home/arpan/BTP/consistency/data/coin/subset_frames/Lkzanaj5JTU
+Lkzanaj5JTU
 1374
 1
 4
@@ -5454,7 +5454,7 @@
 0 0.0000 0.0000 460 473
 25 0.0463 1.0000 620 628
 # 92
-/home/arpan/BTP/consistency/data/coin/subset_frames/LujoR3uSzMs
+LujoR3uSzMs
 558
 1
 2
@@ -5480,7 +5480,7 @@
 15 0.0918 0.7152 279 296
 0 0.0000 0.0000 299 311
 # 93
-/home/arpan/BTP/consistency/data/coin/subset_frames/M9QYf0bVJoA
+M9QYf0bVJoA
 1816
 1
 3
@@ -5523,7 +5523,7 @@
 13 0.0290 1.0000 978 992
 13 0.0072 1.0000 935 938
 # 94
-/home/arpan/BTP/consistency/data/coin/subset_frames/Mla_nhX6SuU
+Mla_nhX6SuU
 1862
 1
 3
@@ -5577,7 +5577,7 @@
 9 0.1049 1.0000 1063 1091
 4 0.0067 1.0000 626 630
 # 95
-/home/arpan/BTP/consistency/data/coin/subset_frames/MyqkLil7KQo
+MyqkLil7KQo
 662
 1
 6
@@ -5604,7 +5604,7 @@
 9 0.1840 0.3453 455 498
 0 0.0000 0.0000 568 586
 # 96
-/home/arpan/BTP/consistency/data/coin/subset_frames/NBXTtli9nig
+NBXTtli9nig
 461
 1
 3
@@ -5617,7 +5617,7 @@
 9 0.2932 0.2932 285 448
 3 0.1044 1.0000 71 76
 # 97
-/home/arpan/BTP/consistency/data/coin/subset_frames/NFLv0z0DKA4
+NFLv0z0DKA4
 2044
 1
 4
@@ -5684,7 +5684,7 @@
 0 0.0000 0.0000 0 11
 24 0.0256 1.0000 1339 1349
 # 98
-/home/arpan/BTP/consistency/data/coin/subset_frames/OSuWR0ZQVbI
+OSuWR0ZQVbI
 1856
 1
 11
@@ -5741,7 +5741,7 @@
 0 0.0000 0.0000 1175 1190
 0 0.0000 0.0000 1718 1732
 # 99
-/home/arpan/BTP/consistency/data/coin/subset_frames/Obsrh7o-xpk
+Obsrh7o-xpk
 470
 1
 2
@@ -5756,7 +5756,7 @@
 0 0.0000 0.0000 159 165
 8 0.1985 1.0000 338 380
 # 100
-/home/arpan/BTP/consistency/data/coin/subset_frames/Oz0TJPqBzwU
+Oz0TJPqBzwU
 1404
 1
 4
@@ -5795,7 +5795,7 @@
 0 0.0000 0.0000 324 356
 12 0.2406 1.0000 1257 1279
 # 101
-/home/arpan/BTP/consistency/data/coin/subset_frames/Q0IfGhYxl_U
+Q0IfGhYxl_U
 2201
 1
 8
@@ -5934,7 +5934,7 @@
 0 0.0000 0.0000 2192 2202
 25 0.0589 1.0000 1287 1292
 # 102
-/home/arpan/BTP/consistency/data/coin/subset_frames/Q0Z5yiEt_Ro
+Q0Z5yiEt_Ro
 1192
 1
 5
@@ -5977,7 +5977,7 @@
 12 0.1111 1.0000 765 785
 12 0.1411 1.0000 1000 1018
 # 103
-/home/arpan/BTP/consistency/data/coin/subset_frames/Q1wPCqIla2E
+Q1wPCqIla2E
 1689
 1
 4
@@ -6036,7 +6036,7 @@
 13 0.0307 1.0000 815 826
 13 0.0220 1.0000 1080 1088
 # 104
-/home/arpan/BTP/consistency/data/coin/subset_frames/Q8Es8SIGe00
+Q8Es8SIGe00
 952
 1
 3
@@ -6080,7 +6080,7 @@
 0 0.0000 0.0000 488 510
 0 0.0000 0.0000 0 13
 # 105
-/home/arpan/BTP/consistency/data/coin/subset_frames/QTjCENf9K2Y
+QTjCENf9K2Y
 1148
 1
 2
@@ -6144,7 +6144,7 @@
 0 0.0000 0.0000 754 763
 0 0.0000 0.0000 436 439
 # 106
-/home/arpan/BTP/consistency/data/coin/subset_frames/QgFSQKlahl4
+QgFSQKlahl4
 2261
 1
 4
@@ -6252,7 +6252,7 @@
 13 0.0122 1.0000 1489 1497
 13 0.0073 1.0000 1719 1724
 # 107
-/home/arpan/BTP/consistency/data/coin/subset_frames/QlOzAReVmeI
+QlOzAReVmeI
 1770
 1
 2
@@ -6348,7 +6348,7 @@
 0 0.0000 0.0000 496 505
 0 0.0000 0.0000 1360 1365
 # 108
-/home/arpan/BTP/consistency/data/coin/subset_frames/QpNHyWkpx00
+QpNHyWkpx00
 906
 1
 4
@@ -6373,7 +6373,7 @@
 0 0.0000 0.0000 15 30
 0 0.0000 0.0000 808 838
 # 109
-/home/arpan/BTP/consistency/data/coin/subset_frames/R3nYbWb0yng
+R3nYbWb0yng
 205
 1
 2
@@ -6390,7 +6390,7 @@
 16 0.4226 0.8795 146 184
 15 0.1751 1.0000 0 16
 # 110
-/home/arpan/BTP/consistency/data/coin/subset_frames/RBXOhuTY088
+RBXOhuTY088
 1278
 1
 5
@@ -6451,7 +6451,7 @@
 0 0.0000 0.0000 1167 1174
 0 0.0000 0.0000 911 916
 # 111
-/home/arpan/BTP/consistency/data/coin/subset_frames/RDXlHJW8ptY
+RDXlHJW8ptY
 891
 1
 4
@@ -6512,7 +6512,7 @@
 13 0.1190 1.0000 629 637
 0 0.0000 0.0000 253 258
 # 112
-/home/arpan/BTP/consistency/data/coin/subset_frames/Rr2BJ_1l9dM
+Rr2BJ_1l9dM
 710
 1
 3
@@ -6546,7 +6546,7 @@
 0 0.0000 0.0000 156 169
 24 0.0328 1.0000 453 459
 # 113
-/home/arpan/BTP/consistency/data/coin/subset_frames/SL6t5SUrat0
+SL6t5SUrat0
 1776
 1
 2
@@ -6592,7 +6592,7 @@
 0 0.0000 0.0000 0 5
 0 0.0000 0.0000 1770 1777
 # 114
-/home/arpan/BTP/consistency/data/coin/subset_frames/SVrVOyAjl5U
+SVrVOyAjl5U
 600
 1
 2
@@ -6631,7 +6631,7 @@
 13 0.4665 1.0000 299 323
 14 0.2618 1.0000 389 408
 # 115
-/home/arpan/BTP/consistency/data/coin/subset_frames/T1lUPp21P-A
+T1lUPp21P-A
 1834
 1
 5
@@ -6712,7 +6712,7 @@
 0 0.0000 0.0000 455 468
 0 0.0000 0.0000 610 615
 # 116
-/home/arpan/BTP/consistency/data/coin/subset_frames/TA1zRnov49A
+TA1zRnov49A
 2146
 1
 4
@@ -6782,7 +6782,7 @@
 10 0.0343 1.0000 946 958
 0 0.0000 0.0000 468 478
 # 117
-/home/arpan/BTP/consistency/data/coin/subset_frames/TDI-fdYxCf8
+TDI-fdYxCf8
 2262
 1
 3
@@ -6892,7 +6892,7 @@
 13 0.0323 1.0000 1450 1460
 13 0.0269 1.0000 1360 1368
 # 118
-/home/arpan/BTP/consistency/data/coin/subset_frames/U4j0LewYwuQ
+U4j0LewYwuQ
 2143
 1
 3
@@ -6950,7 +6950,7 @@
 21 0.0455 1.0000 1166 1181
 21 0.0303 1.0000 1224 1234
 # 119
-/home/arpan/BTP/consistency/data/coin/subset_frames/U7Hv602KAxM
+U7Hv602KAxM
 1366
 1
 3
@@ -6984,7 +6984,7 @@
 0 0.0000 0.0000 1019 1089
 17 0.1922 1.0000 924 949
 # 120
-/home/arpan/BTP/consistency/data/coin/subset_frames/UIqgSVVGVac
+UIqgSVVGVac
 1610
 1
 6
@@ -7043,7 +7043,7 @@
 0 0.0000 0.0000 229 239
 0 0.0000 0.0000 258 264
 # 121
-/home/arpan/BTP/consistency/data/coin/subset_frames/UUw0FIv2tSk
+UUw0FIv2tSk
 2043
 1
 4
@@ -7120,7 +7120,7 @@
 12 0.0227 1.0000 1527 1537
 12 0.0076 1.0000 1412 1416
 # 122
-/home/arpan/BTP/consistency/data/coin/subset_frames/UVUxBtgIGGs
+UVUxBtgIGGs
 1600
 1
 2
@@ -7183,7 +7183,7 @@
 13 0.0521 1.0000 676 685
 13 0.0521 1.0000 711 720
 # 123
-/home/arpan/BTP/consistency/data/coin/subset_frames/Uf4EC-U8CCs
+Uf4EC-U8CCs
 852
 1
 2
@@ -7220,7 +7220,7 @@
 0 0.0000 0.0000 536 545
 0 0.0000 0.0000 645 651
 # 124
-/home/arpan/BTP/consistency/data/coin/subset_frames/Uj_JzLCYY2Y
+Uj_JzLCYY2Y
 1692
 1
 6
@@ -7267,7 +7267,7 @@
 8 0.0370 1.0000 773 779
 0 0.0000 0.0000 94 101
 # 125
-/home/arpan/BTP/consistency/data/coin/subset_frames/UlkBxqXA2qY
+UlkBxqXA2qY
 1156
 1
 3
@@ -7309,7 +7309,7 @@
 8 0.0802 1.0000 977 993
 0 0.0000 0.0000 1057 1060
 # 126
-/home/arpan/BTP/consistency/data/coin/subset_frames/Ux_DqwKxp7s
+Ux_DqwKxp7s
 1140
 1
 3
@@ -7335,7 +7335,7 @@
 0 0.0000 0.0000 0 8
 17 0.0009 0.0085 844 856
 # 127
-/home/arpan/BTP/consistency/data/coin/subset_frames/VZ-RSErogm8
+VZ-RSErogm8
 2202
 1
 3
@@ -7423,7 +7423,7 @@
 22 0.0260 1.0000 841 853
 0 0.0000 0.0000 135 141
 # 128
-/home/arpan/BTP/consistency/data/coin/subset_frames/V_nrca5yuy4
+V_nrca5yuy4
 618
 1
 2
@@ -7462,7 +7462,7 @@
 0 0.0000 0.0000 346 354
 0 0.0000 0.0000 564 569
 # 129
-/home/arpan/BTP/consistency/data/coin/subset_frames/VseePLVnvbU
+VseePLVnvbU
 1062
 1
 3
@@ -7507,7 +7507,7 @@
 8 0.0630 0.8011 743 773
 0 0.0000 0.0000 0 11
 # 130
-/home/arpan/BTP/consistency/data/coin/subset_frames/W-5LZ_nxWcM
+W-5LZ_nxWcM
 1654
 1
 9
@@ -7605,7 +7605,7 @@
 26 0.2009 1.0000 1560 1569
 0 0.0000 0.0000 831 836
 # 131
-/home/arpan/BTP/consistency/data/coin/subset_frames/WBq7-V5OyCs
+WBq7-V5OyCs
 600
 1
 2
@@ -7627,7 +7627,7 @@
 0 0.0000 0.0000 333 349
 15 0.0580 1.0000 141 148
 # 132
-/home/arpan/BTP/consistency/data/coin/subset_frames/XdydmVsqBS8
+XdydmVsqBS8
 606
 1
 2
@@ -7665,7 +7665,7 @@
 0 0.0000 0.0000 549 555
 16 0.0392 1.0000 336 339
 # 133
-/home/arpan/BTP/consistency/data/coin/subset_frames/Xy-SiiA3VNY
+Xy-SiiA3VNY
 1230
 1
 3
@@ -7740,7 +7740,7 @@
 0 0.0000 0.0000 1029 1043
 12 0.0392 1.0000 873 879
 # 134
-/home/arpan/BTP/consistency/data/coin/subset_frames/Y4J7Bn-P1Ag
+Y4J7Bn-P1Ag
 756
 1
 3
@@ -7768,7 +7768,7 @@
 0 0.0000 0.0000 0 14
 0 0.0000 0.0000 389 401
 # 135
-/home/arpan/BTP/consistency/data/coin/subset_frames/YAL6H5SgNAs
+YAL6H5SgNAs
 1195
 1
 3
@@ -7844,7 +7844,7 @@
 0 0.0000 0.0000 613 621
 26 0.1042 1.0000 1013 1019
 # 136
-/home/arpan/BTP/consistency/data/coin/subset_frames/YDDRKOaZwlo
+YDDRKOaZwlo
 1130
 1
 2
@@ -7900,7 +7900,7 @@
 0 0.0000 0.0000 531 538
 8 0.0126 1.0000 643 648
 # 137
-/home/arpan/BTP/consistency/data/coin/subset_frames/YFAvhKizIvc
+YFAvhKizIvc
 1619
 1
 9
@@ -7974,7 +7974,7 @@
 17 0.1430 1.0000 1078 1088
 0 0.0000 0.0000 975 978
 # 138
-/home/arpan/BTP/consistency/data/coin/subset_frames/Z1G4gCbnWBA
+Z1G4gCbnWBA
 470
 1
 2
@@ -7998,7 +7998,7 @@
 0 0.0000 0.0000 456 471
 24 0.0480 1.0000 390 400
 # 139
-/home/arpan/BTP/consistency/data/coin/subset_frames/Z1GT5yFZ3Dc
+Z1GT5yFZ3Dc
 2361
 1
 6
@@ -8080,7 +8080,7 @@
 17 0.1284 1.0000 2162 2170
 0 0.0000 0.0000 506 513
 # 140
-/home/arpan/BTP/consistency/data/coin/subset_frames/ZFYLmiO19Qg
+ZFYLmiO19Qg
 1330
 1
 4
@@ -8133,7 +8133,7 @@
 14 0.0702 1.0000 734 756
 0 0.0000 0.0000 1043 1053
 # 141
-/home/arpan/BTP/consistency/data/coin/subset_frames/ZJbO_YH86GQ
+ZJbO_YH86GQ
 1887
 1
 6
@@ -8227,7 +8227,7 @@
 12 0.0248 1.0000 1318 1330
 0 0.0000 0.0000 966 971
 # 142
-/home/arpan/BTP/consistency/data/coin/subset_frames/ZPd5J2-Qv_4
+ZPd5J2-Qv_4
 1589
 1
 3
@@ -8305,7 +8305,7 @@
 16 0.0067 1.0000 891 898
 16 0.0067 1.0000 938 945
 # 143
-/home/arpan/BTP/consistency/data/coin/subset_frames/Zb9lQGhVv30
+Zb9lQGhVv30
 801
 1
 3
@@ -8338,7 +8338,7 @@
 0 0.0000 0.0000 791 802
 0 0.0000 0.0000 716 724
 # 144
-/home/arpan/BTP/consistency/data/coin/subset_frames/ZfYKpQYm8p0
+ZfYKpQYm8p0
 1706
 1
 4
@@ -8440,7 +8440,7 @@
 0 0.0000 0.0000 1219 1229
 0 0.0000 0.0000 904 911
 # 145
-/home/arpan/BTP/consistency/data/coin/subset_frames/Zk07nWdGAFA
+Zk07nWdGAFA
 1039
 1
 3
@@ -8505,7 +8505,7 @@
 0 0.0000 0.0000 876 883
 0 0.0000 0.0000 588 593
 # 146
-/home/arpan/BTP/consistency/data/coin/subset_frames/_EWrMHUyWrI
+_EWrMHUyWrI
 2060
 1
 4
@@ -8584,7 +8584,7 @@
 0 0.0000 0.0000 723 736
 0 0.0000 0.0000 703 713
 # 147
-/home/arpan/BTP/consistency/data/coin/subset_frames/_MC-7EW7IKo
+_MC-7EW7IKo
 1337
 1
 2
@@ -8644,7 +8644,7 @@
 0 0.0000 0.0000 223 233
 0 0.0000 0.0000 0 5
 # 148
-/home/arpan/BTP/consistency/data/coin/subset_frames/_b4NY7e_j4c
+_b4NY7e_j4c
 1233
 1
 2
@@ -8701,7 +8701,7 @@
 0 0.0000 0.0000 338 348
 13 0.0278 1.0000 937 942
 # 149
-/home/arpan/BTP/consistency/data/coin/subset_frames/aAwSH0yfPAI
+aAwSH0yfPAI
 1138
 1
 2
@@ -8742,7 +8742,7 @@
 8 0.0224 1.0000 718 729
 8 0.0128 1.0000 666 673
 # 150
-/home/arpan/BTP/consistency/data/coin/subset_frames/aHzvrbO6jJg
+aHzvrbO6jJg
 2236
 1
 3
@@ -8760,7 +8760,7 @@
 0 0.0000 0.0000 0 13
 0 0.0000 0.0000 1962 1976
 # 151
-/home/arpan/BTP/consistency/data/coin/subset_frames/aT4ZEq5uYJA
+aT4ZEq5uYJA
 1301
 1
 5
@@ -8810,7 +8810,7 @@
 0 0.0000 0.0000 1177 1196
 20 0.2779 1.0000 899 916
 # 152
-/home/arpan/BTP/consistency/data/coin/subset_frames/bAZCIHgN0Es
+bAZCIHgN0Es
 681
 1
 3
@@ -8838,7 +8838,7 @@
 0 0.0000 0.0000 378 387
 0 0.0000 0.0000 217 225
 # 153
-/home/arpan/BTP/consistency/data/coin/subset_frames/bbmlgZhls-8
+bbmlgZhls-8
 620
 1
 3
@@ -8866,7 +8866,7 @@
 24 0.0738 0.8064 483 503
 28 0.1192 1.0000 151 168
 # 154
-/home/arpan/BTP/consistency/data/coin/subset_frames/bteSM5pH5H0
+bteSM5pH5H0
 500
 1
 5
@@ -8896,7 +8896,7 @@
 0 0.0000 0.0000 40 65
 6 0.2800 1.0000 409 421
 # 155
-/home/arpan/BTP/consistency/data/coin/subset_frames/cSxfqK76dL8
+cSxfqK76dL8
 770
 1
 3
@@ -8931,7 +8931,7 @@
 12 0.0294 1.0000 521 531
 12 0.0199 0.8135 418 426
 # 156
-/home/arpan/BTP/consistency/data/coin/subset_frames/ci3maurDGcE
+ci3maurDGcE
 2131
 1
 2
@@ -9035,7 +9035,7 @@
 30 0.0134 1.0000 1367 1379
 30 0.0096 1.0000 1454 1462
 # 157
-/home/arpan/BTP/consistency/data/coin/subset_frames/d5FiqoypXfo
+d5FiqoypXfo
 1717
 1
 5
@@ -9085,7 +9085,7 @@
 0 0.0000 0.0000 644 654
 0 0.0000 0.0000 99 103
 # 158
-/home/arpan/BTP/consistency/data/coin/subset_frames/d6CzvUp1TJk
+d6CzvUp1TJk
 2208
 1
 10
@@ -9176,7 +9176,7 @@
 25 0.0354 1.0000 696 708
 0 0.0000 0.0000 2196 2209
 # 159
-/home/arpan/BTP/consistency/data/coin/subset_frames/dHS9O49JGj8
+dHS9O49JGj8
 2307
 1
 4
@@ -9211,7 +9211,7 @@
 0 0.0000 0.0000 2125 2218
 0 0.0000 0.0000 1435 1523
 # 160
-/home/arpan/BTP/consistency/data/coin/subset_frames/dsvzdTkg9Bg
+dsvzdTkg9Bg
 1308
 1
 3
@@ -9289,7 +9289,7 @@
 15 0.0875 1.0000 318 329
 0 0.0000 0.0000 1219 1231
 # 161
-/home/arpan/BTP/consistency/data/coin/subset_frames/e-bZp7rg5JQ
+e-bZp7rg5JQ
 1062
 1
 4
@@ -9337,7 +9337,7 @@
 6 0.2801 1.0000 795 806
 8 0.0546 1.0000 511 521
 # 162
-/home/arpan/BTP/consistency/data/coin/subset_frames/e4acnwBoOAc
+e4acnwBoOAc
 861
 1
 2
@@ -9369,7 +9369,7 @@
 28 0.0313 1.0000 611 621
 28 0.0313 1.0000 587 597
 # 163
-/home/arpan/BTP/consistency/data/coin/subset_frames/fFVyzXBs1kQ
+fFVyzXBs1kQ
 1547
 1
 16
@@ -9466,7 +9466,7 @@
 14 0.4317 0.4899 568 581
 27 0.0522 1.0000 303 313
 # 164
-/home/arpan/BTP/consistency/data/coin/subset_frames/fMprcJJY5dk
+fMprcJJY5dk
 1066
 1
 3
@@ -9507,7 +9507,7 @@
 0 0.0000 0.0000 989 1002
 0 0.0000 0.0000 351 359
 # 165
-/home/arpan/BTP/consistency/data/coin/subset_frames/fP-2TGlNo50
+fP-2TGlNo50
 1346
 1
 3
@@ -9557,7 +9557,7 @@
 0 0.0000 0.0000 108 123
 21 0.0184 1.0000 619 629
 # 166
-/home/arpan/BTP/consistency/data/coin/subset_frames/fcvXza5fJBM
+fcvXza5fJBM
 2105
 1
 4
@@ -9619,7 +9619,7 @@
 0 0.0000 0.0000 2095 2106
 7 0.0136 1.0000 743 750
 # 167
-/home/arpan/BTP/consistency/data/coin/subset_frames/fhrMBavomZw
+fhrMBavomZw
 878
 1
 2
@@ -9658,7 +9658,7 @@
 28 0.1501 1.0000 434 449
 0 0.0000 0.0000 138 151
 # 168
-/home/arpan/BTP/consistency/data/coin/subset_frames/fhrXxUj3T2o
+fhrXxUj3T2o
 1057
 1
 3
@@ -9707,7 +9707,7 @@
 1 0.0442 1.0000 384 396
 9 0.0289 0.8746 965 976
 # 169
-/home/arpan/BTP/consistency/data/coin/subset_frames/foSRWkDl1Cg
+foSRWkDl1Cg
 782
 1
 3
@@ -9731,7 +9731,7 @@
 21 0.2031 1.0000 448 471
 21 0.1161 1.0000 431 445
 # 170
-/home/arpan/BTP/consistency/data/coin/subset_frames/fsa7OacktMY
+fsa7OacktMY
 1363
 1
 3
@@ -9837,7 +9837,7 @@
 8 0.0131 1.0000 774 781
 8 0.0131 1.0000 1109 1116
 # 171
-/home/arpan/BTP/consistency/data/coin/subset_frames/gJclfGXfjjU
+gJclfGXfjjU
 964
 1
 3
@@ -9858,7 +9858,7 @@
 0 0.0000 0.0000 891 908
 0 0.0000 0.0000 0 11
 # 172
-/home/arpan/BTP/consistency/data/coin/subset_frames/gQAXI9L_tig
+gQAXI9L_tig
 1811
 1
 11
@@ -9924,7 +9924,7 @@
 28 0.0136 1.0000 1543 1547
 24 0.0223 1.0000 383 386
 # 173
-/home/arpan/BTP/consistency/data/coin/subset_frames/hRLjsK_Sl6Y
+hRLjsK_Sl6Y
 120
 1
 3
@@ -9939,7 +9939,7 @@
 0 0.0000 0.0000 101 121
 0 0.0000 0.0000 108 121
 # 174
-/home/arpan/BTP/consistency/data/coin/subset_frames/hhNPeoQSyWo
+hhNPeoQSyWo
 847
 1
 4
@@ -9971,7 +9971,7 @@
 18 0.7799 0.8135 461 508
 8 0.5838 1.0000 633 645
 # 175
-/home/arpan/BTP/consistency/data/coin/subset_frames/i2EszO-ozMo
+i2EszO-ozMo
 1257
 1
 3
@@ -10033,7 +10033,7 @@
 9 0.0110 1.0000 945 953
 3 0.0607 1.0000 216 223
 # 176
-/home/arpan/BTP/consistency/data/coin/subset_frames/i6DHD6IRHhM
+i6DHD6IRHhM
 924
 1
 5
@@ -10090,7 +10090,7 @@
 0 0.0000 0.0000 526 535
 21 0.1444 1.0000 385 393
 # 177
-/home/arpan/BTP/consistency/data/coin/subset_frames/iImxpOz9tjU
+iImxpOz9tjU
 1340
 1
 5
@@ -10127,7 +10127,7 @@
 13 0.0400 1.0000 636 646
 14 0.0834 1.0000 484 493
 # 178
-/home/arpan/BTP/consistency/data/coin/subset_frames/iO22bh67MqU
+iO22bh67MqU
 1656
 1
 3
@@ -10171,7 +10171,7 @@
 0 0.0000 0.0000 123 138
 0 0.0000 0.0000 508 513
 # 179
-/home/arpan/BTP/consistency/data/coin/subset_frames/jB4KeDe1SSc
+jB4KeDe1SSc
 1844
 1
 3
@@ -10236,7 +10236,7 @@
 0 0.0000 0.0000 1515 1521
 0 0.0000 0.0000 198 201
 # 180
-/home/arpan/BTP/consistency/data/coin/subset_frames/j_41pdFd-vQ
+j_41pdFd-vQ
 1164
 1
 5
@@ -10310,7 +10310,7 @@
 0 0.0000 0.0000 870 881
 0 0.0000 0.0000 33 43
 # 181
-/home/arpan/BTP/consistency/data/coin/subset_frames/jcaZAHl4LZI
+jcaZAHl4LZI
 2303
 1
 4
@@ -10416,7 +10416,7 @@
 0 0.0000 0.0000 2156 2161
 0 0.0000 0.0000 84 88
 # 182
-/home/arpan/BTP/consistency/data/coin/subset_frames/jmeJFd3QDbU
+jmeJFd3QDbU
 2054
 1
 4
@@ -10471,7 +10471,7 @@
 0 0.0000 0.0000 1829 1837
 17 0.1390 1.0000 1457 1465
 # 183
-/home/arpan/BTP/consistency/data/coin/subset_frames/jvhz7tP8lQE
+jvhz7tP8lQE
 1999
 1
 3
@@ -10536,7 +10536,7 @@
 0 0.0000 0.0000 769 781
 0 0.0000 0.0000 1799 1805
 # 184
-/home/arpan/BTP/consistency/data/coin/subset_frames/kAJ30GkSloI
+kAJ30GkSloI
 1590
 1
 4
@@ -10622,7 +10622,7 @@
 15 0.0833 1.0000 519 528
 0 0.0000 0.0000 1338 1344
 # 185
-/home/arpan/BTP/consistency/data/coin/subset_frames/kAatGbQa7u4
+kAatGbQa7u4
 1474
 1
 3
@@ -10713,7 +10713,7 @@
 13 0.0294 1.0000 657 667
 13 0.0294 1.0000 769 779
 # 186
-/home/arpan/BTP/consistency/data/coin/subset_frames/kBedwKpuW10
+kBedwKpuW10
 1214
 1
 2
@@ -10752,7 +10752,7 @@
 0 0.0000 0.0000 0 14
 0 0.0000 0.0000 259 266
 # 187
-/home/arpan/BTP/consistency/data/coin/subset_frames/kTige-4AhPk
+kTige-4AhPk
 1174
 1
 2
@@ -10792,7 +10792,7 @@
 0 0.0000 0.0000 556 575
 0 0.0000 0.0000 1108 1123
 # 188
-/home/arpan/BTP/consistency/data/coin/subset_frames/lBkkOEKknFU
+lBkkOEKknFU
 1498
 1
 4
@@ -10848,7 +10848,7 @@
 17 0.1666 1.0000 841 866
 0 0.0000 0.0000 1416 1434
 # 189
-/home/arpan/BTP/consistency/data/coin/subset_frames/mSCpJM72cMo
+mSCpJM72cMo
 1128
 1
 6
@@ -10907,7 +10907,7 @@
 15 0.0655 0.9320 268 284
 0 0.0000 0.0000 299 313
 # 190
-/home/arpan/BTP/consistency/data/coin/subset_frames/mSDQi4jQkLg
+mSDQi4jQkLg
 501
 1
 2
@@ -10921,7 +10921,7 @@
 8 0.1848 1.0000 216 268
 0 0.0000 0.0000 0 25
 # 191
-/home/arpan/BTP/consistency/data/coin/subset_frames/mSssYtUrh_c
+mSssYtUrh_c
 1703
 1
 3
@@ -10946,7 +10946,7 @@
 0 0.0000 0.0000 1526 1641
 0 0.0000 0.0000 863 911
 # 192
-/home/arpan/BTP/consistency/data/coin/subset_frames/maMyJaxGqOg
+maMyJaxGqOg
 1820
 1
 4
@@ -11048,7 +11048,7 @@
 25 0.0181 1.0000 465 468
 26 0.0521 1.0000 1425 1428
 # 193
-/home/arpan/BTP/consistency/data/coin/subset_frames/n-boXxOmPqA
+n-boXxOmPqA
 1036
 1
 3
@@ -11103,7 +11103,7 @@
 8 0.0395 1.0000 681 696
 0 0.0000 0.0000 1021 1026
 # 194
-/home/arpan/BTP/consistency/data/coin/subset_frames/nHTMpCc2H4c
+nHTMpCc2H4c
 101
 1
 3
@@ -11116,7 +11116,7 @@
 10 0.4917 0.5166 15 50
 12 0.0739 0.2248 90 102
 # 195
-/home/arpan/BTP/consistency/data/coin/subset_frames/nW46FnVJSuU
+nW46FnVJSuU
 1616
 1
 5
@@ -11140,7 +11140,7 @@
 0 0.0000 0.0000 106 114
 0 0.0000 0.0000 1609 1617
 # 196
-/home/arpan/BTP/consistency/data/coin/subset_frames/nWsd3uck5pw
+nWsd3uck5pw
 2205
 1
 6
@@ -11236,7 +11236,7 @@
 0 0.0000 0.0000 129 141
 0 0.0000 0.0000 1419 1423
 # 197
-/home/arpan/BTP/consistency/data/coin/subset_frames/nZJCni5mNtU
+nZJCni5mNtU
 2269
 1
 3
@@ -11316,7 +11316,7 @@
 26 0.0313 1.0000 1199 1204
 0 0.0000 0.0000 2265 2270
 # 198
-/home/arpan/BTP/consistency/data/coin/subset_frames/nn8atK3zgnw
+nn8atK3zgnw
 1663
 1
 2
@@ -11348,7 +11348,7 @@
 0 0.0000 0.0000 346 354
 19 0.0212 1.0000 729 736
 # 199
-/home/arpan/BTP/consistency/data/coin/subset_frames/nnKLY05wBDA
+nnKLY05wBDA
 2228
 1
 2
@@ -11434,7 +11434,7 @@
 0 0.0000 0.0000 1257 1263
 0 0.0000 0.0000 2007 2010
 # 200
-/home/arpan/BTP/consistency/data/coin/subset_frames/o5o99nvlcdc
+o5o99nvlcdc
 1284
 1
 3
@@ -11484,7 +11484,7 @@
 0 0.0000 0.0000 1200 1212
 0 0.0000 0.0000 0 3
 # 201
-/home/arpan/BTP/consistency/data/coin/subset_frames/o876FrHggYI
+o876FrHggYI
 595
 1
 3
@@ -11500,7 +11500,7 @@
 0 0.0000 0.0000 31 46
 0 0.0000 0.0000 483 525
 # 202
-/home/arpan/BTP/consistency/data/coin/subset_frames/oMF9Ut2_ZBQ
+oMF9Ut2_ZBQ
 1328
 1
 4
@@ -11577,7 +11577,7 @@
 0 0.0000 0.0000 1169 1174
 0 0.0000 0.0000 791 794
 # 203
-/home/arpan/BTP/consistency/data/coin/subset_frames/oOQ2fVYeu6Y
+oOQ2fVYeu6Y
 988
 1
 5
@@ -11631,7 +11631,7 @@
 0 0.0000 0.0000 213 229
 8 0.1042 1.0000 468 481
 # 204
-/home/arpan/BTP/consistency/data/coin/subset_frames/oRAydytFy0Y
+oRAydytFy0Y
 733
 1
 3
@@ -11662,7 +11662,7 @@
 0 0.0000 0.0000 161 173
 24 0.0303 1.0000 468 474
 # 205
-/home/arpan/BTP/consistency/data/coin/subset_frames/ohLUwGX26uY
+ohLUwGX26uY
 791
 1
 4
@@ -11696,7 +11696,7 @@
 14 0.1155 0.9662 590 600
 26 0.2001 1.0000 638 647
 # 206
-/home/arpan/BTP/consistency/data/coin/subset_frames/olYlYmmAnfs
+olYlYmmAnfs
 993
 1
 2
@@ -11731,7 +11731,7 @@
 8 0.0355 1.0000 917 941
 8 0.0254 1.0000 443 459
 # 207
-/home/arpan/BTP/consistency/data/coin/subset_frames/opypELA-Prw
+opypELA-Prw
 1669
 1
 3
@@ -11802,7 +11802,7 @@
 0 0.0000 0.0000 360 368
 0 0.0000 0.0000 1242 1248
 # 208
-/home/arpan/BTP/consistency/data/coin/subset_frames/ow7-g8nUPLs
+ow7-g8nUPLs
 1885
 1
 8
@@ -11897,7 +11897,7 @@
 2 0.0606 1.0000 1511 1528
 2 0.0424 1.0000 1539 1551
 # 209
-/home/arpan/BTP/consistency/data/coin/subset_frames/ozgQRSRy6uQ
+ozgQRSRy6uQ
 1728
 1
 3
@@ -11964,7 +11964,7 @@
 2 0.0927 1.0000 1016 1024
 9 0.0278 1.0000 941 944
 # 210
-/home/arpan/BTP/consistency/data/coin/subset_frames/oztdEZ-Vcb0
+oztdEZ-Vcb0
 1380
 1
 5
@@ -12023,7 +12023,7 @@
 0 0.0000 0.0000 0 6
 13 0.0174 1.0000 566 571
 # 211
-/home/arpan/BTP/consistency/data/coin/subset_frames/pNaxkdMB9kQ
+pNaxkdMB9kQ
 1983
 1
 2
@@ -12106,7 +12106,7 @@
 0 0.0000 0.0000 1227 1234
 0 0.0000 0.0000 1274 1277
 # 212
-/home/arpan/BTP/consistency/data/coin/subset_frames/pYfcsc3Sp_4
+pYfcsc3Sp_4
 893
 1
 2
@@ -12135,7 +12135,7 @@
 0 0.0000 0.0000 491 522
 0 0.0000 0.0000 652 674
 # 213
-/home/arpan/BTP/consistency/data/coin/subset_frames/pa4TcQ2uPyw
+pa4TcQ2uPyw
 392
 1
 2
@@ -12158,7 +12158,7 @@
 24 0.0954 1.0000 156 183
 24 0.0418 1.0000 98 110
 # 214
-/home/arpan/BTP/consistency/data/coin/subset_frames/q4FuhVpwZfU
+q4FuhVpwZfU
 1918
 1
 2
@@ -12240,7 +12240,7 @@
 25 0.0109 1.0000 466 476
 25 0.0109 1.0000 914 924
 # 215
-/home/arpan/BTP/consistency/data/coin/subset_frames/qKl9r7QG-SA
+qKl9r7QG-SA
 1773
 1
 3
@@ -12286,7 +12286,7 @@
 0 0.0000 0.0000 834 841
 0 0.0000 0.0000 881 887
 # 216
-/home/arpan/BTP/consistency/data/coin/subset_frames/qd7onfkw1iU
+qd7onfkw1iU
 1564
 1
 3
@@ -12342,7 +12342,7 @@
 0 0.0000 0.0000 1398 1415
 0 0.0000 0.0000 66 81
 # 217
-/home/arpan/BTP/consistency/data/coin/subset_frames/r4q_QOot_Po
+r4q_QOot_Po
 1780
 1
 4
@@ -12404,7 +12404,7 @@
 0 0.0000 0.0000 127 138
 0 0.0000 0.0000 1605 1617
 # 218
-/home/arpan/BTP/consistency/data/coin/subset_frames/rJKPSTjx1ow
+rJKPSTjx1ow
 577
 1
 5
@@ -12424,7 +12424,7 @@
 0 0.0000 0.0000 481 496
 0 0.0000 0.0000 510 523
 # 219
-/home/arpan/BTP/consistency/data/coin/subset_frames/ruXaqx4KiFU
+ruXaqx4KiFU
 1876
 1
 4
@@ -12489,7 +12489,7 @@
 14 0.1251 1.0000 1196 1206
 13 0.0589 1.0000 1071 1081
 # 220
-/home/arpan/BTP/consistency/data/coin/subset_frames/rx5LLlgZwAU
+rx5LLlgZwAU
 508
 1
 2
@@ -12514,7 +12514,7 @@
 0 0.0000 0.0000 158 169
 0 0.0000 0.0000 48 59
 # 221
-/home/arpan/BTP/consistency/data/coin/subset_frames/sKmt6oNr0Fw
+sKmt6oNr0Fw
 1299
 1
 6
@@ -12549,7 +12549,7 @@
 0 0.0000 0.0000 599 612
 0 0.0000 0.0000 806 812
 # 222
-/home/arpan/BTP/consistency/data/coin/subset_frames/t0OIOCAlZDI
+t0OIOCAlZDI
 1177
 1
 4
@@ -12585,7 +12585,7 @@
 0 0.0000 0.0000 136 163
 0 0.0000 0.0000 738 765
 # 223
-/home/arpan/BTP/consistency/data/coin/subset_frames/tAF0a2HELHg
+tAF0a2HELHg
 2106
 1
 4
@@ -12677,7 +12677,7 @@
 0 0.0000 0.0000 1164 1172
 13 0.0438 1.0000 654 663
 # 224
-/home/arpan/BTP/consistency/data/coin/subset_frames/tOL40qUErRg
+tOL40qUErRg
 1121
 1
 4
@@ -12725,7 +12725,7 @@
 2 0.0334 1.0000 643 658
 2 0.0297 1.0000 728 742
 # 225
-/home/arpan/BTP/consistency/data/coin/subset_frames/tRHl6qtMEo4
+tRHl6qtMEo4
 2022
 1
 5
@@ -12827,7 +12827,7 @@
 0 0.0000 0.0000 91 98
 10 0.0063 1.0000 1003 1006
 # 226
-/home/arpan/BTP/consistency/data/coin/subset_frames/tbz-RbXQQbY
+tbz-RbXQQbY
 1619
 1
 3
@@ -12918,7 +12918,7 @@
 0 0.0000 0.0000 364 374
 6 0.0269 1.0000 746 752
 # 227
-/home/arpan/BTP/consistency/data/coin/subset_frames/uUzeruQT8xE
+uUzeruQT8xE
 1860
 1
 4
@@ -12988,7 +12988,7 @@
 0 0.0000 0.0000 879 891
 21 0.0324 1.0000 1163 1174
 # 228
-/home/arpan/BTP/consistency/data/coin/subset_frames/uh1K_M60T-M
+uh1K_M60T-M
 632
 1
 2
@@ -13004,7 +13004,7 @@
 2 0.4689 1.0000 146 245
 3 0.1296 0.4586 305 315
 # 229
-/home/arpan/BTP/consistency/data/coin/subset_frames/uirwPtzhWVk
+uirwPtzhWVk
 2132
 1
 4
@@ -13074,7 +13074,7 @@
 12 0.0242 1.0000 1831 1850
 10 0.0209 1.0000 881 886
 # 230
-/home/arpan/BTP/consistency/data/coin/subset_frames/vpeQy9x1YAM
+vpeQy9x1YAM
 1299
 1
 5
@@ -13133,7 +13133,7 @@
 9 0.0266 1.0000 912 919
 3 0.0545 1.0000 159 164
 # 231
-/home/arpan/BTP/consistency/data/coin/subset_frames/wAQrLDN7Jok
+wAQrLDN7Jok
 1263
 1
 3
@@ -13187,7 +13187,7 @@
 0 0.0000 0.0000 0 13
 16 0.0523 1.0000 677 691
 # 232
-/home/arpan/BTP/consistency/data/coin/subset_frames/wHfdPPjBRHk
+wHfdPPjBRHk
 1393
 1
 3
@@ -13235,7 +13235,7 @@
 0 0.0000 0.0000 1081 1096
 28 0.0180 1.0000 588 594
 # 233
-/home/arpan/BTP/consistency/data/coin/subset_frames/wTAKaUDWAvc
+wTAKaUDWAvc
 1057
 1
 2
@@ -13272,7 +13272,7 @@
 17 0.0219 1.0000 911 925
 17 0.0191 1.0000 871 883
 # 234
-/home/arpan/BTP/consistency/data/coin/subset_frames/wZ7G6PelVvA
+wZ7G6PelVvA
 1087
 1
 3
@@ -13313,7 +13313,7 @@
 0 0.0000 0.0000 456 478
 30 0.1341 1.0000 770 785
 # 235
-/home/arpan/BTP/consistency/data/coin/subset_frames/wlfpQjEWmu0
+wlfpQjEWmu0
 1204
 1
 2
@@ -13367,7 +13367,7 @@
 13 0.0121 1.0000 566 576
 13 0.0121 1.0000 791 801
 # 236
-/home/arpan/BTP/consistency/data/coin/subset_frames/wxq5Xt7xwJU
+wxq5Xt7xwJU
 1278
 1
 6
@@ -13414,7 +13414,7 @@
 24 0.1605 0.8848 814 831
 24 0.1191 1.0000 1046 1054
 # 237
-/home/arpan/BTP/consistency/data/coin/subset_frames/x3mP6poDdbY
+x3mP6poDdbY
 1807
 1
 3
@@ -13463,7 +13463,7 @@
 0 0.0000 0.0000 1553 1573
 0 0.0000 0.0000 1458 1476
 # 238
-/home/arpan/BTP/consistency/data/coin/subset_frames/xB14qdWt_-U
+xB14qdWt_-U
 1781
 1
 2
@@ -13507,7 +13507,7 @@
 12 0.0451 1.0000 650 666
 0 0.0000 0.0000 1102 1115
 # 239
-/home/arpan/BTP/consistency/data/coin/subset_frames/xHbJ9vyj5xA
+xHbJ9vyj5xA
 1457
 1
 3
@@ -13565,7 +13565,7 @@
 0 0.0000 0.0000 573 583
 0 0.0000 0.0000 1451 1458
 # 240
-/home/arpan/BTP/consistency/data/coin/subset_frames/xhtqxi8yV90
+xhtqxi8yV90
 524
 1
 4
@@ -13587,7 +13587,7 @@
 8 0.3707 1.0000 435 469
 0 0.0000 0.0000 519 525
 # 241
-/home/arpan/BTP/consistency/data/coin/subset_frames/y-drlyDrxGA
+y-drlyDrxGA
 1108
 1
 2
@@ -13612,7 +13612,7 @@
 7 0.0326 1.0000 709 724
 7 0.0254 1.0000 724 736
 # 242
-/home/arpan/BTP/consistency/data/coin/subset_frames/y45ipq7hEJM
+y45ipq7hEJM
 1385
 1
 2
@@ -13644,7 +13644,7 @@
 0 0.0000 0.0000 1098 1106
 0 0.0000 0.0000 1060 1065
 # 243
-/home/arpan/BTP/consistency/data/coin/subset_frames/ynuFiUxL-gs
+ynuFiUxL-gs
 564
 1
 3
@@ -13669,7 +13669,7 @@
 0 0.0000 0.0000 0 10
 9 0.3894 1.0000 418 430
 # 244
-/home/arpan/BTP/consistency/data/coin/subset_frames/z-E9U-vM3WI
+z-E9U-vM3WI
 663
 1
 2
@@ -13694,7 +13694,7 @@
 24 0.0610 1.0000 564 589
 0 0.0000 0.0000 69 89
 # 245
-/home/arpan/BTP/consistency/data/coin/subset_frames/zPsTtRG0IGI
+zPsTtRG0IGI
 1252
 1
 2
@@ -13745,7 +13745,7 @@
 0 0.0000 0.0000 165 178
 15 0.0198 1.0000 805 815
 # 246
-/home/arpan/BTP/consistency/data/coin/subset_frames/-R6zVQR-Npk
+-R6zVQR-Npk
 368
 1
 3
@@ -13765,7 +13765,7 @@
 0 0.0000 0.0000 332 349
 8 0.1121 0.4972 302 321
 # 247
-/home/arpan/BTP/consistency/data/coin/subset_frames/0XAzp_PrUD8
+0XAzp_PrUD8
 1052
 1
 2
@@ -13805,7 +13805,7 @@
 14 0.0671 1.0000 905 920
 0 0.0000 0.0000 203 213
 # 248
-/home/arpan/BTP/consistency/data/coin/subset_frames/0YsQXmN5voc
+0YsQXmN5voc
 1188
 1
 3
@@ -13872,7 +13872,7 @@
 0 0.0000 0.0000 1041 1051
 0 0.0000 0.0000 988 996
 # 249
-/home/arpan/BTP/consistency/data/coin/subset_frames/3vcdSsN9x74
+3vcdSsN9x74
 1841
 1
 3
@@ -13963,7 +13963,7 @@
 0 0.0000 0.0000 1049 1057
 0 0.0000 0.0000 1091 1094
 # 250
-/home/arpan/BTP/consistency/data/coin/subset_frames/4k5h8woowXs
+4k5h8woowXs
 748
 1
 3
@@ -14009,7 +14009,7 @@
 13 0.1339 1.0000 491 506
 26 0.2343 1.0000 637 652
 # 251
-/home/arpan/BTP/consistency/data/coin/subset_frames/56268gczO80
+56268gczO80
 1897
 1
 4
@@ -14090,7 +14090,7 @@
 0 0.0000 0.0000 1558 1566
 0 0.0000 0.0000 630 638
 # 252
-/home/arpan/BTP/consistency/data/coin/subset_frames/58HYW3vD52k
+58HYW3vD52k
 1811
 1
 5
@@ -14182,7 +14182,7 @@
 0 0.0000 0.0000 1790 1799
 0 0.0000 0.0000 128 136
 # 253
-/home/arpan/BTP/consistency/data/coin/subset_frames/6h7DJW7vewk
+6h7DJW7vewk
 1860
 1
 3
@@ -14207,7 +14207,7 @@
 24 0.1498 1.0000 1201 1267
 24 0.1810 1.0000 848 890
 # 254
-/home/arpan/BTP/consistency/data/coin/subset_frames/7na4vxsDPwA
+7na4vxsDPwA
 1142
 1
 5
@@ -14290,7 +14290,7 @@
 1 0.0596 1.0000 271 278
 0 0.0000 0.0000 139 143
 # 255
-/home/arpan/BTP/consistency/data/coin/subset_frames/7uMmgOwUYrw
+7uMmgOwUYrw
 1969
 1
 4
@@ -14348,7 +14348,7 @@
 0 0.0000 0.0000 1906 1911
 23 0.0501 1.0000 323 328
 # 256
-/home/arpan/BTP/consistency/data/coin/subset_frames/7wndZNQpC_E
+7wndZNQpC_E
 726
 1
 6
@@ -14376,7 +14376,7 @@
 9 0.5811 0.5811 314 366
 0 0.0000 0.0000 301 306
 # 257
-/home/arpan/BTP/consistency/data/coin/subset_frames/88DyXnOyiFg
+88DyXnOyiFg
 201
 1
 3
@@ -14392,7 +14392,7 @@
 13 0.0968 0.7248 53 63
 26 0.0841 0.2373 142 154
 # 258
-/home/arpan/BTP/consistency/data/coin/subset_frames/8_dukhGND48
+8_dukhGND48
 925
 1
 4
@@ -14423,7 +14423,7 @@
 25 0.0601 1.0000 151 166
 13 0.1113 1.0000 460 466
 # 259
-/home/arpan/BTP/consistency/data/coin/subset_frames/9783XpGuSng
+9783XpGuSng
 271
 1
 2
@@ -14440,7 +14440,7 @@
 0 0.0000 0.0000 261 272
 0 0.0000 0.0000 137 147
 # 260
-/home/arpan/BTP/consistency/data/coin/subset_frames/9KHaiyoGn3c
+9KHaiyoGn3c
 1291
 1
 3
@@ -14466,7 +14466,7 @@
 10 0.0982 0.9829 710 770
 0 0.0000 0.0000 1100 1128
 # 261
-/home/arpan/BTP/consistency/data/coin/subset_frames/9VVA18rUXAI
+9VVA18rUXAI
 1149
 1
 3
@@ -14544,7 +14544,7 @@
 0 0.0000 0.0000 977 987
 0 0.0000 0.0000 1042 1049
 # 262
-/home/arpan/BTP/consistency/data/coin/subset_frames/AtRXr7n45jc
+AtRXr7n45jc
 565
 1
 3
@@ -14561,7 +14561,7 @@
 10 0.0586 1.0000 303 325
 10 0.0225 1.0000 251 260
 # 263
-/home/arpan/BTP/consistency/data/coin/subset_frames/CJCmSilXTEc
+CJCmSilXTEc
 2216
 1
 5
@@ -14671,7 +14671,7 @@
 13 0.0491 1.0000 729 738
 0 0.0000 0.0000 0 4
 # 264
-/home/arpan/BTP/consistency/data/coin/subset_frames/CaEgb2VTbos
+CaEgb2VTbos
 292
 1
 3
@@ -14692,7 +14692,7 @@
 28 0.4172 1.0000 85 101
 24 0.0068 0.0583 120 128
 # 265
-/home/arpan/BTP/consistency/data/coin/subset_frames/FSKSkZzpqR8
+FSKSkZzpqR8
 1422
 1
 4
@@ -14762,7 +14762,7 @@
 13 0.1796 1.0000 936 960
 25 0.0606 1.0000 579 599
 # 266
-/home/arpan/BTP/consistency/data/coin/subset_frames/GvkvjDyzTRk
+GvkvjDyzTRk
 1386
 1
 2
@@ -14799,7 +14799,7 @@
 0 0.0000 0.0000 1292 1305
 13 0.0271 1.0000 378 388
 # 267
-/home/arpan/BTP/consistency/data/coin/subset_frames/H9n0dVEes6o
+H9n0dVEes6o
 939
 1
 4
@@ -14822,7 +14822,7 @@
 14 0.7388 0.9557 671 738
 0 0.0000 0.0000 276 298
 # 268
-/home/arpan/BTP/consistency/data/coin/subset_frames/J9rAe-T5iak
+J9rAe-T5iak
 1020
 1
 5
@@ -14859,7 +14859,7 @@
 0 0.0000 0.0000 893 934
 7 0.5832 1.0000 129 164
 # 269
-/home/arpan/BTP/consistency/data/coin/subset_frames/JNVST3ieA1w
+JNVST3ieA1w
 2337
 1
 2
@@ -14909,7 +14909,7 @@
 0 0.0000 0.0000 1373 1381
 12 0.0108 1.0000 194 201
 # 270
-/home/arpan/BTP/consistency/data/coin/subset_frames/JY8OABprVk4
+JY8OABprVk4
 2289
 1
 6
@@ -15008,7 +15008,7 @@
 0 0.0000 0.0000 551 566
 0 0.0000 0.0000 0 10
 # 271
-/home/arpan/BTP/consistency/data/coin/subset_frames/KBbeGO5qRpE
+KBbeGO5qRpE
 2148
 1
 3
@@ -15083,7 +15083,7 @@
 8 0.0255 1.0000 1428 1446
 8 0.0208 1.0000 1519 1534
 # 272
-/home/arpan/BTP/consistency/data/coin/subset_frames/KcmZK7_oMIk
+KcmZK7_oMIk
 1172
 1
 4
@@ -15114,7 +15114,7 @@
 0 0.0000 0.0000 1038 1085
 0 0.0000 0.0000 1090 1116
 # 273
-/home/arpan/BTP/consistency/data/coin/subset_frames/KlLCIDY3I8g
+KlLCIDY3I8g
 2185
 1
 4
@@ -15182,7 +15182,7 @@
 14 0.0530 1.0000 1025 1036
 0 0.0000 0.0000 215 218
 # 274
-/home/arpan/BTP/consistency/data/coin/subset_frames/MbMHv5l5xA0
+MbMHv5l5xA0
 1014
 1
 3
@@ -15216,7 +15216,7 @@
 0 0.0000 0.0000 230 245
 0 0.0000 0.0000 193 201
 # 275
-/home/arpan/BTP/consistency/data/coin/subset_frames/NHk4xAVgWeQ
+NHk4xAVgWeQ
 1147
 1
 3
@@ -15236,7 +15236,7 @@
 13 0.8017 0.8259 610 633
 27 0.0979 0.5167 595 603
 # 276
-/home/arpan/BTP/consistency/data/coin/subset_frames/NKItrqXhycE
+NKItrqXhycE
 1400
 1
 3
@@ -15289,7 +15289,7 @@
 0 0.0000 0.0000 1340 1348
 0 0.0000 0.0000 68 73
 # 277
-/home/arpan/BTP/consistency/data/coin/subset_frames/P1XthAiCn6g
+P1XthAiCn6g
 1475
 1
 3
@@ -15381,7 +15381,7 @@
 0 0.0000 0.0000 321 330
 0 0.0000 0.0000 1225 1233
 # 278
-/home/arpan/BTP/consistency/data/coin/subset_frames/P3LuRM4cOj0
+P3LuRM4cOj0
 1104
 1
 4
@@ -15429,7 +15429,7 @@
 14 0.1088 1.0000 691 711
 13 0.0695 1.0000 583 588
 # 279
-/home/arpan/BTP/consistency/data/coin/subset_frames/PsrNlepzwnk
+PsrNlepzwnk
 705
 1
 5
@@ -15460,7 +15460,7 @@
 0 0.0000 0.0000 601 618
 0 0.0000 0.0000 636 653
 # 280
-/home/arpan/BTP/consistency/data/coin/subset_frames/Q63qiMsKIlM
+Q63qiMsKIlM
 975
 1
 2
@@ -15516,7 +15516,7 @@
 2 0.0278 1.0000 221 228
 9 0.0094 1.0000 774 779
 # 281
-/home/arpan/BTP/consistency/data/coin/subset_frames/Rtqg32JZcwM
+Rtqg32JZcwM
 1057
 1
 2
@@ -15540,7 +15540,7 @@
 0 0.0000 0.0000 241 260
 0 0.0000 0.0000 0 5
 # 282
-/home/arpan/BTP/consistency/data/coin/subset_frames/SHEkIr2BSFw
+SHEkIr2BSFw
 1318
 1
 3
@@ -15567,7 +15567,7 @@
 25 0.0286 1.0000 109 118
 0 0.0000 0.0000 744 749
 # 283
-/home/arpan/BTP/consistency/data/coin/subset_frames/T-_FW5mmhjI
+T-_FW5mmhjI
 945
 1
 4
@@ -15601,7 +15601,7 @@
 20 0.2821 1.0000 744 763
 22 0.0370 1.0000 478 493
 # 284
-/home/arpan/BTP/consistency/data/coin/subset_frames/UGnFe0RDao8
+UGnFe0RDao8
 600
 1
 4
@@ -15624,7 +15624,7 @@
 0 0.0000 0.0000 393 405
 0 0.0000 0.0000 458 468
 # 285
-/home/arpan/BTP/consistency/data/coin/subset_frames/V3PVlqQHZHM
+V3PVlqQHZHM
 2046
 1
 5
@@ -15700,7 +15700,7 @@
 12 0.0185 1.0000 1450 1462
 10 0.0759 1.0000 660 668
 # 286
-/home/arpan/BTP/consistency/data/coin/subset_frames/YUMRQn_7z90
+YUMRQn_7z90
 1228
 1
 5
@@ -15766,7 +15766,7 @@
 19 0.0932 0.3411 403 412
 0 0.0000 0.0000 1177 1181
 # 287
-/home/arpan/BTP/consistency/data/coin/subset_frames/Yc1YYQWzLfE
+Yc1YYQWzLfE
 2334
 1
 3
@@ -15847,7 +15847,7 @@
 0 0.0000 0.0000 1870 1875
 0 0.0000 0.0000 1115 1120
 # 288
-/home/arpan/BTP/consistency/data/coin/subset_frames/ZXn0r1BSdSM
+ZXn0r1BSdSM
 980
 1
 2
@@ -15874,7 +15874,7 @@
 1 0.0310 0.3953 444 456
 1 0.0471 1.0000 401 408
 # 289
-/home/arpan/BTP/consistency/data/coin/subset_frames/_uPaTvS_66I
+_uPaTvS_66I
 1993
 1
 2
@@ -15909,7 +15909,7 @@
 9 0.0064 1.0000 907 917
 9 0.0021 1.0000 856 859
 # 290
-/home/arpan/BTP/consistency/data/coin/subset_frames/blpKk61zZ8I
+blpKk61zZ8I
 2122
 1
 4
@@ -15975,7 +15975,7 @@
 12 0.0294 1.0000 1540 1545
 12 0.0059 1.0000 793 798
 # 291
-/home/arpan/BTP/consistency/data/coin/subset_frames/cBI6Cs1Fung
+cBI6Cs1Fung
 2159
 1
 6
@@ -16079,7 +16079,7 @@
 0 0.0000 0.0000 1967 1977
 14 0.1043 1.0000 1483 1492
 # 292
-/home/arpan/BTP/consistency/data/coin/subset_frames/dycgKqaSjz8
+dycgKqaSjz8
 544
 1
 3
@@ -16103,7 +16103,7 @@
 0 0.0000 0.0000 462 504
 0 0.0000 0.0000 139 176
 # 293
-/home/arpan/BTP/consistency/data/coin/subset_frames/e1iBr7Xo1iw
+e1iBr7Xo1iw
 1579
 1
 2
@@ -16144,7 +16144,7 @@
 28 0.0429 1.0000 1036 1056
 0 0.0000 0.0000 616 623
 # 294
-/home/arpan/BTP/consistency/data/coin/subset_frames/eXoJaU7dPV8
+eXoJaU7dPV8
 760
 1
 4
@@ -16179,7 +16179,7 @@
 0 0.0000 0.0000 279 314
 0 0.0000 0.0000 284 309
 # 295
-/home/arpan/BTP/consistency/data/coin/subset_frames/fjQTeFVo_jc
+fjQTeFVo_jc
 1221
 1
 4
@@ -16237,7 +16237,7 @@
 0 0.0000 0.0000 967 987
 26 0.2295 1.0000 503 521
 # 296
-/home/arpan/BTP/consistency/data/coin/subset_frames/fuNB9A_Z2qI
+fuNB9A_Z2qI
 549
 1
 6
@@ -16258,7 +16258,7 @@
 8 0.1248 1.0000 211 227
 8 0.0874 1.0000 326 337
 # 297
-/home/arpan/BTP/consistency/data/coin/subset_frames/g8etIwpQKVk
+g8etIwpQKVk
 278
 1
 4
@@ -16275,7 +16275,7 @@
 28 0.7063 0.7063 119 176
 28 0.2368 0.5451 227 249
 # 298
-/home/arpan/BTP/consistency/data/coin/subset_frames/lBE1RK28l_8
+lBE1RK28l_8
 1816
 1
 2
@@ -16315,7 +16315,7 @@
 0 0.0000 0.0000 1450 1459
 0 0.0000 0.0000 842 851
 # 299
-/home/arpan/BTP/consistency/data/coin/subset_frames/mDHSf7LVWJA
+mDHSf7LVWJA
 1823
 1
 7
@@ -16375,7 +16375,7 @@
 0 0.0000 0.0000 0 14
 0 0.0000 0.0000 1493 1501
 # 300
-/home/arpan/BTP/consistency/data/coin/subset_frames/mFt1s0XFbOI
+mFt1s0XFbOI
 366
 1
 3
@@ -16386,7 +16386,7 @@
 7 0.2454 0.2454 0 367
 18 0.6000 1.0000 190 235
 # 301
-/home/arpan/BTP/consistency/data/coin/subset_frames/pBeGMZGlfdU
+pBeGMZGlfdU
 626
 1
 4
@@ -16407,7 +16407,7 @@
 10 0.4118 0.5438 351 486
 11 0.0545 1.0000 447 452
 # 302
-/home/arpan/BTP/consistency/data/coin/subset_frames/psehCJ0Kxz0
+psehCJ0Kxz0
 1351
 1
 2
@@ -16504,7 +16504,7 @@
 14 0.0207 1.0000 534 539
 13 0.0098 1.0000 366 369
 # 303
-/home/arpan/BTP/consistency/data/coin/subset_frames/r9WA7OJAxwM
+r9WA7OJAxwM
 1540
 1
 3
@@ -16533,7 +16533,7 @@
 0 0.0000 0.0000 951 1115
 0 0.0000 0.0000 1305 1323
 # 304
-/home/arpan/BTP/consistency/data/coin/subset_frames/rWjCuGQCDj0
+rWjCuGQCDj0
 1003
 1
 3
@@ -16558,7 +16558,7 @@
 0 0.0000 0.0000 944 998
 15 0.1112 1.0000 576 584
 # 305
-/home/arpan/BTP/consistency/data/coin/subset_frames/th2wZ0W8ulA
+th2wZ0W8ulA
 1306
 1
 5
@@ -16649,7 +16649,7 @@
 0 0.0000 0.0000 151 160
 0 0.0000 0.0000 0 5
 # 306
-/home/arpan/BTP/consistency/data/coin/subset_frames/u9ryB0WMetM
+u9ryB0WMetM
 1337
 1
 5
@@ -16717,7 +16717,7 @@
 13 0.0927 1.0000 865 871
 13 0.0695 1.0000 908 913
 # 307
-/home/arpan/BTP/consistency/data/coin/subset_frames/uZ2hWFHIl38
+uZ2hWFHIl38
 1858
 1
 3
@@ -16766,7 +16766,7 @@
 0 0.0000 0.0000 1339 1359
 0 0.0000 0.0000 1709 1716
 # 308
-/home/arpan/BTP/consistency/data/coin/subset_frames/vN3vHzCgHkA
+vN3vHzCgHkA
 1364
 1
 3
@@ -16829,7 +16829,7 @@
 8 0.0034 0.1949 890 898
 0 0.0000 0.0000 1123 1130
 # 309
-/home/arpan/BTP/consistency/data/coin/subset_frames/vaLo3ejyDZE
+vaLo3ejyDZE
 1652
 1
 4
@@ -16870,7 +16870,7 @@
 12 0.0657 1.0000 1065 1091
 11 0.1945 0.5676 691 701
 # 310
-/home/arpan/BTP/consistency/data/coin/subset_frames/xJ0G04gwLxc
+xJ0G04gwLxc
 2102
 1
 6
@@ -16928,7 +16928,7 @@
 0 0.0000 0.0000 443 458
 0 0.0000 0.0000 2005 2011
 # 311
-/home/arpan/BTP/consistency/data/coin/subset_frames/xtZIoQUdHNI
+xtZIoQUdHNI
 623
 1
 2
@@ -16945,7 +16945,7 @@
 7 0.4657 1.0000 151 214
 0 0.0000 0.0000 0 18
 # 312
-/home/arpan/BTP/consistency/data/coin/subset_frames/y8RGOYkS96s
+y8RGOYkS96s
 1320
 1
 2

@@ -5,10 +5,10 @@ import mmcv
 from mmcv.runner import load_checkpoint, parallel_test, obj_from_dict
 from mmcv.parallel import scatter, collate, MMDataParallel
 
-from mmaction import datasets
-from mmaction.datasets import build_dataloader
-from mmaction.models import build_recognizer, recognizers
-from mmaction.core.evaluation.accuracy import (softmax, top_k_accuracy,
+from mtlaction import datasets
+from mtlaction.datasets import build_dataloader
+from mtlaction.models import build_recognizer, recognizers
+from mtlaction.core.evaluation.accuracy import (softmax, top_k_accuracy,
                                                mean_class_accuracy)
 
 
