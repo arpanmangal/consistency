@@ -6,6 +6,7 @@ import os, shutil
 import glob
 import json
 import argparse
+import numpy as np
 from itertools import chain
 from helper import read_block, modify_block, write_block
 
@@ -154,7 +155,7 @@ def create_subset_json_file (absolute_consistency_path, COIN, task_mapping, step
 
     coin_small = {}
     for vid_id, annotation in COIN.items():
-        task_id = str(annotation['recipe_type'])
+        task_id = annotation['recipe_type']
         if task_id in task_mapping and vid_id in video_ids:
             annotation['recipe_type'] = task_mapping[task_id]
             for a in annotation['annotation']:
@@ -163,6 +164,35 @@ def create_subset_json_file (absolute_consistency_path, COIN, task_mapping, step
             coin_small[vid_id] = annotation
 
     return {'database': coin_small}
+
+
+def create_W_matrix(COIN):
+    """
+    Create the belongs to matrix W
+    (i, j)th entry is 1 if step i belongs to task j, otherwise 0
+    """
+
+    step_to_task_map = dict()
+    tasks = set(); steps = set()
+    for vid_id, annotation in COIN.items():
+        task_id = annotation['recipe_type']
+        if task_id not in tasks:
+            tasks.add(task_id)
+
+        for a in annotation['annotation']:
+            step_id = a["id"]
+            if step_id not in steps:
+                steps.add(step_id)
+            if step_id in step_to_task_map:
+                assert step_to_task_map[step_id] == task_id
+            else:
+                step_to_task_map[step_id] = task_id
+
+    W = np.zeros((len(steps), len(tasks)), dtype=int)
+    for s, t in step_to_task_map.items():
+        W[int(s) - 1][int(t)] = 1
+        
+    return step_to_task_map, W
 
 
 if __name__ == '__main__':
@@ -196,6 +226,12 @@ if __name__ == '__main__':
         json.dump(coin_small, outfile, indent=4)
     print ("Created subset JSON file")
 
+    # Creating belonging matrix
+    step_to_task_map, step_task_matrix = create_W_matrix (coin_small['database'])
+    step_to_task_map_path = os.path.join(absolute_consistency_path, 'data/coin/step_to_task_map.json')
+    W_matrix_file = os.path.join(absolute_consistency_path, 'data/coin/W.npy')
+    with open(step_to_task_map_path, 'w') as outfile:
+        json.dump(step_to_task_map, outfile, indent=4)
+    np.save(W_matrix_file, step_task_matrix)
+    print ("Created W matrix")
 
-
-    
