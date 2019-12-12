@@ -61,8 +61,8 @@ def enforce_TC(inpkl, outpkl, W_matrix, pooling='mean'):
         assert (act_scores.shape == big_mask.shape == (N, K+1))
        
         act_scores[big_mask] = -100
-
-        results.append((proposals, act_scores, comp_scores, reg))
+        
+        results.append((video_prediction, proposals, act_scores, comp_scores, reg))
     
     pickle.dump(results, open(outpkl, 'wb'))
 

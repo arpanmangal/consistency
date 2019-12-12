@@ -82,12 +82,12 @@ class SSNVideoRecord(object):
     def __init__(self, prop_record):
         self._data = prop_record
 
-        frame_count = int(self._data[1])
+        frame_count = int(self._data[2])
 
         self.gt = [
             SSNInstance(int(x[1]), int(x[2]), frame_count, label=int(x[0]),
                         best_iou=1.0)
-            for x in self._data[2] if int(x[2]) > int(x[1])
+            for x in self._data[3] if int(x[2]) > int(x[1])
         ]
 
         self.gt = list(filter(lambda x: x.start_frame < frame_count, self.gt))
@@ -95,7 +95,7 @@ class SSNVideoRecord(object):
         self.proposals = [
             SSNInstance(int(x[3]), int(x[4]), frame_count, label=int(x[0]),
                         best_iou=float(x[1]), overlap_self=float(x[2]))
-            for x in self._data[3] if int(x[4]) > int(x[3])
+            for x in self._data[4] if int(x[4]) > int(x[3])
         ]
 
         self.proposals = list(
@@ -106,8 +106,12 @@ class SSNVideoRecord(object):
         return self._data[0]
 
     @property
+    def task_id(self):
+        return self._data[1]
+
+    @property
     def num_frames(self):
-        return int(self._data[1])
+        return int(self._data[2])
 
     def get_fg(self, fg_thresh, with_gt=True):
         fg = [p for p in self.proposals if p.best_iou > fg_thresh]
@@ -212,6 +216,7 @@ class SSNDataset(Dataset):
         self.video_dict = {
             record.video_id: record for record in self.video_infos}
 
+        # self.task_ids = [record.task_id for record in self.video_infoss]
         # construct three pools:
         # 1. Foreground
         # 2. Background

@@ -147,9 +147,10 @@ def load_localize_proposal_file(filename):
         vid = info[offset]
         offset += 1
 
-        n_frame = int(float(info[1]) * float(info[2]))
-        n_gt = int(info[3])
-        offset = 4
+        n_frame = int(float(info[1]) * float(info[3]))
+        task_id = int(info[2])
+        n_gt = int(info[4])
+        offset = 5
 
         gt_boxes = [x.split() for x in info[offset: offset + n_gt]]
         offset += n_gt
@@ -157,28 +158,30 @@ def load_localize_proposal_file(filename):
         offset += 1
         pr_boxes = [x.split() for x in info[offset: offset + n_pr]]
 
-        return vid, n_frame, gt_boxes, pr_boxes
+        return vid, task_id, n_frame, gt_boxes, pr_boxes
 
     return [parse_group(l) for l in info_list]
 
 
 def process_localize_proposal_list(norm_proposal_list,
                                    out_list_name, frame_dict):
+    raise ValueError("This function has ceased to be functional until further notice :P")
     norm_proposals = load_localize_proposal_file(norm_proposal_list)
 
     processed_proposal_list = []
     for idx, prop in enumerate(norm_proposals):
         vid = prop[0]
+        task_id = prop[1]
         frame_info = frame_dict[vid]
         frame_cnt = frame_info[1]
         frame_path = frame_info[0].split('/')[-1]
 
         gt = [[int(x[0]), int(float(x[1]) * frame_cnt),
-               int(float(x[2]) * frame_cnt)] for x in prop[2]]
+               int(float(x[2]) * frame_cnt)] for x in prop[3]]
 
         prop = [[int(x[0]), float(x[1]), float(x[2]),
                  int(float(x[3]) * frame_cnt), int(float(x[4]) * frame_cnt)]
-                for x in prop[3]]
+                for x in prop[4]]
 
         out_tmpl = "# {idx}\n{path}\n{fc}\n1\n{num_gt}\n{gt}{num_prop}\n{prop}"
 

@@ -55,12 +55,13 @@ def modify_block (block, subset_frames_path, prefix, step_mapping, task):
         p[4] = str(int(int(p[4]) * scaling))
 
 
-def write_block (block, ofile, idx):
+def write_block (block, ofile, idx, no_task=False):
     with open(ofile, 'a') as f:
         f.write('# %d\n' % idx)
         f.write('%s\n' % block['path'])
         f.write('%d\n' % block['frames'])
-        f.write('%d\n' % block['task'])
+        if not no_task:
+            f.write('%d\n' % block['task'])
         f.write(block['useless'])
 
         corrects = block['correct']

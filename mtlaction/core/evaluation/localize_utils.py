@@ -22,22 +22,33 @@ def results2det(dataset, outputs,
                 softmax_before_filter=True,
                 cls_score_dict=None,
                 cls_top_k=2):
-    num_class = outputs[0][1].shape[1] - 1
+    num_class = outputs[0][2].shape[1] - 1
     detections = [dict() for i in range(num_class)]
+
+    task_predictions = np.array([output[0] for output in outputs])
+    task_truths = np.array([record.task_id for record in dataset.video_infos])
+    print (len(task_predictions))
+    print ('Task Predictions: ', task_predictions)
+    print ('Task Truths     : ', task_truths)
+    assert len(task_predictions) == len(task_truths)
+    correct_predictions = (task_predictions == task_truths)
+    print (np.sum(correct_predictions))
+    print ("Task Classification Accuracy: %.3f" % (np.sum(task_predictions == task_truths) / len(task_truths)))
 
     for idx in range(len(dataset)):
         video_id = dataset.video_infos[idx].video_id
-        rel_prop = outputs[idx][0]
+        rel_prop = outputs[idx][1]
         if len(rel_prop[0].shape) == 3:
             rel_prop = np.squeeze(rel_prop, 0)
 
-        act_scores = outputs[idx][1]
-        comp_scores = outputs[idx][2]
-        reg_scores = outputs[idx][3]
+        act_scores = outputs[idx][2]
+        comp_scores = outputs[idx][3]
+        reg_scores = outputs[idx][4]
         if reg_scores is None:
             reg_scores = np.zeros(
                 len(rel_prop), num_class, 2, dtype=np.float32)
         reg_scores = reg_scores.reshape((-1, num_class, 2))
+
 
         if top_k <= 0 and cls_score_dict is None:
             combined_scores = softmax(act_scores[:, 1:]) * np.exp(comp_scores)

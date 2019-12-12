@@ -16,21 +16,13 @@ def parse_args():
     """
     parser = argparse.ArgumentParser(description="Create subset of full dataset")
     parser.add_argument('--root', help='Path of the consistency repo', default='/home/arpan/BTP/consistency')
-    parser.add_argument('--tag_prefix', help='Prefix to prepend before video ID in the TAG files. Specify `empty` for \'\'', 
-                        default='data/coin/subset_frames')
-
-    # parser.add_argument('--folder', help='Create the subset folders', action='store_true', default=False)
-    # parser.add_argument('--tag', help='Create the subset TAG files', action='store_true', default=False)
-    # parser.add_argument('--json', help='Create the subset JSON file', action='store_true', default=False)
-    # parser.add_argument('--all', help='Create all folders', action='store_true', default=False)
+    parser.add_argument('--tag_prefix', help='Prefix to prepend before video ID in the TAG files. Default: \'\'', 
+                        default='')
+    parser.add_argument('--no_task', help='Specify to exclude task ID from the TAG files', action='store_true',
+                        default=False)
 
     args = parser.parse_args()
-    if args.tag_prefix == 'empty':
-        args.tag_prefix = ''
 
-    # if args.all: assert (args.folder or args.tag or args.json == False)
-    # assert (args.folder or args.tag or args.json == True)
-    
     return args
 
 
@@ -97,7 +89,7 @@ def create_subset_folders (absolute_consistency_path):
     return task_mapping
 
 
-def create_subset_tag_files (absolute_consistency_path, prefix, vid_split_map, COIN, task_mapping):
+def create_subset_tag_files (absolute_consistency_path, prefix, vid_split_map, COIN, task_mapping, no_task=False):
     """
     Create subset TAG proposal file using the full proposal files
     """
@@ -127,16 +119,16 @@ def create_subset_tag_files (absolute_consistency_path, prefix, vid_split_map, C
         id = block['id']
         split = vid_split_map[id]
         if id in vid_ids:
-            task = task_mapping[COIN[id]['recipe_type']]
+            task = task_mapping(str(COIN[id]['recipe_type']))
             modify_block(block, subset_frames_path, prefix, step_mapping, task)
             if split == 'training':
-                write_block (block, train_tag, train_idx)
+                write_block (block, train_tag, train_idx, no_task=no_task)
                 train_idx += 1
             elif split == 'testing':
-                write_block (block, test_tag, test_idx)
+                write_block (block, test_tag, test_idx, no_task=no_task)
                 test_idx += 1
             else:
-                write_block (block, val_tag, val_idx)
+                write_block (block, val_tag, val_idx, no_task=no_task)
                 val_idx += 1
 
     return step_mapping
@@ -214,7 +206,7 @@ if __name__ == '__main__':
     # Creating subset proposal mapping
     prefix = '' if (args.tag_prefix == '') \
                 else os.path.join(absolute_consistency_path, args.tag_prefix)
-    step_mapping = create_subset_tag_files (absolute_consistency_path, prefix, vid_split_map, COIN, task_mapping)
+    step_mapping = create_subset_tag_files (absolute_consistency_path, prefix, vid_split_map, COIN, task_mapping, no_task=args.no_task)
     step_mapping_path = os.path.join(absolute_consistency_path, 'data/coin/step_mapping.json')
     with open(step_mapping_path, 'w') as outfile:
         json.dump(step_mapping, outfile, indent=4)

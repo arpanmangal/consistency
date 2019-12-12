@@ -44,6 +44,7 @@ def main():
         weights = [1. / len(output_list) for _ in output_list]
 
     def merge_scores(idx):
+        print ('idx #', idx)
         def merge_part(arrs, index, weights):
             if arrs[0][index] is not None:
                 return np.sum([a[index] * w for a, w in zip(arrs, weights)],
@@ -57,10 +58,13 @@ def main():
                 merge_part(results, 2, weights),
                 merge_part(results, 3, weights))
 
+    if len(output_list) > 1:
+        raise NotImplementedError("Merging of scores not implemented")
     print('Merge detection scores from {} sources'.format(len(output_list)))
-    outputs = [merge_scores(idx) for idx in range(len(dataset))]
+    # outputs = [merge_scores(idx) for idx in range(len(dataset))]
+    outputs = output_list[0]
     print('Merge finished')
-
+    
     eval_type = args.eval
     if eval_type:
         print('Starting evaluate {}'.format(eval_type))
