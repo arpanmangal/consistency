@@ -1,6 +1,7 @@
 # 1
 03FowQbl5aw
 893
+5
 1
 2
 13 368 498
@@ -44,6 +45,7 @@
 # 2
 0eabQ_j8B44
 795
+2
 1
 2
 23 59 479
@@ -75,6 +77,7 @@
 # 3
 0il6s2g6D3w
 1622
+3
 1
 4
 10 59 349
@@ -161,6 +164,7 @@
 # 4
 0kn_T3OzA4Q
 776
+5
 1
 7
 25 83 124
@@ -205,6 +209,7 @@
 # 5
 1N_72XJt5cw
 1170
+4
 1
 3
 19 529 604
@@ -254,6 +259,7 @@
 # 6
 294imxUQTxc
 1639
+2
 1
 2
 28 199 309
@@ -328,6 +334,7 @@
 # 7
 2ovLTZb4nXw
 486
+0
 1
 2
 7 141 183
@@ -345,6 +352,7 @@
 # 8
 2zqpJb-3SyI
 1746
+2
 1
 2
 29 1257 1277
@@ -440,6 +448,7 @@
 # 9
 3FGxEYWAPf8
 1358
+5
 1
 4
 27 566 641
@@ -505,6 +514,7 @@
 # 10
 3e7zAPqYaNE
 1547
+0
 1
 2
 7 299 779
@@ -546,6 +556,7 @@
 # 11
 5H7rd1v7Yrk
 941
+5
 1
 3
 27 369 429
@@ -570,6 +581,7 @@
 # 12
 5Oa2q98P8BU
 1106
+1
 1
 2
 3 159 259
@@ -615,6 +627,7 @@
 # 13
 8oOdrfHZFao
 1086
+5
 1
 4
 13 239 489
@@ -694,6 +707,7 @@
 # 14
 Bf6A7d0g4Nk
 1080
+6
 1
 2
 15 259 574
@@ -729,6 +743,7 @@ Bf6A7d0g4Nk
 # 15
 DYoNeUdaSik
 999
+6
 1
 2
 15 419 529
@@ -752,6 +767,7 @@ DYoNeUdaSik
 # 16
 EktckfITU48
 474
+4
 1
 6
 19 75 155
@@ -772,6 +788,7 @@ EktckfITU48
 # 17
 FJi1LhJ_qgI
 1374
+5
 1
 2
 13 289 789
@@ -808,6 +825,7 @@ FJi1LhJ_qgI
 Hf91xoTzg5E
 780
 1
+1
 4
 3 49 69
 4 79 139
@@ -841,6 +859,7 @@ Hf91xoTzg5E
 # 19
 I2WZpi5Yz8s
 1707
+0
 1
 6
 5 399 415
@@ -1011,6 +1030,7 @@ I2WZpi5Yz8s
 IGcexN26W8g
 864
 1
+1
 3
 3 349 416
 9 424 516
@@ -1045,6 +1065,7 @@ IGcexN26W8g
 # 21
 Iptve_8dmUk
 2053
+3
 1
 2
 10 119 579
@@ -1096,6 +1117,7 @@ Iptve_8dmUk
 JNmHH1LI7PA
 1308
 1
+1
 6
 4 143 239
 9 559 631
@@ -1142,6 +1164,7 @@ JNmHH1LI7PA
 # 23
 Jizp8rnH474
 1210
+2
 1
 3
 23 19 89
@@ -1171,6 +1194,7 @@ Jizp8rnH474
 # 24
 KzB8O5CtraQ
 1926
+2
 1
 3
 29 269 299
@@ -1230,6 +1254,7 @@ KzB8O5CtraQ
 # 25
 LI7RPWTXV1U
 943
+0
 1
 3
 5 189 219
@@ -1316,6 +1341,7 @@ LI7RPWTXV1U
 # 26
 LOQ9PKd2lCA
 720
+6
 1
 2
 15 249 333
@@ -1346,6 +1372,7 @@ LOQ9PKd2lCA
 # 27
 LsSjyfIPopY
 1899
+4
 1
 5
 19 459 684
@@ -1423,6 +1450,7 @@ LsSjyfIPopY
 # 28
 MMEJnYB26o0
 2270
+6
 1
 3
 17 559 649
@@ -1528,6 +1556,7 @@ MMEJnYB26o0
 # 29
 MryEMSDVsVc
 1650
+6
 1
 3
 15 850 933
@@ -1600,6 +1629,7 @@ MryEMSDVsVc
 # 30
 NtkckJOyLAI
 745
+5
 1
 3
 13 249 369
@@ -1627,6 +1657,7 @@ NtkckJOyLAI
 # 31
 PTWsogtWCPk
 1317
+3
 1
 8
 10 49 289
@@ -1680,6 +1711,7 @@ PTWsogtWCPk
 Q-UgQDoFyvw
 630
 1
+1
 4
 3 49 99
 4 109 189
@@ -1713,6 +1745,7 @@ Q-UgQDoFyvw
 # 33
 SUvRM1pcG3k
 862
+2
 1
 3
 23 169 199
@@ -1740,6 +1773,7 @@ SUvRM1pcG3k
 # 34
 SgVFQEeLubw
 1367
+5
 1
 6
 13 616 774
@@ -1780,6 +1814,7 @@ SgVFQEeLubw
 # 35
 SgXW5j5FK1E
 660
+5
 1
 4
 27 289 369
@@ -1821,6 +1856,7 @@ SgXW5j5FK1E
 # 36
 SjK1xah4EtY
 2111
+1
 1
 4
 3 799 849
@@ -1927,6 +1963,7 @@ SjK1xah4EtY
 # 37
 V1M8rU9SiUI
 1074
+2
 1
 3
 23 250 290
@@ -1998,6 +2035,7 @@ V1M8rU9SiUI
 WjfiCkPCD68
 756
 1
+1
 3
 1 99 141
 3 191 208
@@ -2022,6 +2060,7 @@ WjfiCkPCD68
 # 39
 YM__DWPxxXk
 1393
+5
 1
 4
 13 663 759
@@ -2103,6 +2142,7 @@ YM__DWPxxXk
 # 40
 Yfst6i8r5v0
 834
+0
 1
 4
 7 49 89
@@ -2163,6 +2203,7 @@ Yfst6i8r5v0
 Z-KxvUG4qbo
 808
 1
+1
 2
 3 119 139
 9 189 209
@@ -2214,6 +2255,7 @@ Z-KxvUG4qbo
 # 42
 ZJBz-ShP0tU
 1606
+5
 1
 5
 13 391 549
@@ -2326,6 +2368,7 @@ ZJBz-ShP0tU
 # 43
 ZYVXkJMdcjc
 2058
+1
 1
 3
 2 389 988
@@ -2441,6 +2484,7 @@ ZYVXkJMdcjc
 # 44
 _w9ThbrQCb4
 2224
+5
 1
 4
 25 389 479
@@ -2478,6 +2522,7 @@ _w9ThbrQCb4
 # 45
 aLgYvMH7Te0
 590
+0
 1
 2
 7 209 249
@@ -2502,6 +2547,7 @@ aLgYvMH7Te0
 # 46
 b1ohGgMv0OE
 490
+2
 1
 7
 28 0 41
@@ -2531,6 +2577,7 @@ b1ohGgMv0OE
 # 47
 b84xknGwkF8
 556
+0
 1
 2
 6 49 89
@@ -2551,6 +2598,7 @@ b84xknGwkF8
 # 48
 bGjMfVttJDg
 1541
+3
 1
 5
 10 289 369
@@ -2633,6 +2681,7 @@ bGjMfVttJDg
 # 49
 c9AQHabMPts
 1897
+5
 1
 3
 25 529 749
@@ -2696,6 +2745,7 @@ c9AQHabMPts
 # 50
 djLZWdtQd3w
 2157
+5
 1
 2
 13 929 1209
@@ -2801,6 +2851,7 @@ djLZWdtQd3w
 # 51
 eW9wS2J8tN4
 1707
+6
 1
 3
 15 697 837
@@ -2900,6 +2951,7 @@ eW9wS2J8tN4
 # 52
 fS3REUWFByI
 551
+2
 1
 3
 23 99 109
@@ -2943,6 +2995,7 @@ fS3REUWFByI
 # 53
 hN0OplGok_o
 1233
+5
 1
 4
 13 207 319
@@ -3003,6 +3056,7 @@ hN0OplGok_o
 # 54
 hazcFSUJkj8
 1826
+2
 1
 5
 23 469 499
@@ -3045,6 +3099,7 @@ hazcFSUJkj8
 # 55
 huFjPGrq1Og
 1414
+2
 1
 3
 28 43 75
@@ -3109,6 +3164,7 @@ huFjPGrq1Og
 # 56
 jyGK1_JtGEM
 480
+0
 1
 3
 7 47 79
@@ -3137,6 +3193,7 @@ jyGK1_JtGEM
 # 57
 kOklLIWJrE4
 506
+2
 1
 2
 28 49 179
@@ -3146,6 +3203,7 @@ kOklLIWJrE4
 # 58
 kWBqCcRrsQA
 1653
+5
 1
 7
 26 149 239
@@ -3217,6 +3275,7 @@ kWBqCcRrsQA
 # 59
 ovJ2vmlX2DM
 928
+2
 1
 3
 23 89 119
@@ -3266,6 +3325,7 @@ ovJ2vmlX2DM
 # 60
 rsgwlgtFQpM
 2291
+5
 1
 4
 13 39 69
@@ -3391,6 +3451,7 @@ rsgwlgtFQpM
 # 61
 sCnJNUPHK8Y
 1473
+5
 1
 3
 14 529 769
@@ -3429,6 +3490,7 @@ sCnJNUPHK8Y
 # 62
 snmqOrUNsWI
 1638
+4
 1
 4
 19 1149 1174
@@ -3501,6 +3563,7 @@ snmqOrUNsWI
 tPS4qwKs4Js
 1251
 1
+1
 5
 3 151 223
 4 255 423
@@ -3553,6 +3616,7 @@ tPS4qwKs4Js
 # 64
 uUI4g91dgDA
 1918
+5
 1
 4
 13 608 728
@@ -3629,6 +3693,7 @@ uUI4g91dgDA
 # 65
 uzN0rSiHWdY
 584
+6
 1
 3
 15 64 99
@@ -3663,6 +3728,7 @@ uzN0rSiHWdY
 # 66
 vRishidRXdQ
 2033
+6
 1
 2
 15 164 1328
@@ -3711,6 +3777,7 @@ vRishidRXdQ
 # 67
 w0Bexkzv6eM
 566
+3
 1
 3
 10 135 183
@@ -3731,6 +3798,7 @@ w0Bexkzv6eM
 # 68
 wIqzHdx_ALA
 1938
+6
 1
 2
 16 1099 1129
@@ -3801,6 +3869,7 @@ wIqzHdx_ALA
 # 69
 wl_X3EGqiig
 1184
+2
 1
 5
 29 189 249
@@ -3832,6 +3901,7 @@ wl_X3EGqiig
 # 70
 y8aCIyuyxG8
 1109
+5
 1
 2
 13 699 819
@@ -3891,6 +3961,7 @@ y8aCIyuyxG8
 # 71
 ywLzutwASVk
 506
+2
 1
 3
 23 29 99
@@ -3917,6 +3988,7 @@ ywLzutwASVk
 # 72
 0SPYZ1mz_Pw
 1226
+5
 1
 3
 26 47 79
@@ -3972,6 +4044,7 @@ ywLzutwASVk
 # 73
 7YhlSOpszB0
 1545
+6
 1
 3
 15 609 879
@@ -4023,6 +4096,7 @@ ywLzutwASVk
 # 74
 8Rg3kUk4pyo
 1558
+2
 1
 2
 28 239 808
@@ -4088,6 +4162,7 @@ ywLzutwASVk
 # 75
 B440VyK1rrk
 885
+6
 1
 2
 15 414 519
@@ -4111,6 +4186,7 @@ B440VyK1rrk
 # 76
 EP03f8XQLuE
 1820
+6
 1
 10
 15 234 304
@@ -4178,6 +4254,7 @@ EP03f8XQLuE
 # 77
 FoQVtAndyiI
 1073
+5
 1
 3
 13 49 549
@@ -4236,6 +4313,7 @@ FoQVtAndyiI
 IvQt8ykz3B4
 1611
 1
+1
 3
 2 71 183
 9 191 279
@@ -4290,6 +4368,7 @@ IvQt8ykz3B4
 # 79
 Jeqnds6RfK4
 1190
+5
 1
 4
 25 291 449
@@ -4333,6 +4412,7 @@ Jeqnds6RfK4
 # 80
 NLke9OdHokw
 1051
+0
 1
 2
 7 447 506
@@ -4371,6 +4451,7 @@ NLke9OdHokw
 # 81
 NUHSpeUj-NQ
 686
+5
 1
 3
 25 119 229
@@ -4421,6 +4502,7 @@ NUHSpeUj-NQ
 # 82
 Vl6WkDuGC1g
 1973
+2
 1
 3
 29 679 754
@@ -4518,6 +4600,7 @@ Vl6WkDuGC1g
 # 83
 WIsYqmhKo_I
 1951
+6
 1
 5
 31 149 583
@@ -4627,6 +4710,7 @@ WIsYqmhKo_I
 # 84
 XjPq3JSgxww
 2207
+2
 1
 3
 23 519 609
@@ -4707,6 +4791,7 @@ XjPq3JSgxww
 # 85
 ZeHZE81wwjc
 1139
+5
 1
 3
 13 319 567
@@ -4769,6 +4854,7 @@ ZeHZE81wwjc
 # 86
 ZsIfUECnc0I
 1128
+0
 1
 2
 7 407 487
@@ -4807,6 +4893,7 @@ ZsIfUECnc0I
 # 87
 bRqd6hLbOnY
 2184
+5
 1
 2
 13 988 1708
@@ -4853,6 +4940,7 @@ bRqd6hLbOnY
 # 88
 blSofrIVLS0
 1780
+0
 1
 5
 7 319 509
@@ -4885,6 +4973,7 @@ blSofrIVLS0
 # 89
 gBHfL8VynQI
 716
+5
 1
 2
 13 430 549
@@ -4910,6 +4999,7 @@ gBHfL8VynQI
 # 90
 haLAs7SFBc0
 656
+5
 1
 2
 27 25 116
@@ -4925,6 +5015,7 @@ haLAs7SFBc0
 # 91
 iqL7483iW-0
 175
+5
 1
 3
 13 0 59
@@ -4947,6 +5038,7 @@ iqL7483iW-0
 # 92
 nLVdqnQPS7c
 1653
+6
 1
 3
 15 616 858
@@ -5012,6 +5104,7 @@ nLVdqnQPS7c
 # 93
 uBclicRZnBE
 1104
+2
 1
 3
 23 524 534
@@ -5056,6 +5149,7 @@ uBclicRZnBE
 # 94
 zdkta4XFcmI
 1585
+6
 1
 3
 15 859 954
@@ -5105,6 +5199,7 @@ zdkta4XFcmI
 # 95
 zys9YejztPE
 2321
+6
 1
 4
 15 1175 1344

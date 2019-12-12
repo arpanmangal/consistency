@@ -29,13 +29,14 @@ def read_block (tag_file):
         yield obj
 
 
-def modify_block (block, subset_frames_path, prefix, step_mapping):
+def modify_block (block, subset_frames_path, prefix, step_mapping, task):
     id = block['id']
     block['path'] = os.path.join(prefix, id)
     new_frames = len(glob.glob(os.path.join(subset_frames_path, id, '*')))
     old_frames = block['frames']
     block['frames'] = new_frames
     scaling = new_frames / old_frames
+    block['task'] = task
 
     for c in block['correct']:
         if c[0] not in step_mapping:
@@ -59,6 +60,7 @@ def write_block (block, ofile, idx):
         f.write('# %d\n' % idx)
         f.write('%s\n' % block['path'])
         f.write('%d\n' % block['frames'])
+        f.write('%d\n' % block['task'])
         f.write(block['useless'])
 
         corrects = block['correct']

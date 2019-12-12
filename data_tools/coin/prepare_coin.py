@@ -97,7 +97,7 @@ def create_subset_folders (absolute_consistency_path):
     return task_mapping
 
 
-def create_subset_tag_files (absolute_consistency_path, prefix, vid_split_map):
+def create_subset_tag_files (absolute_consistency_path, prefix, vid_split_map, COIN, task_mapping):
     """
     Create subset TAG proposal file using the full proposal files
     """
@@ -127,7 +127,8 @@ def create_subset_tag_files (absolute_consistency_path, prefix, vid_split_map):
         id = block['id']
         split = vid_split_map[id]
         if id in vid_ids:
-            modify_block(block, subset_frames_path, prefix, step_mapping)
+            task = task_mapping[COIN[id]['recipe_type']]
+            modify_block(block, subset_frames_path, prefix, step_mapping, task)
             if split == 'training':
                 write_block (block, train_tag, train_idx)
                 train_idx += 1
@@ -213,7 +214,7 @@ if __name__ == '__main__':
     # Creating subset proposal mapping
     prefix = '' if (args.tag_prefix == '') \
                 else os.path.join(absolute_consistency_path, args.tag_prefix)
-    step_mapping = create_subset_tag_files (absolute_consistency_path, prefix, vid_split_map)
+    step_mapping = create_subset_tag_files (absolute_consistency_path, prefix, vid_split_map, COIN, task_mapping)
     step_mapping_path = os.path.join(absolute_consistency_path, 'data/coin/step_mapping.json')
     with open(step_mapping_path, 'w') as outfile:
         json.dump(step_mapping, outfile, indent=4)
