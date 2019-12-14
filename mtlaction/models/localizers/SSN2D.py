@@ -1,9 +1,9 @@
 import torch
 import torch.nn as nn
+import torch.nn.functional as F
 from .base import BaseLocalizer
 from .. import builder
 from ..registry import LOCALIZERS
-
 
 @LOCALIZERS.register_module
 class SSN2D(BaseLocalizer):
@@ -16,6 +16,7 @@ class SSN2D(BaseLocalizer):
                  dropout_ratio=0.5,
                  segmental_consensus=None,
                  cls_head=None,
+                 task_head=None,
                  train_cfg=None,
                  test_cfg=None):
 
@@ -46,6 +47,29 @@ class SSN2D(BaseLocalizer):
         else:
             raise NotImplementedError
 
+        if task_head is not None:
+            self.task_join = task_head.join # Place where to join the task head
+            if self.task_join is not None:
+                assert self.task_join in ['score', 'act_feat', 'comp_feat']
+                assert task_head.pooling in ['mean', 'max']
+
+                # Way to pool the features for task head
+                self.task_feat_pooling = task_head.pooling
+
+                in_channels_task = cls_head.num_classes
+                if self.task_join == 'act_feat': in_channels_task = cls_head.in_channels_activity
+                elif self.task_join == 'comp_feat': in_channels_task = cls_head.in_channels_complete
+                
+                task_head.update({'in_channels_task': in_channels_task})
+                del task_head['pooling']
+
+                self.task_head = builder.build_head(task_head)
+                print ("Something corresponding is missing here")
+            else:
+                self.task_head = None
+        else:
+            raise NotImplementedError
+
         self.train_cfg = train_cfg
         self.test_cfg = test_cfg
 
@@ -69,6 +93,10 @@ class SSN2D(BaseLocalizer):
     @property
     def with_cls_head(self):
         return hasattr(self, 'cls_head') and self.cls_head is not None
+
+    @property
+    def with_task_head(self):
+        return hasattr(self, 'task_head') and self.task_head is not None
 
     def _construct_2d_backbone_conv1(self, in_channels):
         modules = list(self.backbone.modules())
@@ -107,6 +135,9 @@ class SSN2D(BaseLocalizer):
         if self.with_cls_head:
             self.cls_head.init_weights()
 
+        if self.with_task_head:
+            self.task_head.init_weights()
+
     def extract_feat(self, img_group):
         x = self.backbone(img_group)
         return x
@@ -118,28 +149,81 @@ class SSN2D(BaseLocalizer):
                       prop_type,
                       prop_labels,
                       reg_targets,
+                      task_labels,
                       **kwargs):
+        # print ('in SSN forward train')
+        # print (kwargs.keys())
+        # print (prop_scaling.shape)
+        # print (prop_labels.shape)
+        # print (reg_targets.shape)
+        # print (task_labels.shape)
+
         assert num_modalities == 1
         img_group = kwargs['img_group_0']
+        num_videos = img_group.shape[0]
 
+        assert self.in_channels == img_group.shape[3] == 3
+        # print ('hoho')
+        # print (num_modalities)
+        # print (img_group.shape)
+        # print (self.in_channels)
+        # print (img_group.shape)
+        
+        # img_group has a shape of [n, 8, 9, 3, 224, 224]
         img_group = img_group.reshape(
             (-1, self.in_channels) + img_group.shape[4:])
 
+        # print (img_group.shape)
         x = self.extract_feat(img_group)
+        # print (type(x), x.shape)
         if self.with_spatial_temporal_module:
             x = self.spatial_temporal_module(x)
+        # print (type(x), x.shape)
         if self.dropout is not None:
             x = self.dropout(x)
+        # print (type(x), x.shape)
         activity_feat, completeness_feat = self.segmental_consensus(
             x, prop_scaling)
+        # print (activity_feat.shape, completeness_feat.shape)
         losses = dict()
         if self.with_cls_head:
             activity_score, completeness_score, bbox_pred = self.cls_head(
                 (activity_feat, completeness_feat))
+            # print ('after cls_head')
+            # print (activity_score.shape, completeness_score.shape, bbox_pred.shape)
             loss_cls = self.cls_head.loss(activity_score, completeness_score,
                                           bbox_pred, prop_type, prop_labels,
                                           reg_targets, self.train_cfg)
+            # print (prop_type.shape, prop_labels.shape, reg_targets.shape, self.train_cfg)
             losses.update(loss_cls)
+
+            if self.with_task_head and self.task_join == 'score':
+                # Join the task branch over here
+                # Step 1: Calculate the scores
+                # print ('before task_head')
+                s1 = F.softmax(activity_score[:, 1:], dim=1)
+                s2 = torch.exp(completeness_score)
+                # print (s1.shape)
+                # print (s2.shape)
+                combined_scores = s1 * s2
+                # combined_scores = F.softmax(activity_score[:, 1:], dim=1) * torch.exp(completeness_score)
+                # print (combined_scores.shape)
+                combined_scores = combined_scores.reshape((num_videos, activity_score.shape[0] // num_videos, -1))
+                # print ('yoho')
+                # print (num_videos)
+                # print (combined_scores.shape)
+                # Step 2: Pool scores to create feature vector
+                combined_scores = torch.mean(combined_scores, dim=1)
+                # print (combined_scores.shape)
+
+                # Step 3: Pass through NN and compute loss
+                task_score = self.task_head(combined_scores)
+                # print (task_score.squeeze().shape)
+                # print (task_labels.shape)
+                # print (prop_labels.shape)
+                loss_task = self.task_head.loss(task_score, task_labels.squeeze(), self.train_cfg)
+                # print (loss_task)
+                losses.update(loss_task)
 
         return losses
 

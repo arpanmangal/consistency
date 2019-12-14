@@ -205,6 +205,7 @@ class SSNDataset(Dataset):
 
         proposal_infos = load_localize_proposal_file(self.proposal_file)
         self.video_infos = [SSNVideoRecord(p) for p in proposal_infos]
+        print ('In SSN dataset, got #videos: ',len(self.video_infos))
 
         # filter videos with no annotation during training
         if filter_gt or not test_mode:
@@ -411,6 +412,11 @@ class SSNDataset(Dataset):
                 '["RGB", "RGBDiff", "Flow"]')
 
     def _video_centric_sampling(self, record):
+        """
+        Returns list of
+        ((video_id, SSNInstance of a proposal), proposal_type-0/1/2)
+        of size 8
+        """
         fg = record.get_fg(self.train_cfg.ssn.assigner.fg_iou_thr,
                            self.train_cfg.ssn.sampler.add_gt_as_proposals)
         incomp, bg = record.get_negatives(
@@ -458,6 +464,8 @@ class SSNDataset(Dataset):
         return out_props
 
     def __getitem__(self, idx):
+        # print (self.test_mode)
+        # print ('__getitem__ called!! idx: ', idx)
         if self.test_mode:
             return self.prepare_test_imgs(idx)
         else:
@@ -539,12 +547,16 @@ class SSNDataset(Dataset):
 
     def prepare_train_imgs(self, idx):
         if self.video_centric:
-            video_info = self.video_infos[idx]
-            props = self._video_centric_sampling(video_info)
+            video_info = self.video_infos[idx] # An instance of SSNVideoRecord
+            props = self._video_centric_sampling(video_info) # List of ((vid_id, SSNInstance), proposal_type) of size 8
+            # print ('in prepare_train:', self.video_centric, len(props), type(props[0]), type(video_info))
         else:
+            raise ValueError ("Sorry this was not expected!")
             props = self._random_sampling()
 
         out_frames = []
+        
+        # self.modalities is list of modalities ex. ['RGB']
         for _ in range(len(self.modalities)):
             out_frames.append([])
         out_prop_scaling = []
@@ -647,6 +659,7 @@ class SSNDataset(Dataset):
         for i in range(len(out_frames)):
             out_frames[i] = np.array(out_frames[i])
 
+        # print (out_frames[0].shape)
         data.update({
             'img_group_0': DC(to_tensor(out_frames[0]), stack=True,
                               pad_dims=2),
@@ -670,6 +683,14 @@ class SSNDataset(Dataset):
             to_tensor(np.array(out_prop_labels)), stack=True, pad_dims=None)
         data['prop_type'] = DC(
             to_tensor(np.array(out_prop_type)), stack=True, pad_dims=None)
+        data['task_labels'] = DC(
+            to_tensor(video_info.task_id), stack=True, pad_dims=None)
+        # print ('The data is ready')
+        # print (data.keys())
+        # print (np.array(out_prop_reg_targets).shape)
+        # print (np.array(out_prop_scaling).shape)
+        # print (np.array(out_prop_labels).shape)
+        # print (np.array(out_prop_type).shape)
 
         return data
 

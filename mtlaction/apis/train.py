@@ -103,6 +103,7 @@ def _dist_train(model, dataset, cfg, validate=False):
 
 
 def _non_dist_train(model, dataset, cfg, validate=False):
+    raise ValueError("This function has been henceforth disabled.")
     # prepare data loaders
     data_loaders = [
         build_dataloader(

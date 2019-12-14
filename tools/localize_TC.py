@@ -76,9 +76,5 @@ if __name__ == '__main__':
     if outpkl is None:
         outpkl = inpkl.split('.pkl')[0] + '_tc.pkl'
 
-    enforce_TC(inpkl, outpkl, W_matrix)
-
-        
-
-
+    enforce_TC(inpkl, outpkl, W_matrix, pooling=args.pooling)
 

@@ -11,6 +11,7 @@ from torch.utils.data.sampler import Sampler
 class GroupSampler(Sampler):
 
     def __init__(self, dataset, samples_per_gpu=1):
+        raise ValueError ("This class has been disabled")
         assert hasattr(dataset, 'flag')
         self.dataset = dataset
         self.samples_per_gpu = samples_per_gpu
@@ -22,6 +23,7 @@ class GroupSampler(Sampler):
                 size / self.samples_per_gpu)) * self.samples_per_gpu
 
     def __iter__(self):
+        raise ValueError ("This class has been disabled")
         indices = []
         for i, size in enumerate(self.group_sizes):
             if size == 0:
@@ -68,6 +70,8 @@ class DistributedGroupSampler(Sampler):
                  samples_per_gpu=1,
                  num_replicas=None,
                  rank=None):
+        print ('In distributed group sampler:')
+        print (type(dataset), samples_per_gpu, num_replicas, rank)
         if num_replicas is None:
             num_replicas = get_world_size()
         if rank is None:
