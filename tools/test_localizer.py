@@ -88,8 +88,9 @@ def main():
         comp_score_len=num_classes,
         reg_score_len=num_classes * 2,
         stpp_cfg=cfg.model.segmental_consensus.stpp_cfg)
-
+    
     dataset = obj_from_dict(cfg.data.test, datasets, dict(test_mode=True))
+
     if args.gpus == 1:
         model = build_localizer(
             cfg.model, train_cfg=None, test_cfg=cfg.test_cfg)

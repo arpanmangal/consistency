@@ -35,7 +35,7 @@ def enforce_TC(inpkl, outpkl, W_matrix, pooling='mean'):
 
     old_results = pickle.load(open(inpkl, 'rb'))
     results = []
-    for (proposals, act_scores, comp_scores, reg) in old_results:
+    for (proposals, act_scores, comp_scores, reg, *useless) in old_results:
         combined_scores = softmax(act_scores[:, 1:]) * np.exp(comp_scores)
         step_scores = pool(combined_scores, axis=0)
         step_scores = np.array([step_scores])
@@ -62,7 +62,7 @@ def enforce_TC(inpkl, outpkl, W_matrix, pooling='mean'):
        
         act_scores[big_mask] = -100
         
-        results.append((video_prediction, proposals, act_scores, comp_scores, reg))
+        results.append((proposals, act_scores, comp_scores, reg, video_scores))
     
     pickle.dump(results, open(outpkl, 'wb'))
 
