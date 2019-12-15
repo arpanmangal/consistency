@@ -47,20 +47,11 @@ class SSNHead(nn.Module):
             nn.init.constant_(self.regressor_fc.bias, 0)
 
     def prepare_test_fc(self, stpp_feat_multiplier):
-        print ('inside prepare_test_fc!!')
-        print (self.activity_fc.in_features)
-        print (self.activity_fc.out_features)
-        print (self.completeness_fc.out_features)
-        print (stpp_feat_multiplier)
-        print (self.regressor_fc.out_features)
-        print (self.with_reg)
         # TODO: support the case of standalone=False
         self.test_fc = nn.Linear(self.activity_fc.in_features,
                                  self.activity_fc.out_features
                                  + self.completeness_fc.out_features * stpp_feat_multiplier
                                  + (self.regressor_fc.out_features * stpp_feat_multiplier if self.with_reg else 0))
-        print (self.completeness_fc.weight.data.shape)
-        print (self.activity_fc.weight.data.shape)
         reorg_comp_weight = self.completeness_fc.weight.data.view(
                 self.completeness_fc.out_features, stpp_feat_multiplier,
                 self.activity_fc.in_features).transpose(0, 1).contiguous().view(-1, self.activity_fc.in_features)

@@ -18,6 +18,7 @@ def build_dataloader(dataset,
                      num_gpus=1,
                      dist=True,
                      **kwargs):
+
     if dist:
         rank, world_size = get_dist_info()
         sampler = DistributedGroupSampler(dataset, imgs_per_gpu, world_size,
@@ -25,6 +26,7 @@ def build_dataloader(dataset,
         batch_size = imgs_per_gpu
         num_workers = workers_per_gpu
     else:
+        raise ValueErorr ("This function is currently disabled")
         if not kwargs.get('shuffle', True):
             sampler = None
         else:

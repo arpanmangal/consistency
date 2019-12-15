@@ -56,6 +56,7 @@ class SSN2D(BaseLocalizer):
                 # Way to pool the features for task head
                 self.task_feat_pooling = task_head.pooling
 
+                if self.task_join != 'score': raise NotImplementedError #TODO
                 in_channels_task = cls_head.num_classes
                 if self.task_join == 'act_feat': in_channels_task = cls_head.in_channels_activity
                 elif self.task_join == 'comp_feat': in_channels_task = cls_head.in_channels_complete
@@ -151,78 +152,53 @@ class SSN2D(BaseLocalizer):
                       reg_targets,
                       task_labels,
                       **kwargs):
-        # print ('in SSN forward train')
-        # print (kwargs.keys())
-        # print (prop_scaling.shape)
-        # print (prop_labels.shape)
-        # print (reg_targets.shape)
-        # print (task_labels.shape)
-
         assert num_modalities == 1
         img_group = kwargs['img_group_0']
         num_videos = img_group.shape[0]
 
         assert self.in_channels == img_group.shape[3] == 3
-        # print ('hoho')
-        # print (num_modalities)
-        # print (img_group.shape)
-        # print (self.in_channels)
-        # print (img_group.shape)
         
         # img_group has a shape of [n, 8, 9, 3, 224, 224]
         img_group = img_group.reshape(
             (-1, self.in_channels) + img_group.shape[4:])
 
-        # print (img_group.shape)
         x = self.extract_feat(img_group)
-        # print (type(x), x.shape)
+        
         if self.with_spatial_temporal_module:
             x = self.spatial_temporal_module(x)
-        # print (type(x), x.shape)
+        
         if self.dropout is not None:
             x = self.dropout(x)
-        # print (type(x), x.shape)
+        
         activity_feat, completeness_feat = self.segmental_consensus(
             x, prop_scaling)
-        # print (activity_feat.shape, completeness_feat.shape)
+        
         losses = dict()
         if self.with_cls_head:
             activity_score, completeness_score, bbox_pred = self.cls_head(
                 (activity_feat, completeness_feat))
-            # print ('after cls_head')
-            # print (activity_score.shape, completeness_score.shape, bbox_pred.shape)
             loss_cls = self.cls_head.loss(activity_score, completeness_score,
                                           bbox_pred, prop_type, prop_labels,
                                           reg_targets, self.train_cfg)
-            # print (prop_type.shape, prop_labels.shape, reg_targets.shape, self.train_cfg)
             losses.update(loss_cls)
 
             if self.with_task_head and self.task_join == 'score':
                 # Join the task branch over here
                 # Step 1: Calculate the scores
-                # print ('before task_head')
                 s1 = F.softmax(activity_score[:, 1:], dim=1)
                 s2 = torch.exp(completeness_score)
-                # print (s1.shape)
-                # print (s2.shape)
                 combined_scores = s1 * s2
-                # combined_scores = F.softmax(activity_score[:, 1:], dim=1) * torch.exp(completeness_score)
-                # print (combined_scores.shape)
                 combined_scores = combined_scores.reshape((num_videos, activity_score.shape[0] // num_videos, -1))
-                # print ('yoho')
-                # print (num_videos)
-                # print (combined_scores.shape)
+                
                 # Step 2: Pool scores to create feature vector
-                combined_scores = torch.mean(combined_scores, dim=1)
-                # print (combined_scores.shape)
+                if self.task_feat_pooling == 'mean':
+                    combined_scores = torch.mean(combined_scores, dim=1)
+                else:
+                    combined_scores = torch.max(combined_scores, dim=1).values
 
                 # Step 3: Pass through NN and compute loss
                 task_score = self.task_head(combined_scores)
-                # print (task_score.squeeze().shape)
-                # print (task_labels.shape)
-                # print (prop_labels.shape)
                 loss_task = self.task_head.loss(task_score, task_labels.squeeze(), self.train_cfg)
-                # print (loss_task)
                 losses.update(loss_task)
 
         return losses
@@ -238,26 +214,8 @@ class SSN2D(BaseLocalizer):
         assert num_modalities == 1
         img_group = kwargs['img_group_0']
 
-        # print ('in forward test')
-        # print (type(img_group), len(img_group))
-        # print (len(img_meta), type(img_meta[0]))
-        # print (rel_prop_list.shape)
-        # print (scaling_list.shape)
-        # print (prop_tick_list.shape)
-        # print (reg_stats.shape)
-
-        # print ('hoho')
-        # print (rel_prop_list[:2, ...])
-        # print (scaling_list[:2, ...])
-        # print (prop_tick_list[:2, ...])
-        # print (reg_stats[:2, ...])
-
-        # print (kwargs.keys())
-        
         img_group = img_group[0]
         num_crop = img_group.shape[0]
-        # print (img_group.shape)
-        # print (num_crop)
         
         assert self.in_channels == img_group.shape[2] == 3
 
@@ -265,38 +223,23 @@ class SSN2D(BaseLocalizer):
             (num_crop, -1, self.in_channels) + img_group.shape[3:])
         num_ticks = img_group.shape[1] # Number of sample frames from total frames
 
-        # print (img_group.shape)
-        # print (num_ticks)
-
-        # print ('hehe')
-        # print (self.with_cls_head)
-        # print (self.with_task_head)
         output = []
         minibatch_size = self.test_cfg.ssn.sampler.batch_size
         for ind in range(0, num_ticks, minibatch_size):
             chunk = img_group[:, ind:ind + minibatch_size, ...].view(
                 (-1,) + img_group.shape[2:])
-            # print (chunk.shape)
             x = self.extract_feat(chunk.cuda())
-            # print (x.shape)
             x = self.spatial_temporal_module(x)
-            # print (x.shape)
             # merge crop to save memory
             # TODO: A smarte way of dealing with arbitary long videos
             x = x.reshape((num_crop, x.size(0)//num_crop, -1)).mean(dim=0)
             output.append(x)
-            # print (x.shape)
         output = torch.cat(output, dim=0)
-        # print ('Ooutput')
-        # print (output.shape)
-
-        # print (self.is_test_prepared)
-        # print (self.segmental_consensus.feat_multiplier)
+        
         if not self.is_test_prepared:
             self.is_test_prepared = self.cls_head.prepare_test_fc(
                 self.segmental_consensus.feat_multiplier)
         output = self.cls_head(output, test_mode=True)
-        # print (output.shape)
 
         rel_prop_list = rel_prop_list.squeeze(0)
         prop_tick_list = prop_tick_list.squeeze(0)
@@ -305,9 +248,7 @@ class SSN2D(BaseLocalizer):
         (activity_scores, completeness_scores,
          bbox_preds) = self.segmental_consensus(
             output, prop_tick_list, scaling_list)
-        # print (activity_scores.shape)
-        # print (completeness_scores.shape)
-        # print (bbox_preds.shape)
+
         if bbox_preds is not None:
             bbox_preds = bbox_preds.view(-1, self.cls_head.num_classes, 2)
             bbox_preds[:, :, 0] = bbox_preds[:, :, 0] * \
@@ -320,21 +261,16 @@ class SSN2D(BaseLocalizer):
             # Step 1: Calculate the scores
             s1 = F.softmax(activity_scores[:, 1:], dim=1)
             s2 = torch.exp(completeness_scores)
-            # print (s1.shape)
-            # print (s2.shape)
             combined_scores = s1 * s2
-            # combined_scores = F.softmax(activity_score[:, 1:], dim=1) * torch.exp(completeness_score)
-            # print (combined_scores.shape)
-            # print (combined_scores.shape)
+
             # Step 2: Pool scores to create feature vector
-            combined_scores = torch.mean(combined_scores, dim=0)
-            # print (combined_scores.shape)
+            if self.task_feat_pooling == 'mean':
+                combined_scores = torch.mean(combined_scores, dim=0)
+            else:
+                combined_scores = torch.max(combined_scores, dim=0).values
 
             # Step 3: Pass through NN and compute loss
             task_score = self.task_head(combined_scores)
-            # print (task_score)
-            # print (task_score.shape)
-
             task_score = task_score.cpu().numpy()
         else:
             task_score = None
