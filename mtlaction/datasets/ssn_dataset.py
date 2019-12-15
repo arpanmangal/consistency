@@ -695,7 +695,7 @@ class SSNDataset(Dataset):
         return data
 
     def prepare_test_imgs(self, idx):
-        video_info = self.video_infos[idx]
+        video_info = self.video_infos[idx] # An instance of SSNVideoRecord
 
         props = video_info.proposals
         video_id = video_info.video_id
@@ -705,6 +705,14 @@ class SSNDataset(Dataset):
 
         num_sampled_frames = len(frame_ticks)
 
+        # print (props)
+        # print (len(props))
+        # print (video_id)
+        # print (task_id)
+        # print (frame_cnt)
+        # print (frame_ticks)
+        # print (num_sampled_frames)
+
         if len(props) == 0:
             props.append(SSNInstance(0, frame_cnt - 1, frame_cnt))
 
@@ -712,6 +720,8 @@ class SSNDataset(Dataset):
         proposal_tick_list = []
         scaling_list = []
         out_frames = []
+        # print (self.modalities)
+
         for _ in range(len(self.modalities)):
             out_frames.append([])
         out_img_meta = []

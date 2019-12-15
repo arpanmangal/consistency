@@ -238,29 +238,65 @@ class SSN2D(BaseLocalizer):
         assert num_modalities == 1
         img_group = kwargs['img_group_0']
 
+        # print ('in forward test')
+        # print (type(img_group), len(img_group))
+        # print (len(img_meta), type(img_meta[0]))
+        # print (rel_prop_list.shape)
+        # print (scaling_list.shape)
+        # print (prop_tick_list.shape)
+        # print (reg_stats.shape)
+
+        # print ('hoho')
+        # print (rel_prop_list[:2, ...])
+        # print (scaling_list[:2, ...])
+        # print (prop_tick_list[:2, ...])
+        # print (reg_stats[:2, ...])
+
+        # print (kwargs.keys())
+        
         img_group = img_group[0]
         num_crop = img_group.shape[0]
+        # print (img_group.shape)
+        # print (num_crop)
+        
+        assert self.in_channels == img_group.shape[2] == 3
+
         img_group = img_group.reshape(
             (num_crop, -1, self.in_channels) + img_group.shape[3:])
-        num_ticks = img_group.shape[1]
+        num_ticks = img_group.shape[1] # Number of sample frames from total frames
 
+        # print (img_group.shape)
+        # print (num_ticks)
+
+        # print ('hehe')
+        # print (self.with_cls_head)
+        # print (self.with_task_head)
         output = []
         minibatch_size = self.test_cfg.ssn.sampler.batch_size
         for ind in range(0, num_ticks, minibatch_size):
             chunk = img_group[:, ind:ind + minibatch_size, ...].view(
                 (-1,) + img_group.shape[2:])
+            # print (chunk.shape)
             x = self.extract_feat(chunk.cuda())
+            # print (x.shape)
             x = self.spatial_temporal_module(x)
+            # print (x.shape)
             # merge crop to save memory
             # TODO: A smarte way of dealing with arbitary long videos
             x = x.reshape((num_crop, x.size(0)//num_crop, -1)).mean(dim=0)
             output.append(x)
+            # print (x.shape)
         output = torch.cat(output, dim=0)
+        # print ('Ooutput')
+        # print (output.shape)
 
+        # print (self.is_test_prepared)
+        # print (self.segmental_consensus.feat_multiplier)
         if not self.is_test_prepared:
             self.is_test_prepared = self.cls_head.prepare_test_fc(
                 self.segmental_consensus.feat_multiplier)
         output = self.cls_head(output, test_mode=True)
+        # print (output.shape)
 
         rel_prop_list = rel_prop_list.squeeze(0)
         prop_tick_list = prop_tick_list.squeeze(0)
@@ -269,6 +305,9 @@ class SSN2D(BaseLocalizer):
         (activity_scores, completeness_scores,
          bbox_preds) = self.segmental_consensus(
             output, prop_tick_list, scaling_list)
+        # print (activity_scores.shape)
+        # print (completeness_scores.shape)
+        # print (bbox_preds.shape)
         if bbox_preds is not None:
             bbox_preds = bbox_preds.view(-1, self.cls_head.num_classes, 2)
             bbox_preds[:, :, 0] = bbox_preds[:, :, 0] * \
@@ -276,5 +315,29 @@ class SSN2D(BaseLocalizer):
             bbox_preds[:, :, 1] = bbox_preds[:, :, 1] * \
                 reg_stats[1, 1] + reg_stats[0, 1]
 
+        if self.with_task_head and self.task_join == 'score':
+            # Join the task branch over here
+            # Step 1: Calculate the scores
+            s1 = F.softmax(activity_scores[:, 1:], dim=1)
+            s2 = torch.exp(completeness_scores)
+            # print (s1.shape)
+            # print (s2.shape)
+            combined_scores = s1 * s2
+            # combined_scores = F.softmax(activity_score[:, 1:], dim=1) * torch.exp(completeness_score)
+            # print (combined_scores.shape)
+            # print (combined_scores.shape)
+            # Step 2: Pool scores to create feature vector
+            combined_scores = torch.mean(combined_scores, dim=0)
+            # print (combined_scores.shape)
+
+            # Step 3: Pass through NN and compute loss
+            task_score = self.task_head(combined_scores)
+            # print (task_score)
+            # print (task_score.shape)
+
+            task_score = task_score.cpu().numpy()
+        else:
+            task_score = None
+
         return rel_prop_list.cpu().numpy(), activity_scores.cpu().numpy(), \
-            completeness_scores.cpu().numpy(), bbox_preds.cpu().numpy()
+            completeness_scores.cpu().numpy(), bbox_preds.cpu().numpy(), task_score
