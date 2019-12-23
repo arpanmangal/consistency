@@ -43,34 +43,32 @@ class Trainer():
     For training a Network for predicting task
     """
 
-    def __init__(self, num_steps, num_tasks, net_type, config):
+    def __init__(self, model_cfg):
         """
-        net_type: type of network MLP / CNN / RNN
-        config: dict() containing the reqd configs
+        model_cfg: Configuration for the model 
         """
 
-        assert net_type in ['mlp']
-        self.net_type = net_type
-        if net_type == 'mlp':
-            self.net = TaskPoolHead(num_steps, num_tasks, config['middle_layers'])
-            self.net.init_weights()
-            self.lr = config['lr']
-            self.pooling = config['pooling']
-            self.epochs = config['epochs']
-            self.decay = config['decay']
-            self.batch_size = config['batch_size']
-            self.log_file = config['log_file']
+        self.net_type = model_cfg['type']
+        self.num_steps = model_cfg['num_steps']
+        self.num_tasks = model_cfg['num_tasks']
 
+        assert self.net_type in ['mlp']
+        if self.net_type == 'mlp':
+            self.net = TaskPoolHead(self.num_steps, self.num_tasks, model_cfg['middle_layers'])
+            self.pooling = model_cfg['pooling']
             assert self.pooling in ['mean', 'max']
 
         self.cuda_flag = torch.cuda.is_available()
         if self.cuda_flag:
             self.net = self.net.cuda()
 
-    def train(self, scores, task_ids, props=None, val_data=None):
+    def train(self, train_cfg, scores, task_ids, props=None, val_data=None):
         """
         Train the network
         """
+
+        with open(train_cfg['log_file'], 'w') as f:
+            f.write('')
 
         if self.net_type == 'mlp':
             def gen_dataset(scores, task_ids):
@@ -89,7 +87,7 @@ class Trainer():
                 return dataset
 
             train_dataset = gen_dataset(scores, task_ids)    
-            trainloader = DataLoader(train_dataset, batch_size=self.batch_size, shuffle=True)
+            trainloader = DataLoader(train_dataset, batch_size=train_cfg['batch_size'], shuffle=True)
 
             if val_data is not None:
                 val_dataset = gen_dataset(val_data['scores'], val_data['task_ids'])
@@ -98,10 +96,12 @@ class Trainer():
             self.net.train()
             criterion = nn.CrossEntropyLoss()
 
-            for epoch in range(self.epochs):
-                if (epoch + 1) % self.decay == 0:
-                    self.lr /= 3
-                optimizer = optim.SGD(self.net.parameters(), lr=self.lr, momentum=0.9)
+            val_loss = float('inf')
+            lr = train_cfg['lr']
+            for epoch in range(train_cfg['epochs']):
+                if (epoch + 1) % train_cfg['decay'] == 0:
+                    lr /= 3
+                optimizer = optim.SGD(self.net.parameters(), lr=lr, momentum=0.9)
                 
                 tot_loss = 0.0
                 for data in trainloader:
@@ -123,8 +123,8 @@ class Trainer():
                 
                 tot_loss /= len(trainloader)
 
-                val_loss = 0.0
-                if val_data is not None:
+                if val_data is not None and (epoch + 1) % train_cfg['freq'] == 0:
+                    val_loss = 0.0
                     for data in valloader:
                         step_scores, task_ids = data
                         if self.cuda_flag:
@@ -135,12 +135,14 @@ class Trainer():
                         loss = criterion(out, task_ids)
                         val_loss += loss.item()
 
+                    val_loss /= len(valloader)
+
                 # logging statistics
                 timestamp = str(datetime.datetime.now()).split('.')[0]
-                log = '{} | Epoch: {}, lr: {}, Train Loss: {}, Val Loss: {}'.format(timestamp, epoch+1, self.lr, tot_loss, val_loss)
+                log = '{} | Epoch: {}, lr: {:.4f}, Train Loss: {:.3f}, Val Loss: {:.3f}'.format(timestamp, epoch+1, lr, tot_loss, val_loss)
                 print (log)
-                if self.log_file is not None:
-                    with open(self.log_file, 'a') as f:
+                if train_cfg['log_file'] is not None:
+                    with open(train_cfg['log_file'], 'a') as f:
                         f.write('{}\n'.format(log))
 
     def predict (self, scores, props=None):
@@ -151,9 +153,9 @@ class Trainer():
             data = []
             for s in scores:
                 if self.pooling == 'max':
-                    datum = torch.max(s, dim=0)
+                    datum = np.max(s, axis=0)
                 else:
-                    datum = torch.mean(s, dim=0)
+                    datum = np.mean(s, axis=0)
                 data.append(datum)
 
             inputs = torch.FloatTensor(data)
@@ -164,23 +166,20 @@ class Trainer():
             with torch.no_grad():
                 task_scores = self.net(inputs)
             
-        return np.argmax(task_scores, axis=1)
+        return np.argmax(task_scores.cpu().numpy(), axis=1)
 
     def save_model(self, checkpoint_path):
-        info = {
-            'model': self.net.state_dict(),
-            'pooling': self.pooling,
-            'type': self.net_type
-        }
-        torch.save(info, checkpoint_path)
+        torch.save(self.net.state_dict(), checkpoint_path)
     
     def load_model(self, checkpoint_path):
         if self.cuda_flag:
-            info = torch.load(checkpoint_path)
+            self.net.load_state_dict(torch.load(checkpoint_path))
         else:
-            info = torch.load(checkpoint_path, map_location=torch.device('cpu'))
+            self.net.load_state_dict(torch.load(checkpoint_path, map_location=torch.device('cpu')))
 
-        self.net.load_state_dict(info['model'])
-        assert self.pooling == info['pooling'].cpu()
-        assert self.net_type == info['type'].cpu()
+        # Let's print the weights
+        for fc in self.net.fcs:
+            print('..............')
+            print (fc.weight)
+            print (fc.bias)
 

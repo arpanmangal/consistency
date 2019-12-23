@@ -23,23 +23,23 @@ def parse_args():
 
     # For training a model
     parser_train = subparsers.add_parser('train', help="Train a model")
+    parser_train.add_argument('config', type=str, help="Path to config file")
     parser_train.add_argument('pkl', type=str, help="Path to combined pickle file")
-    parser_train.add_argument('num_steps', type=int, help="Number of steps")
-    parser_train.add_argument('num_tasks', type=int, help="Number of tasks")
-    parser_train.add_argument('type', type=str, choices=['mlp'], help="Type of network to use")
     parser_train.add_argument('save', type=str, help="Path to save the model")
     parser_train.add_argument('--lr', type=float, default=0.1, help="Learning Rate")
     parser_train.add_argument('--batch_size', type=int, default=64, help="Batch Size")
     parser_train.add_argument('--epochs', type=int, default=2, help="Number of Epochs")
     parser_train.add_argument('--decay', type=int, default=30, help="Number of Epochs after which to decay LR by 3")
-    parser_train.add_argument('--pooling', choices=['mean', 'max'], default='mean', help="Type of pooling")
-    parser_train.add_argument('--log', type=str, help="Log File path")
-    parser_train.add_argument('--middle_layers', type=int, nargs='*', default=[], help="Sizes of middle layers in network")
+    parser_train.add_argument('--log', type=str, required=True, help="Log File path")
     parser_train.add_argument('--pretrained', type=str, help="Path to pre-trained models")
     parser_train.add_argument('--validate', type=str, help="Path to validate pkl file for validation loss")
+    parser_train.add_argument('--freq', type=int, default=5, help="Number of epochs after which to evaluate")
    
     # For testing model
-
+    parser_test = subparsers.add_parser('test', help="Test a model")
+    parser_test.add_argument('config', type=str, help="Path to config file")
+    parser_test.add_argument('pkl', type=str, help="Path of combined pickle file")
+    parser_test.add_argument('load', type=str, help="Path to saved model")
 
     return parser.parse_args()
 
@@ -97,41 +97,42 @@ def combine(pkl_path, tag_path, save_path):
     pickle.dump(results, open(save_path, 'wb'))
 
 
+def _parse_pkl(pkl_file):
+    data = pickle.load(open(pkl_file, 'rb'))
+    scores = []; task_ids = []; props = []
+    for s in data:
+        scores.append(s[1])
+        task_ids.append(s[3])
+        props.append(s[0])
+
+    return scores, task_ids, props
+
 def train(args):
     """
     Train a model
     """
-    config = {
-        'middle_layers': args.middle_layers,
+    model_cfg = json.load(open(args.config, 'r'))
+    train_cfg = {
         'lr': args.lr,
-        'pooling': args.pooling,
         'epochs': args.epochs,
         'batch_size': args.batch_size,
         'decay': args.decay,
+        'freq': args.freq,
         'log_file': args.log
     }
-    print ("Generating model: {}".format(args.type))
-    print (config)
-    trainer = Trainer(args.num_steps, args.num_tasks, args.type, config)
+
+    print ("Generating model: {}".format(model_cfg['type']))
+    print (model_cfg)
+    trainer = Trainer(model_cfg)
 
     if args.pretrained is not None:
         print ("Loading pre-trained model from {}".format(args.pretrained))
         trainer.load_model(args.pretrained)
     print ('----------------------------------------------')
 
-    def _parse(pkl_file):
-        data = pickle.load(open(pkl_file, 'rb'))
-        scores = []; task_ids = []; props = []
-        for s in data:
-            scores.append(s[1])
-            task_ids.append(s[3])
-            props.append(s[0])
-
-        return scores, task_ids, props
-
-    scores, task_ids, props = _parse(args.pkl)
+    scores, task_ids, props = _parse_pkl(args.pkl)
     if args.validate:
-        val_scores, val_task_ids, val_props = _parse(args.validate)
+        val_scores, val_task_ids, val_props = _parse_pkl(args.validate)
         val_data = {
             'scores': val_scores,
             'task_ids': val_task_ids,
@@ -140,10 +141,33 @@ def train(args):
     else:
         val_data = None
 
-    trainer.train(scores, task_ids, props, val_data)
+    trainer.train(train_cfg, scores, task_ids, props, val_data)
     print ("Save model to {}".format(args.save))
     trainer.save_model(args.save)
 
+
+def test(pkl_path, load_path):
+    """
+    Test the trained model
+    """ 
+    model_cfg = json.load(open(args.config, 'r'))
+    print ("Generating model: {}".format(model_cfg['type']))
+    print (model_cfg)
+    trainer = Trainer(model_cfg)
+
+    print ("Loading trained model from {}".format(load_path))
+    trainer.load_model(load_path)
+    print ('----------------------------------------------')
+
+    scores, task_ids, props = _parse_pkl(pkl_path)
+    task_preds = trainer.predict(scores)
+
+    task_ids = np.array(task_ids)
+    print (task_ids)
+    print (task_preds)
+    print (np.sum(task_ids == task_preds))
+    print (len(task_ids))
+    print ("Accuracy: %.3f" % ((np.sum(task_ids == task_preds) / len(task_ids)) * 100))
 
 if __name__ == '__main__':
     args = parse_args()
@@ -152,5 +176,7 @@ if __name__ == '__main__':
         combine(args.pkl, args.tag, args.save)
     elif args.mode == 'train':
         train(args)
+    elif args.mode == 'test':
+        test(args.pkl, args.load)
     else:
         raise ValueError("Go Away")
