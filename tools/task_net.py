@@ -6,7 +6,7 @@ import argparse
 import pickle
 import json
 import numpy as np
-from task_head import Trainer
+from task_head import Trainer, NMS
 
 def parse_args():
     """
@@ -14,6 +14,13 @@ def parse_args():
     """
     parser = argparse.ArgumentParser(description="Train task model")
     subparsers = parser.add_subparsers(help='Mode of operation', dest='mode')
+
+    # For pruning the proposals -- throw away too long / short proposals
+    parser_prune = subparsers.add_parser('prune', help="Prune the proposals")
+    parser_prune.add_argument('pkl', type=str, help="Path to the result pkl file")
+    parser_prune.add_argument('save', type=str, help="Path to the generated pickle file")
+    parser_prune.add_argument('--l', type=float, default=0.05, help="Low Range")
+    parser_prune.add_argument('--h', type=float, default=0.6, help="Hi range")
 
     # For combining the result pickle file and TAG file
     parser_combine = subparsers.add_parser('combine', help="Combine the pkl and TAG files")
@@ -41,7 +48,37 @@ def parse_args():
     parser_test.add_argument('pkl', type=str, help="Path of combined pickle file")
     parser_test.add_argument('load', type=str, help="Path to saved model")
 
+    # For doing NMS
+    parser_nms = subparsers.add_parser('nms', help="Do NMS")
+    parser_nms.add_argument('in_pkl', type=str, help="Pickle of combined scores")
+    parser_nms.add_argument('out_pkl', type=str, help="Pickle of post-NMS combined scores")
+    parser_nms.add_argument('--thres', type=float, default=0.2, help="NMS threshold")
+    parser_nms.add_argument('--no_reg', default=False, action='store_true', help="Do not perform location regression on props")
+
     return parser.parse_args()
+
+
+def prune(pkl, save, low, hi):
+    """
+    Prune the pickle scores, by removing too large / short proposals
+    """
+    print ('hola hola')
+    pkl_data = pickle.load(open(pkl, 'rb'))
+
+    results = []
+    for data_idx, (props, act_scores, comp_scores, regs, useless) in enumerate(pkl_data):
+        keep = []
+        for idx, p in enumerate(props):
+            if (low < p[1] - p[0] < hi):
+                keep.append(idx)
+
+        if len(keep) == 0:
+            keep = [0] # Keep the first element
+            print ('index {} is completely useless!!'.format(data_idx))
+        results.append((props[keep, :], act_scores[keep, :], comp_scores[keep, :], regs[keep, :, :], useless))
+
+    pickle.dump(results, open(save, 'wb'))
+
 
 def combine(pkl_path, tag_path, save_path):
     """
@@ -169,14 +206,45 @@ def test(pkl_path, load_path):
     print (len(task_ids))
     print ("Accuracy: %.3f" % ((np.sum(task_ids == task_preds) / len(task_ids)) * 100))
 
+
+def nms(in_pkl, out_pkl, thres, no_reg):
+    """
+    Do NMS over the combined scores
+    """
+    pkl_data = pickle.load(open(in_pkl, 'rb'))
+    props = []; scores = []; regs = []; task_ids = []
+    for data in pkl_data:
+        p, s, r, t = data
+        props.append(p)
+        scores.append(s)
+        regs.append(r)
+        task_ids.append(t)
+
+    nms = NMS(props, scores, regs)
+    print ("Performing NMS...")
+    print ("NMS Thres: {} | Reg: {}".format(thres, not no_reg))
+    all_new_props, all_new_scores = nms.temporal_nms_gola(thres, no_reg)
+
+    results = []
+    for p, s, (_, _, _, t) in zip(all_new_props, all_new_scores, pkl_data):
+        results.append((p, s, None, t))
+
+    pickle.dump(results, open(out_pkl, 'wb'))
+
+
 if __name__ == '__main__':
     args = parse_args()
     
-    if args.mode == 'combine':
+    if args.mode == 'prune':
+        assert 0 < args.l < args.h < 1
+        prune(args.pkl, args.save, args.l, args.h)
+    elif args.mode == 'combine':
         combine(args.pkl, args.tag, args.save)
     elif args.mode == 'train':
         train(args)
     elif args.mode == 'test':
         test(args.pkl, args.load)
+    elif args.mode == 'nms':
+        nms(args.in_pkl, args.out_pkl, args.thres, args.no_reg)
     else:
         raise ValueError("Go Away")

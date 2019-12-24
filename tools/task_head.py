@@ -11,6 +11,110 @@ import torch.nn.functional as F
 import torch.optim as optim
 from torch.utils.data import TensorDataset, DataLoader
 
+class NMS:
+    """
+    Contains functions for doing temporal nms
+    """
+    def __init__ (self, props, scores, regs):
+        """
+        props: V*N*2 array containing N proposals (s,e)
+        scores: V*N*S array containing step scores for each proposal
+        regs: V*N*S*2 array containing regression parameters for each proposal
+        """
+        assert len(props) == len(scores) == len(regs)
+        for p, s, r in zip(props, scores, regs):
+            N, S = s.shape
+            assert p.shape == (N, 2)
+            assert r.shape == (N, S, 2)
+            
+        self.props = props
+        self.scores = scores
+        self.regs = regs
+
+    def _perform_regression(self):
+        """
+        Perform regression on the props using regs
+        """
+        reg_props = []
+        for p, r in zip(self.props, self.regs):
+            t0 = p[:, 0] # Start time
+            t1 = p[:, 1] # End time
+            center = (t0 + t1) / 2.0
+            duration = t1 - t2
+
+            new_center = center + duration * r[:, 0]
+            new_duration = duration * np.exp(r[:, 1])
+
+            new_props = np.concatenate((
+                np.clip(new_center - new_duration / 2, 0, 1)[:, None],
+                np.clip(new_center + new_duration / 2, 0, 1)[:, None]
+                ), axis=1)
+            
+            assert new_props.shape == p.shape
+            reg_props.append(new_props)
+        
+        return reg_props
+
+    def _perform_temporal_nms(self, detections, thresh):
+        t0 = detections[:, 0]
+        t1 = detections[:, 1]
+        scores = detections[:, 2]
+
+        durations = t1 - t0
+        order = scores.argsort()[::-1]
+
+        keep = []
+        while order.size > 0:
+            i = order[0]
+            keep.append(i)
+            tt0 = np.maximum(t0[i], t0[order[1:]])
+            tt1 = np.minimum(t1[i], t1[order[1:]])
+            intersection = tt1 - tt0
+            iou = intersection / \
+                (durations[i] + durations[order[1:]] - intersection).astype(float)
+
+            inds = np.where(iou <= thresh)[0]
+            order = order[inds + 1]
+
+        return keep
+        # return detections[keep, :]
+
+    def temporal_nms_gola(self, thres, no_reg=False):
+        """
+        Perform temporal NMS
+
+        !! Check manually if done right after doing it and saving as pkl
+        """
+
+        if no_reg:
+            all_props = self.props
+        else:
+            all_props = self._perform_regression()
+
+        all_new_props = []; all_new_scores = []
+        K = self.scores[0].shape[1] # num of steps
+        for vid_idx, props in enumerate(all_props):
+            keep = set()
+            N, K = self.scores[vid_idx].shape
+
+            for k in range(K):
+                detections = np.zeros((N, 3))
+                detections[:, 0] = props[:, 0]
+                detections[:, 1] = props[:, 1]
+                detections[:, 2] = self.scores[vid_idx][:, k]
+                keep |= set(self._perform_temporal_nms(detections, thres))
+
+            keep = list(keep)
+            # print (keep, len(keep), len(props))
+            # exit(0)
+            new_props = props[keep, :]
+            new_scores = self.scores[vid_idx][keep, :]
+            all_new_props.append(new_props)
+            all_new_scores.append(new_scores)
+
+        return all_new_props, all_new_scores
+
+
 class TaskPoolHead(nn.Module):
     """
     Task head operating over pooled step scores

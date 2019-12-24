@@ -28,6 +28,7 @@ def results2det(dataset, outputs,
     task_predictions = np.array([np.argmax(output[4]) for output in outputs])
     task_truths = np.array([record.task_id for record in dataset.video_infos])
     print (len(task_predictions))
+    print (len(task_truths))
     print ('Task Predictions: ', task_predictions)
     print ('Task Truths     : ', task_truths)
     assert len(task_predictions) == len(task_truths)
