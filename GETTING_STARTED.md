@@ -10,81 +10,83 @@ We first give an example of testing and training temporal action detection model
 ### 1. Prepare data
 First of all, please follow [PREPARING_COIN.md](https://github.com/arpanmangal/consistency/blob/master/data_tools/coin/PREPARING_COIN.md) for data preparation.
 
-### 2. Generate sliding window proposals
+### 2. Train a model with multiple GPUSs
 
+Use the following training script to train the model:
 ```
-time python gen_sliding_window_proposals.py training rgb data/coin/subset_frames data/coin/coin_sw_train_proposal_list.txt --dataset coin
-time python gen_sliding_window_proposals.py testing rgb data/coin/subset_frames data/coin/coin_sw_test_proposal_list.txt --dataset coin
+./tools/dist_train_localizer.sh ${CONFIG_FILE} ${GPU_NUM} [optional arguments]
 ```
-*Time Needed*: _Negligible_
-
-
-### 3. Training binary actionness classifier
-```
-time python binary_train.py coin RGB -b 16 --lr_steps 3 6 --epochs 20 --gpus 0
-```
-*Time Needed*: _64 mins for 1 domain (Plants and Fruits) (7 tasks) (epoch 7)_ 
-*Time Needed*: _76 mins for 1 domain (Plants and Fruits) (7 tasks) (epoch 20)_ 
-
-### 4. Obtaining actionness score
-```
-time python binary_test.py coin RGB training _rgb_model_best.pth.tar data/coin/rgb_actioness.pkl
-time python binary_test.py coin RGB testing _rgb_model_best.pth.tar data/coin/rgb_actioness_test.pkl
-```
-
-*Time Needed*: _Plants and Fruits -- Train 67 mins_  
-*Time Needed*: _Plants and Fruits -- Test 39 mins_
-
-59
-40
+* ${CONFIG_FILE} is the config file stored in `$MMACTION/configs`.
+* ${GPU_NUM} is the number of GPU (default: 8). If you are using number other than 8, please adjust the learning rate in the config file linearly.
 
 
-### 5. Generating TAG Proposals
+### 3. Inference with trained models
+
+Testing script for the dataset:
 ```
-time python gen_bottom_up_proposals.py data/coin/rgb_actioness.pkl --dataset coin --subset training --write_proposals data/coin/coin_tag_train_proposal_list.txt  --frame_path data/coin/subset_frames/
-time python gen_bottom_up_proposals.py data/coin/rgb_actioness_test.pkl --dataset coin --subset testing --write_proposals data/coin/coin_tag_test_proposal_list.txt  --frame_path data/coin/subset_frames/
+python tools/test_localizer.py ${CONFIG_FILE} ${CHECKPOINT_FILE} [--out ${RESULT_FILE}] [other task-specific arguments]
 ```
 
-*Time Needed*: _Negligible_
-
-### 5.mid Normalize
-```
-python gen_proposal_list.py coin data/coin/subset_frames
-```
-
-### 6. Training SSN
-#### 6.1 With ImageNet pretrained
-```
-time python ssn_train.py coin RGB -b 4 --lr_steps 5 10 --epochs 20 --gpus 0
-```
-*Time Needed*: _Plants and Fruits -- Train 178 mins_  
+-------------------------------------------------------------
 
 
-### 7. Evaluating on the dataset
-#### 7.1 Extract detection scores for all proposals
-```
-time python ssn_test.py coin RGB ssn_coin_BNInception_rgb_checkpoint.pth.tar data/coin/rgb_plants.pkl --gpus 0
-time python ssn_test.py coin RGB _rgb_model_best.pth.tar data/coin/rgb_plants_best.pkl --gpus 0
-```
-*Time Taken*: _end: 49 mins, best: 49 mins_
+## Advanced Usage
 
-#### 7.2 Evaluate detection performance
+Additionally the following scripts could be used to test the model at various checkpoints, and analyze results for different epochs, improve the scores and much more..
+
+### 1. Testing at different epochs
 ```
-time python code/tc-ssn/eval_detection_results.py coin data/coin/rgb_plants_best.pkl
-<!-- time python eval_detection_results.py coin data/coin/rgb_plants.pkl
-time python eval_detection_results.py coin data/coin/rgb_plants_best.pkl -->
+python tools/analyze.py test ${MODEL_DIR} ${RESULT_DIR} ${NUM_GPUS} [--start ${START_EPOCH} --step ${STEP_SIZE}]
+```
+* ${MODEL_DIR} is path of directory contaning the model checkpoints. Expects corresponding `config.py` inside the directory.
+* ${RESULT_DIR} is the path of directory where to save the generated result `.pkl` files.
+* ${NUM_GPUS} is the number of GPUs used while training.
+* ${START_EPOCH} is the epoch from which to start evaluation. (default: 10)
+* ${STEP_SIZE}: Evaluate after each ${STEP_SIZE} epochs. (default: 5)
+
+### 2. Pruning the proposals (optional)
+Throw away too long / short proposals for better precision.
+```
+python tools/analyze.py prune ${RESULT_DIR} ${PRUNE_DIR} [--l ${LOW_RANGE} --h ${HI_RANGE}]
+```
+* ${RESULT_DIR} is the path of the directory containing result `.pkl` files generated above.
+* ${PRUNE_DIR} is the path of the directory, where to store the `.pkl` files corresponding to pruned proposals.
+* ${LOW_RANGE} is the fraction which if greater than proposal length, leads to discarding the latter. (default: 0.05)
+* ${HI_RANGE} is the fraction which if lower than proposal length, lead to discarding the latter. (default: 0.6)
+
+### 3. Enforcing Simple Task Consistency
+Enforce TC using domain knowledge in form of a belongingness matrix.
+```
+python tools/analyze.py tc ${RESULT_DIR} ${RESULT_TC_DIR} [--pooling ${POOLING_TYPE}]
 ```
 
-**MaP Scores**
-<!-- Method | 0.1 | 0.2 | 0.3 | 0.4 | 0.5
---- | --- | --- | --- | --- | ---
-*SSN* | 1 | 2 | 1 | 2 | 3 -->
-+Detection Performance on coin---+--------+--------+--------+--------+--------+--------+--------+---------+
-| IoU thresh   | 0.10   | 0.20   | 0.30   | 0.40   | 0.50   | 0.60   | 0.70   | 0.80   | 0.90   | Average |
-+--------------+--------+--------+--------+--------+--------+--------+--------+--------+--------+---------+
-| mean AP      | 0.0062 | 0.0043 | 0.0029 | 0.0020 | 0.0011 | 0.0009 | 0.0005 | 0.0003 | 0.0000 | 0.0020  |
-+--------------+--------+--------+--------+--------+--------+--------+--------+--------+--------+---------+
-| mean AR      | 0.0206 | 0.0172 | 0.0136 | 0.0106 | 0.0073 | 0.0059 | 0.0040 | 0.0024 | 0.0007 | 0.0091  |
-+--------------+--------+--------+--------+--------+--------+--------+--------+--------+--------+---------+
-| F1 criterion | 0.1020 | 0.0869 | 0.0706 | 0.0555 | 0.0396 | 0.0318 | 0.0206 | 0.0116 | 0.0035 | 0.0469  |
-+--------------+--------+--------+--------+--------+--------+--------+--------+--------+--------+---------+
+* ${RESULT_DIR} is the path of the directory containing result `.pkl` files generated above.
+* ${RESULT_TC_DIR} is the path of the directory where to store `.pkl` files corresponding to TC scores.
+* ${POOLING_TYPE} is the type of pooling to use. Should be from [`mean` or `max`]. (default: `mean`)
+
+### 4. Evaluate
+Evaluate the result pickle files.
+```
+python tools/analyze.py eval ${MODEL_DIR} ${RESULT_DIR} ${EVAL_DIR}
+```
+* ${MODEL_DIR} is path of directory contaning the model checkpoints. Expects corresponding `config.py` inside the directory.
+* ${RESULT_DIR} is the path of the directory containing result `.pkl` files generated above.
+* ${EVAL_DIR} is the directory where to save evaluation results corresponding to each `.pkl` file.
+
+### 5. Parse Results
+Parse the results of the evaluation above.
+```
+python tools/analyze.py parse ${EVAL_DIR}
+```
+* ${EVAL_DIR} is the directory where the evaluation results generated above are saved. The generated score dict is saved in this directory as well.
+
+### 6. Visualization
+Plotting various scores for comparision.
+```
+python tools/analyze.py plot ${PLOT_TYPE} [--${EVAL_DIRS} --${LABELS} --${SAVE_PATH} --${TITLE}]
+```
+* ${PLOT_TYPE}: 'key' in the score JSON, which to plot.
+* ${EVAL_DIRS}: list of eval directories generated above, each having a `scores.json`.
+* ${LABELS}: list of labels for each line curve.
+* ${SAVE_PATH}: path to save the plot.
+* ${TITLE}: title of the plot
