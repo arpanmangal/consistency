@@ -2,6 +2,7 @@
 Evaluate over every 5 epochs
 """
 import os, re, json
+import pickle
 import subprocess, shlex
 import argparse
 import glob
@@ -24,6 +25,13 @@ def parse_args():
     parser_test.add_argument('gpus', type=int, help="Number of GPUs to use")
     parser_test.add_argument('--start', type=int, help="Start epoch", default=10)
     parser_test.add_argument('--step', type=int, help="Step size of evaluation", default=5)
+
+    # For pruning the proposals -- throw away too long / short proposals
+    parser_prune = subparsers.add_parser('prune', help="Prune the proposals")
+    parser_prune.add_argument('result_dir', type=str, help="Path of results directory")
+    parser_prune.add_argument('prune_dir', type=str, help="Path of pruned results directory")
+    parser_prune.add_argument('--l', type=float, default=0.05, help="Low Range")
+    parser_prune.add_argument('--h', type=float, default=0.6, help="Hi range")    
 
     # For TC
     parser_tc = subparsers.add_parser('tc', help='Run COIN\'s TC on generated pickle files')
@@ -82,10 +90,43 @@ def test(model_dir, result_dir, gpus, start=10, end=1000, step=5):
         process.wait()
 
 
+def prune(result_dir, prune_dir, low, hi):
+    """
+    Prune the pickle scores, by removing too large / short proposals
+    """
+    assert (result_dir != prune_dir)
+    try:
+        os.makedirs(prune_dir)
+    except:
+        pass
+
+    pkl_files = glob.glob(os.path.join(result_dir, '*.pkl'))
+    for pkl in pkl_files:
+        file_name = pkl.split('/')[-1]
+        prune_file = os.path.join(prune_dir, file_name)
+        
+        pkl_data = pickle.load(open(pkl, 'rb'))
+
+        results = []
+        for data_idx, (props, act_scores, comp_scores, regs, useless) in enumerate(pkl_data):
+            keep = []
+            for idx, p in enumerate(props):
+                if (low < p[1] - p[0] < hi):
+                    keep.append(idx)
+
+            if len(keep) == 0:
+                keep = [0] # Keep the first element
+                print ('index {} is completely useless!!'.format(data_idx))
+            results.append((props[keep, :], act_scores[keep, :], comp_scores[keep, :], regs[keep, :, :], useless))
+
+        pickle.dump(results, open(prune_file, 'wb'))
+
+
 def tc (result_dir, result_tc_dir, pooling='mean'):
     """
     Enforce term consistency over the generated scores
     """
+    assert result_dir != result_tc_dir
     try:
         os.makedirs(result_tc_dir)
     except:
@@ -180,9 +221,13 @@ def plot (eval_dirs, labels, plot_type, save_path, title=''):
 if __name__ == '__main__':
     # time.sleep(1)
     args = parse_args()
-    if args.mode == 'test':
+
+    if args.mode == 'prune':
+        assert 0 < args.l < args.h < 1
+        prune(args.result_dir, args.prune_dir, args.l, args.h)
+    elif args.mode == 'test':
         test(args.model_dir, args.result_dir, args.gpus, start=args.start, step=args.step)
-    elif args.mode == 'TC':
+    elif args.mode == 'tc':
         tc (args.result_dir, args.result_tc_dir, args.pooling)
     elif args.mode == 'eval':
         evaluate (args.model_dir, args.result_dir, args.eval_dir)
@@ -190,3 +235,5 @@ if __name__ == '__main__':
         parse_scores (args.eval_dir)
     elif args.mode == 'plot':
         plot (args.eval_dirs, args.labels, args.plot_type, args.save_path, args.title)
+    else:
+        raise ValueError("Go Away")
