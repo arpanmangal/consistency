@@ -7,6 +7,7 @@ import subprocess, shlex
 import argparse
 import glob
 import time
+from tqdm import tqdm
 import matplotlib.pyplot as plt
 
 
@@ -54,6 +55,8 @@ def parse_args():
     parser_plot.add_argument('plot_type', choices=['task_score', 'map_0.1'], help="Type of plot")
     parser_plot.add_argument('--eval_dirs', type=str, nargs='+', help='List of evaluate directories', required=True)
     parser_plot.add_argument('--labels', type=str, nargs='+', help='List of plot labels', required=True)
+    parser_plot.add_argument('--lo', type=float, required=True, help='Lower Y Limit')
+    parser_plot.add_argument('--hi', type=float, required=True, help='Higher Y Limit')
     parser_plot.add_argument('--save_path', type=str, help='Path where to save the plot', required=True)
     parser_plot.add_argument('--title', type=str, default='', help='Plot title')
     
@@ -164,8 +167,8 @@ def evaluate (model_dir, result_dir, eval_dir):
         command = shlex.split(command)
         with open(log_file, 'w') as outfile:
             process = subprocess.Popen(command, stdout=outfile)
-        process.wait()
-        
+        time.sleep(10)
+
 
 def parse_scores (eval_dir):
     """
@@ -173,7 +176,7 @@ def parse_scores (eval_dir):
     """
     log_files = glob.glob(os.path.join(eval_dir, '*.log'))
     scores = dict()
-    for log_file in log_files:
+    for log_file in tqdm(log_files):
         for line in open(log_file, 'r'):
             if re.search("Task Classification Accuracy:", line):
                 task_acc_line = line
@@ -193,7 +196,7 @@ def parse_scores (eval_dir):
         json.dump(scores, outfile, indent=4, sort_keys=True)
 
 
-def plot (eval_dirs, labels, plot_type, save_path, title=''):
+def plot (eval_dirs, labels, plot_type, save_path, low_limit, hi_limit, title=''):
     """
     Plot the task accuracy and map distributions
     """
@@ -212,6 +215,13 @@ def plot (eval_dirs, labels, plot_type, save_path, title=''):
 
         plt.plot(X, Y, linestyle='solid', label=label)
 
+    for x in range(100):
+        plt.axhline(y=x * 0.01, linestyle=':', alpha=0.1, color='black') # Some axis
+    for x in range(20):
+        plt.axhline(y=5 * x * 0.01, linestyle='--', alpha=0.2, color='black') # Some axis
+
+    plt.ylim(top=hi_limit)
+    plt.ylim(bottom=low_limit)
     plt.legend()
     plt.title(title)
     plt.xlabel('# Epochs')
@@ -234,6 +244,6 @@ if __name__ == '__main__':
     elif args.mode == 'parse':
         parse_scores (args.eval_dir)
     elif args.mode == 'plot':
-        plot (args.eval_dirs, args.labels, args.plot_type, args.save_path, args.title)
+        plot (args.eval_dirs, args.labels, args.plot_type, args.save_path, args.lo, args.hi, args.title)
     else:
         raise ValueError("Go Away")
