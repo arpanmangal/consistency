@@ -3,8 +3,9 @@ Networks for task head
 Predict task_id from the step scores
 """
 
+import os, glob
 import numpy as np
-import datetime
+from datetime import datetime
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -166,13 +167,15 @@ class Trainer():
         if self.cuda_flag:
             self.net = self.net.cuda()
 
-    def train(self, train_cfg, scores, task_ids, props=None, val_data=None):
+    def train(self, train_cfg, work_dir, train_data, val_data=None):
         """
         Train the network
         """
-
-        with open(train_cfg['log_file'], 'w') as f:
+        log_file = os.path.join(work_dir, datetime.now().strftime("%d-%m-%Y_%I-%M-%S_%p") + '.log')
+        with open(log_file, 'w') as f:
             f.write('')
+        for pth_file in glob.glob(os.path.join(work_dir, '*.pth')):
+            os.remove(pth_file)
 
         if self.net_type == 'mlp':
             def gen_dataset(scores, task_ids):
@@ -190,7 +193,7 @@ class Trainer():
 
                 return dataset
 
-            train_dataset = gen_dataset(scores, task_ids)    
+            train_dataset = gen_dataset(train_data['scores'], train_data['task_ids'])    
             trainloader = DataLoader(train_dataset, batch_size=train_cfg['batch_size'], shuffle=True)
 
             if val_data is not None:
@@ -200,7 +203,7 @@ class Trainer():
             self.net.train()
             criterion = nn.CrossEntropyLoss()
 
-            val_loss = float('inf')
+            val_loss = 'NA'
             lr = train_cfg['lr']
             for epoch in range(train_cfg['epochs']):
                 if (epoch + 1) % train_cfg['decay'] == 0:
@@ -228,6 +231,7 @@ class Trainer():
                 tot_loss /= len(trainloader)
 
                 if val_data is not None and (epoch + 1) % train_cfg['freq'] == 0:
+                    # Update validation loss
                     val_loss = 0.0
                     for data in valloader:
                         step_scores, task_ids = data
@@ -242,12 +246,17 @@ class Trainer():
                     val_loss /= len(valloader)
 
                 # logging statistics
-                timestamp = str(datetime.datetime.now()).split('.')[0]
-                log = '{} | Epoch: {}, lr: {:.4f}, Train Loss: {:.3f}, Val Loss: {:.3f}'.format(timestamp, epoch+1, lr, tot_loss, val_loss)
-                print (log)
-                if train_cfg['log_file'] is not None:
-                    with open(train_cfg['log_file'], 'a') as f:
-                        f.write('{}\n'.format(log))
+                timestamp = str(datetime.now()).split('.')[0]
+                val_loss_str = val_loss if type(val_loss) is not float else "{:.3f}".format(val_loss)
+                log = '{} | Epoch: {: 3}, lr: {:.4f}, Train Loss: {:.3f}, Val Loss: {}'.format(timestamp, epoch+1, lr, tot_loss, val_loss_str)
+                with open(log_file, 'a') as f:
+                    f.write('{}\n'.format(log))
+                if train_cfg['logging']:
+                    print (log)
+                if (epoch + 1) % train_cfg['freq'] == 0:
+                    # Save the model checkpoint
+                    model_file = os.path.join(work_dir, 'epoch_{}.pth'.format(epoch+1))
+                    self.save_model(model_file)
 
     def predict (self, scores, props=None):
         """

@@ -2,6 +2,8 @@
 Script for predicting task using the step scores
 """
 
+import sys
+import time
 import argparse
 import pickle
 import json
@@ -15,38 +17,11 @@ def parse_args():
     parser = argparse.ArgumentParser(description="Train task model")
     subparsers = parser.add_subparsers(help='Mode of operation', dest='mode')
 
-    # For pruning the proposals -- throw away too long / short proposals
-    parser_prune = subparsers.add_parser('prune', help="Prune the proposals")
-    parser_prune.add_argument('pkl', type=str, help="Path to the result pkl file")
-    parser_prune.add_argument('save', type=str, help="Path to the generated pickle file")
-    parser_prune.add_argument('--l', type=float, default=0.05, help="Low Range")
-    parser_prune.add_argument('--h', type=float, default=0.6, help="Hi range")
-
     # For combining the result pickle file and TAG file
     parser_combine = subparsers.add_parser('combine', help="Combine the pkl and TAG files")
     parser_combine.add_argument('pkl', type=str, help="Path to result pkl file")
     parser_combine.add_argument('tag', type=str, help="Path to TAG file")
     parser_combine.add_argument('save', type=str, help="Path to generated pickle file")
-
-    # For training a model
-    parser_train = subparsers.add_parser('train', help="Train a model")
-    parser_train.add_argument('config', type=str, help="Path to config file")
-    parser_train.add_argument('pkl', type=str, help="Path to combined pickle file")
-    parser_train.add_argument('save', type=str, help="Path to save the model")
-    parser_train.add_argument('--lr', type=float, default=0.1, help="Learning Rate")
-    parser_train.add_argument('--batch_size', type=int, default=64, help="Batch Size")
-    parser_train.add_argument('--epochs', type=int, default=2, help="Number of Epochs")
-    parser_train.add_argument('--decay', type=int, default=30, help="Number of Epochs after which to decay LR by 3")
-    parser_train.add_argument('--log', type=str, required=True, help="Log File path")
-    parser_train.add_argument('--pretrained', type=str, help="Path to pre-trained models")
-    parser_train.add_argument('--validate', type=str, help="Path to validate pkl file for validation loss")
-    parser_train.add_argument('--freq', type=int, default=5, help="Number of epochs after which to evaluate")
-   
-    # For testing model
-    parser_test = subparsers.add_parser('test', help="Test a model")
-    parser_test.add_argument('config', type=str, help="Path to config file")
-    parser_test.add_argument('pkl', type=str, help="Path of combined pickle file")
-    parser_test.add_argument('load', type=str, help="Path to saved model")
 
     # For doing NMS
     parser_nms = subparsers.add_parser('nms', help="Do NMS")
@@ -55,29 +30,19 @@ def parse_args():
     parser_nms.add_argument('--thres', type=float, default=0.2, help="NMS threshold")
     parser_nms.add_argument('--no_reg', default=False, action='store_true', help="Do not perform location regression on props")
 
+    # For training a model
+    parser_train = subparsers.add_parser('train', help="Train a model")
+    parser_train.add_argument('work_dir', type=str, help="Path of work directory. Should contain a config.py")
+    parser_train.add_argument('pkl', type=str, help="Path to combined pickle file to be used for training")
+    parser_train.add_argument('--validate', type=str, help="Path to validate pkl file for validation loss")
+   
+    # For testing model
+    parser_test = subparsers.add_parser('test', help="Test a model")
+    parser_test.add_argument('config', type=str, help="Path to config file")
+    parser_test.add_argument('pkl', type=str, help="Path of combined pickle file")
+    parser_test.add_argument('load', type=str, help="Path to saved model")
+
     return parser.parse_args()
-
-
-def prune(pkl, save, low, hi):
-    """
-    Prune the pickle scores, by removing too large / short proposals
-    """
-    print ('hola hola')
-    pkl_data = pickle.load(open(pkl, 'rb'))
-
-    results = []
-    for data_idx, (props, act_scores, comp_scores, regs, useless) in enumerate(pkl_data):
-        keep = []
-        for idx, p in enumerate(props):
-            if (low < p[1] - p[0] < hi):
-                keep.append(idx)
-
-        if len(keep) == 0:
-            keep = [0] # Keep the first element
-            print ('index {} is completely useless!!'.format(data_idx))
-        results.append((props[keep, :], act_scores[keep, :], comp_scores[keep, :], regs[keep, :, :], useless))
-
-    pickle.dump(results, open(save, 'wb'))
 
 
 def combine(pkl_path, tag_path, save_path):
@@ -124,7 +89,7 @@ def combine(pkl_path, tag_path, save_path):
             props, act_scores, comp_scores, regs, _ = s
             _, task_id, _, _, n_pr = t
 
-            assert props.shape[0] == n_pr
+            # assert props.shape[0] == n_pr
 
             combined_scores = softmax(act_scores[:, 1:]) * np.exp(comp_scores)
             
@@ -144,32 +109,37 @@ def _parse_pkl(pkl_file):
 
     return scores, task_ids, props
 
-def train(args):
+def train(work_dir, pkl, validate=None):
     """
     Train a model
     """
-    model_cfg = json.load(open(args.config, 'r'))
-    train_cfg = {
-        'lr': args.lr,
-        'epochs': args.epochs,
-        'batch_size': args.batch_size,
-        'decay': args.decay,
-        'freq': args.freq,
-        'log_file': args.log
-    }
+    print ('in train a model')
+    print (work_dir)
+    sys.path.append(work_dir)
+    from config import model_cfg, train_cfg
+
+    for attr in ['type', 'num_steps', 'num_tasks']:
+        assert attr in model_cfg
+
+    for attr in ['lr', 'batch_size', 'epochs', 'decay', 'freq']:
+        assert attr in train_cfg
 
     print ("Generating model: {}".format(model_cfg['type']))
-    print (model_cfg)
     trainer = Trainer(model_cfg)
 
-    if args.pretrained is not None:
-        print ("Loading pre-trained model from {}".format(args.pretrained))
-        trainer.load_model(args.pretrained)
+    if 'pretrained' in train_cfg:
+        print ("Loading pre-trained model from {}".format(train_cfg['pretrained']))
+        trainer.load_model(train_cfg['pretrained'])
     print ('----------------------------------------------')
 
-    scores, task_ids, props = _parse_pkl(args.pkl)
-    if args.validate:
-        val_scores, val_task_ids, val_props = _parse_pkl(args.validate)
+    scores, task_ids, props = _parse_pkl(pkl)
+    train_data = {
+        'scores': scores,
+        'task_ids': task_ids,
+        'props': props
+    }
+    if validate:
+        val_scores, val_task_ids, val_props = _parse_pkl(validate)
         val_data = {
             'scores': val_scores,
             'task_ids': val_task_ids,
@@ -178,9 +148,7 @@ def train(args):
     else:
         val_data = None
 
-    trainer.train(train_cfg, scores, task_ids, props, val_data)
-    print ("Save model to {}".format(args.save))
-    trainer.save_model(args.save)
+    trainer.train(train_cfg, work_dir, train_data, val_data=val_data)
 
 
 def test(pkl_path, load_path):
@@ -235,16 +203,13 @@ def nms(in_pkl, out_pkl, thres, no_reg):
 if __name__ == '__main__':
     args = parse_args()
     
-    if args.mode == 'prune':
-        assert 0 < args.l < args.h < 1
-        prune(args.pkl, args.save, args.l, args.h)
-    elif args.mode == 'combine':
+    if args.mode == 'combine':
         combine(args.pkl, args.tag, args.save)
-    elif args.mode == 'train':
-        train(args)
-    elif args.mode == 'test':
-        test(args.pkl, args.load)
     elif args.mode == 'nms':
         nms(args.in_pkl, args.out_pkl, args.thres, args.no_reg)
+    elif args.mode == 'train':
+        train(args.work_dir, args.pkl, args.validate)
+    elif args.mode == 'test':
+        test(args.pkl, args.load)
     else:
         raise ValueError("Go Away")
