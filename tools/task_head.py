@@ -291,8 +291,8 @@ class Trainer():
             self.net.load_state_dict(torch.load(checkpoint_path, map_location=torch.device('cpu')))
 
         # Let's print the weights
-        for fc in self.net.fcs:
-            print('..............')
-            print (fc.weight)
-            print (fc.bias)
+        # for fc in self.net.fcs:
+            # print('..............')
+            # print (fc.weight)
+            # print (fc.bias)
 

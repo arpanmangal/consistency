@@ -2,7 +2,7 @@
 Script for predicting task using the step scores
 """
 
-import sys
+import sys, os, glob, re
 import time
 import argparse
 import pickle
@@ -38,9 +38,15 @@ def parse_args():
    
     # For testing model
     parser_test = subparsers.add_parser('test', help="Test a model")
-    parser_test.add_argument('config', type=str, help="Path to config file")
+    parser_test.add_argument('work_dir', type=str, help="Path of work directory. Should contain a config.py")
     parser_test.add_argument('pkl', type=str, help="Path of combined pickle file")
-    parser_test.add_argument('load', type=str, help="Path to saved model")
+    parser_test.add_argument('load', type=int, help="Epoch number of the saved model")
+
+    # For testing multiple model checkpoints
+    parser_multitest = subparsers.add_parser('multitest', help="Test multiple model checkpoints")
+    parser_multitest.add_argument('work_dir', type=str, help="Path of work directory. Should contain a config.py")
+    parser_multitest.add_argument('pkl', type=str, help="Path of combined pickle file")
+    parser_multitest.add_argument('log_file', type=str, help="Name of log file corresponding to the model")
 
     return parser.parse_args()
 
@@ -98,6 +104,30 @@ def combine(pkl_path, tag_path, save_path):
     results = [x for x in _combine()]
     pickle.dump(results, open(save_path, 'wb'))
 
+def nms(in_pkl, out_pkl, thres, no_reg):
+    """
+    Do NMS over the combined scores
+    """
+    pkl_data = pickle.load(open(in_pkl, 'rb'))
+    props = []; scores = []; regs = []; task_ids = []
+    for data in pkl_data:
+        p, s, r, t = data
+        props.append(p)
+        scores.append(s)
+        regs.append(r)
+        task_ids.append(t)
+
+    nms = NMS(props, scores, regs)
+    print ("Performing NMS...")
+    print ("NMS Thres: {} | Reg: {}".format(thres, not no_reg))
+    all_new_props, all_new_scores = nms.temporal_nms_gola(thres, no_reg)
+
+    results = []
+    for p, s, (_, _, _, t) in zip(all_new_props, all_new_scores, pkl_data):
+        results.append((p, s, None, t))
+
+    pickle.dump(results, open(out_pkl, 'wb'))
+
 
 def _parse_pkl(pkl_file):
     data = pickle.load(open(pkl_file, 'rb'))
@@ -113,8 +143,6 @@ def train(work_dir, pkl, validate=None):
     """
     Train a model
     """
-    print ('in train a model')
-    print (work_dir)
     sys.path.append(work_dir)
     from config import model_cfg, train_cfg
 
@@ -150,55 +178,65 @@ def train(work_dir, pkl, validate=None):
 
     trainer.train(train_cfg, work_dir, train_data, val_data=val_data)
 
-
-def test(pkl_path, load_path):
+def test(work_dir, pkl_path, load_epoch, silent=False):
     """
     Test the trained model
-    """ 
-    model_cfg = json.load(open(args.config, 'r'))
-    print ("Generating model: {}".format(model_cfg['type']))
-    print (model_cfg)
+    """
+    load_path = os.path.join(work_dir, 'epoch_{}.pth'.format(load_epoch))
+    sys.path.append(work_dir)
+    from config import model_cfg
+
+    for attr in ['type', 'num_steps', 'num_tasks']:
+        assert attr in model_cfg
+    if not silent: print ("Generating model: {}".format(model_cfg['type']))
     trainer = Trainer(model_cfg)
 
-    print ("Loading trained model from {}".format(load_path))
+    if not silent: 
+        print ("Loading trained model from {}".format(load_path))
+        print ('----------------------------------------------')
     trainer.load_model(load_path)
-    print ('----------------------------------------------')
 
     scores, task_ids, props = _parse_pkl(pkl_path)
     task_preds = trainer.predict(scores)
 
     task_ids = np.array(task_ids)
-    print (task_ids)
-    print (task_preds)
-    print (np.sum(task_ids == task_preds))
-    print (len(task_ids))
-    print ("Accuracy: %.3f" % ((np.sum(task_ids == task_preds) / len(task_ids)) * 100))
+    accuracy = (np.sum(task_ids == task_preds) / len(task_ids)) * 100
+    if not silent: 
+        print (task_ids)
+        print (task_preds)
+        print (np.sum(task_ids == task_preds))
+        print (len(task_ids))
+        print ("Accuracy: %.3f" % ((np.sum(task_ids == task_preds) / len(task_ids)) * 100))
+    
+    return accuracy
 
-
-def nms(in_pkl, out_pkl, thres, no_reg):
+def multitest(work_dir, pkl_path, log_file, json_name='result.json'):
     """
-    Do NMS over the combined scores
+    Test all models in the work_dir
     """
-    pkl_data = pickle.load(open(in_pkl, 'rb'))
-    props = []; scores = []; regs = []; task_ids = []
-    for data in pkl_data:
-        p, s, r, t = data
-        props.append(p)
-        scores.append(s)
-        regs.append(r)
-        task_ids.append(t)
+    epochs = [int(pth_file.split('_')[-1].split('.')[0]) for pth_file in glob.glob(os.path.join(work_dir, '*.pth'))]
+    accuracies = [test (work_dir, pkl_path, epoch, silent=True) for epoch in epochs]
 
-    nms = NMS(props, scores, regs)
-    print ("Performing NMS...")
-    print ("NMS Thres: {} | Reg: {}".format(thres, not no_reg))
-    all_new_props, all_new_scores = nms.temporal_nms_gola(thres, no_reg)
+    result_json = { k:{'task_acc': v} for (k, v) in zip(epochs, accuracies)}
 
-    results = []
-    for p, s, (_, _, _, t) in zip(all_new_props, all_new_scores, pkl_data):
-        results.append((p, s, None, t))
+    log_file = os.path.join(work_dir, log_file)
+    int_regex = r"\d+"
+    float_regex = r"[-+]?\d*\.\d+|\d+"
+    for line in open(log_file, 'r'):
+        epoch = int(re.findall(r"Epoch: +(\d+),", line)[0])
+        lr = float(re.findall(r"lr: +([-+]?\d*\.\d+|\d+),", line)[0])
+        train_loss = float(re.findall(r"Train Loss: +([-+]?\d*\.\d+|\d+),", line)[0])
+        val_loss = re.findall(r"Val Loss: +([-+]?\d*\.\d+|\d+)", line)
+        # print (val_loss)
+        val_loss = float(val_loss[0]) if len(val_loss) > 0 else 'NA'
 
-    pickle.dump(results, open(out_pkl, 'wb'))
-
+        if epoch in result_json:
+            result_json[epoch]['lr'] = lr
+            result_json[epoch]['train_loss'] = train_loss
+            result_json[epoch]['val_loss'] = val_loss
+    
+    with open(os.path.join(work_dir, json_name), 'w') as outfile:
+        json.dump(result_json, outfile, indent=4, sort_keys=True)
 
 if __name__ == '__main__':
     args = parse_args()
@@ -210,6 +248,8 @@ if __name__ == '__main__':
     elif args.mode == 'train':
         train(args.work_dir, args.pkl, args.validate)
     elif args.mode == 'test':
-        test(args.pkl, args.load)
+        test(args.work_dir, args.pkl, args.load)
+    elif args.mode == 'multitest':
+        multitest(args.work_dir, args.pkl, args.log_file)
     else:
         raise ValueError("Go Away")
