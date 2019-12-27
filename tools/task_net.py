@@ -120,7 +120,7 @@ def nms(in_pkl, out_pkl, thres, no_reg):
     nms = NMS(props, scores, regs)
     print ("Performing NMS...")
     print ("NMS Thres: {} | Reg: {}".format(thres, not no_reg))
-    all_new_props, all_new_scores = nms.temporal_nms_gola(thres, no_reg)
+    all_new_props, all_new_scores = nms.temporal_nms(thres, no_reg)
 
     results = []
     for p, s, (_, _, _, t) in zip(all_new_props, all_new_scores, pkl_data):
@@ -227,7 +227,6 @@ def multitest(work_dir, pkl_path, log_file, json_name='result.json'):
         lr = float(re.findall(r"lr: +([-+]?\d*\.\d+|\d+),", line)[0])
         train_loss = float(re.findall(r"Train Loss: +([-+]?\d*\.\d+|\d+),", line)[0])
         val_loss = re.findall(r"Val Loss: +([-+]?\d*\.\d+|\d+)", line)
-        # print (val_loss)
         val_loss = float(val_loss[0]) if len(val_loss) > 0 else 'NA'
 
         if epoch in result_json:

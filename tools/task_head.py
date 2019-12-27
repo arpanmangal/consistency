@@ -80,11 +80,9 @@ class NMS:
         return keep
         # return detections[keep, :]
 
-    def temporal_nms_gola(self, thres, no_reg=False):
+    def temporal_nms(self, thres, no_reg=False):
         """
         Perform temporal NMS
-
-        !! Check manually if done right after doing it and saving as pkl
         """
 
         if no_reg:
@@ -110,8 +108,12 @@ class NMS:
             # exit(0)
             new_props = props[keep, :]
             new_scores = self.scores[vid_idx][keep, :]
-            all_new_props.append(new_props)
-            all_new_scores.append(new_scores)
+
+            centers = (new_props[:, 0] + new_props[:, 1]) / 2.0
+            order = np.argsort(centers)
+
+            all_new_props.append(new_props[order])
+            all_new_scores.append(new_scores[order])
 
         return all_new_props, all_new_scores
 
