@@ -192,12 +192,13 @@ def test(work_dir, pkl_path, load_epoch, silent=False):
     trainer = Trainer(model_cfg)
 
     if not silent: 
+        print (model_cfg)
         print ("Loading trained model from {}".format(load_path))
         print ('----------------------------------------------')
     trainer.load_model(load_path)
 
     scores, task_ids, props = _parse_pkl(pkl_path)
-    task_preds = trainer.predict(scores)
+    task_preds = trainer.predict(scores, props)
 
     task_ids = np.array(task_ids)
     accuracy = (np.sum(task_ids == task_preds) / len(task_ids)) * 100

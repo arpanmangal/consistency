@@ -145,6 +145,33 @@ class TaskPoolHead(nn.Module):
             scores = fc(scores)
         return scores
 
+
+class TaskRNNHead(nn.Module):
+    """
+    RNN for predicting task id from step scores
+    Hidden state is derived from previous hidden state and the present input
+    Output is derived only from the present hidden state
+    """
+    def __init__ (self, num_steps, num_tasks, hidden_size):
+        super(TaskRNNHead, self).__init__()
+
+        self.hidden_size = hidden_size
+
+        self.W_hh = nn.Linear(hidden_size, hidden_size)
+        self.W_xh = nn.Linear(num_steps, hidden_size)
+        self.W_hy = nn.Linear(hidden_size, num_tasks)
+        self.softmax = nn.LogSoftmax(dim=1)
+
+    def forward(self, input, hidden):
+        hidden = self.W_hh(hidden) + self.W_xh(input)
+        output = self.W_hy(hidden)
+        output = self.softmax(output)
+        return output, hidden
+
+    def initHidden(self):
+        return torch.zeros(1, self.hidden_size)
+
+
 class Trainer():
     """
     For training a Network for predicting task
@@ -159,11 +186,13 @@ class Trainer():
         self.num_steps = model_cfg['num_steps']
         self.num_tasks = model_cfg['num_tasks']
 
-        assert self.net_type in ['mlp']
+        assert self.net_type in ['mlp', 'rnn']
         if self.net_type == 'mlp':
             self.net = TaskPoolHead(self.num_steps, self.num_tasks, model_cfg['middle_layers'])
             self.pooling = model_cfg['pooling']
             assert self.pooling in ['mean', 'max']
+        elif self.net_type == 'rnn':
+            self.net = TaskRNNHead(self.num_steps, self.num_tasks, model_cfg['hidden_size'])
 
         self.cuda_flag = torch.cuda.is_available()
         if self.cuda_flag:
@@ -178,6 +207,22 @@ class Trainer():
             f.write('')
         for pth_file in glob.glob(os.path.join(work_dir, '*.pth')):
             os.remove(pth_file)
+
+        def logging(epoch, tot_loss, val_loss):
+            """
+            logging statistics
+            """
+            timestamp = str(datetime.now()).split('.')[0]
+            val_loss_str = val_loss if type(val_loss) is not float else "{:.3f}".format(val_loss)
+            log = '{} | Epoch: {: 3}, lr: {:.4f}, Train Loss: {:.3f}, Val Loss: {}'.format(timestamp, epoch+1, lr, tot_loss, val_loss_str)
+            with open(log_file, 'a') as f:
+                f.write('{}\n'.format(log))
+            if train_cfg['logging']:
+                print (log)
+            if (epoch + 1) % train_cfg['freq'] == 0:
+                # Save the model checkpoint
+                model_file = os.path.join(work_dir, 'epoch_{}.pth'.format(epoch+1))
+                self.save_model(model_file)
 
         if self.net_type == 'mlp':
             def gen_dataset(scores, task_ids):
@@ -259,6 +304,71 @@ class Trainer():
                     # Save the model checkpoint
                     model_file = os.path.join(work_dir, 'epoch_{}.pth'.format(epoch+1))
                     self.save_model(model_file)
+        elif self.net_type == 'rnn':
+            def gen_dataset(props, scores, task_ids):
+                data = []
+                for p, s, task_id in zip(props, scores, task_ids):
+                    assert p.shape[0] == s.shape[0]
+                    data.append((torch.Tensor(p),
+                                torch.Tensor(s),
+                                torch.Tensor([task_id]).type(torch.LongTensor)))
+                return data
+
+            train_dataset = gen_dataset(train_data['props'], train_data['scores'], train_data['task_ids'])
+            if val_data is not None:
+                val_dataset = gen_dataset(val_data['props'], val_data['scores'], val_data['task_ids'])
+
+            self.net.train()
+            criterion = nn.NLLLoss()
+
+            val_loss = 'NA'
+            lr = train_cfg['lr']
+            for epoch in range(train_cfg['epochs']):
+                if (epoch + 1) % train_cfg['decay'] == 0:
+                    lr /= 3
+                optimizer = optim.SGD(self.net.parameters(), lr=lr, momentum=0.9)
+                
+                tot_loss = 0.0
+                for data in train_dataset:
+                    props, step_scores, task_id = data
+                    if self.cuda_flag:
+                        props = props.cuda()
+                        step_scores = step_scores.cuda()
+                        task_id = task_id.cuda()
+
+                    # Zero the parameter gradients
+                    optimizer.zero_grad()
+
+                    # Forward + backward + optimize
+                    hidden = self.net.initHidden()
+                    for score_vec in step_scores:
+                        out, hidden = self.net(score_vec.view(1, -1), hidden)
+                    loss = criterion(out, task_id)
+                    tot_loss += loss.item()
+
+                    loss.backward()
+                    optimizer.step()
+
+                tot_loss /= len(train_dataset)
+
+                if val_data is not None and (epoch + 1) % train_cfg['freq'] == 0:
+                    # Update validation loss
+                    val_loss = 0.0
+                    for data in val_dataset:
+                        props, step_scores, task_id = data
+                        if self.cuda_flag:
+                            step_scores = step_scores.cuda()
+                            task_id = task_id.cuda()
+
+                        hidden = self.net.initHidden()
+                        for score_vec in step_scores:
+                            out, hidden = self.net(score_vec.view(1, -1), hidden)
+                        loss = criterion(out, task_id)
+                        val_loss += loss.item()
+
+                    val_loss /= len(val_dataset)
+
+                logging(epoch, tot_loss, val_loss)
 
     def predict (self, scores, props=None):
         """
@@ -280,8 +390,29 @@ class Trainer():
             self.net.eval()
             with torch.no_grad():
                 task_scores = self.net(inputs)
-            
-        return np.argmax(task_scores.cpu().numpy(), axis=1)
+
+            task_scores = task_scores.cpu().numpy()
+
+        elif self.net_type == 'rnn':
+            self.net.eval()
+            task_scores = []
+            with torch.no_grad():
+                for step_scores, _props in zip(scores, props):
+                    step_scores = torch.FloatTensor(step_scores)
+                    _props = torch.FloatTensor(_props)
+                    if self.cuda_flag:
+                        step_scores = step_scores.cuda()
+                        _props = _props.cuda()
+
+                    hidden = self.net.initHidden()
+                    for score_vec in step_scores:
+                        out, hidden = self.net(score_vec.view(1, -1), hidden)
+                    task_scores.append(out.view(-1).cpu().numpy())
+
+                task_scores = np.array(task_scores)
+        
+        print (task_scores.shape)
+        return np.argmax(task_scores, axis=1)
 
     def save_model(self, checkpoint_path):
         torch.save(self.net.state_dict(), checkpoint_path)
