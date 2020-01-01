@@ -9,6 +9,7 @@ import pickle
 import json
 import numpy as np
 from task_head import Trainer, NMS
+import matplotlib.pyplot as plt
 
 def parse_args():
     """
@@ -47,6 +48,15 @@ def parse_args():
     parser_multitest.add_argument('work_dir', type=str, help="Path of work directory. Should contain a config.py")
     parser_multitest.add_argument('pkl', type=str, help="Path of combined pickle file")
     parser_multitest.add_argument('log_file', type=str, help="Name of log file corresponding to the model")
+
+    # For plotting
+    parser_plot = subparsers.add_parser('plot', help="Plot various scores")
+    parser_plot.add_argument('--work_dirs', type=str, nargs='+', help="Path of work directories")
+    parser_plot.add_argument('--labels', type=str, nargs='+', help="Labels of plots")
+    parser_plot.add_argument('--save', type=str, required=True, help="Path to where to save the plot")
+    parser_plot.add_argument('--title', type=str, default='', help="Title of the plot")
+    parser_plot.add_argument('--baseline', type=float, default=0, help="Baseline")
+    parser_plot.add_argument('--clip', type=float, default=400, help="Max epoch")
 
     return parser.parse_args()
 
@@ -238,6 +248,48 @@ def multitest(work_dir, pkl_path, log_file, json_name='result.json'):
     with open(os.path.join(work_dir, json_name), 'w') as outfile:
         json.dump(result_json, outfile, indent=4, sort_keys=True)
 
+def plot(work_dirs, labels, save_path, plot_type='task_acc', title='', hi_limit=100, low_limit=0, clip=400, baseline=None):
+    """
+    Plot the scores
+    """
+    assert plot_type in ['lr', 'task_acc', 'train_loss', 'val_loss']
+    assert len(work_dirs) == len(labels)
+    if baseline is not None and plot_type == 'task_acc':
+        assert 0 < baseline < 100
+
+    fig = plt.figure()
+    for work_dir, label in zip(work_dirs, labels):
+        json_file = os.path.join(work_dir, 'result.json')
+        with open(json_file) as f:
+            results = json.load(f)
+
+        X = []; Y = []
+        for epoch, result in results.items():
+            X.append(int(epoch))
+            Y.append(result[plot_type])
+
+        # print (X)
+        # print (Y)
+        # print ('--------------------------------')
+        plt.plot(X, Y, linestyle='solid', label=label)
+
+    if plot_type == 'task_acc':
+        for x in range(100):
+            plt.axhline(y=x, linestyle=':', alpha=0.1, color='black')
+        for x in range(20):
+            plt.axhline(y=5 * x, linestyle='--', alpha=0.2, color='black')
+        plt.axhline(y=baseline, linestyle='-.', alpha=0.5, color='blue', label='Baseline Accuracy') # Baseline accuracy by TC
+
+    plt.ylim(top=hi_limit)
+    plt.ylim(bottom=low_limit)
+    plt.xlim(right=clip)
+    plt.xlim(left=0)
+    plt.legend()
+    plt.title(title)
+    plt.xlabel('# Epochs')
+    plt.savefig(save_path)
+
+
 if __name__ == '__main__':
     args = parse_args()
     
@@ -251,5 +303,7 @@ if __name__ == '__main__':
         test(args.work_dir, args.pkl, args.load)
     elif args.mode == 'multitest':
         multitest(args.work_dir, args.pkl, args.log_file)
+    elif args.mode == 'plot':
+        plot(args.work_dirs, args.labels, args.save, title=args.title, baseline=args.baseline, clip=args.clip)
     else:
         raise ValueError("Go Away")
