@@ -32,31 +32,51 @@ class NMS:
         self.scores = scores
         self.regs = regs
 
-    def _perform_regression(self):
-        """
-        Perform regression on the props using regs
-        """
-        reg_props = []
-        for p, r in zip(self.props, self.regs):
-            t0 = p[:, 0] # Start time
-            t1 = p[:, 1] # End time
-            center = (t0 + t1) / 2.0
-            duration = t1 - t2
+    # def _perform_regression(self):
+    #     """
+    #     Perform regression on the props using regs
+    #     """
+    #     reg_props = []
+    #     for p, r in zip(self.props, self.regs):
+    #         print (p.shape)
+    #         print (r.shape)
+    #         t0 = p[:, 0].reshape(-1, 1) # Start time
+    #         t1 = p[:, 1].reshape(-1, 1) # End time
+    #         center = (t0 + t1) / 2.0
+    #         duration = t1 - t0
+    #         print (center.shape, duration.shape)
+    #         new_center = center + duration * r[:, 0]
+    #         new_duration = duration * np.exp(r[:, 1])
 
-            new_center = center + duration * r[:, 0]
-            new_duration = duration * np.exp(r[:, 1])
-
-            new_props = np.concatenate((
-                np.clip(new_center - new_duration / 2, 0, 1)[:, None],
-                np.clip(new_center + new_duration / 2, 0, 1)[:, None]
-                ), axis=1)
+    #         new_props = np.concatenate((
+    #             np.clip(new_center - new_duration / 2, 0, 1)[:, None],
+    #             np.clip(new_center + new_duration / 2, 0, 1)[:, None]
+    #             ), axis=1)
             
-            assert new_props.shape == p.shape
-            reg_props.append(new_props)
+    #         assert new_props.shape == p.shape
+    #         reg_props.append(new_props)
         
-        return reg_props
+    #     return reg_props
 
-    def _perform_temporal_nms(self, detections, thresh):
+    def _perform_regression(detections):
+        t0 = detections[:, 0]
+        t1 = detections[:, 1]
+        center = (t0 + t1) / 2
+        duration = t1 - t0
+
+        new_center = center + duration * detections[:, 3]
+        new_duration = duration * np.exp(detections[:, 4])
+
+        new_detections = np.concatenate((
+            np.clip(new_center - new_duration / 2, 0, 1)[:, None],
+            np.clip(new_center + new_duration / 2, 0, 1)[:, None],
+            detections[:, 2:]), axis=1)
+        return new_detections
+
+    def _perform_temporal_nms(self, detections, thresh, regression=False):
+        if regression:
+            detections = self._perform_regression(detections)
+
         t0 = detections[:, 0]
         t1 = detections[:, 1]
         scores = detections[:, 2]
@@ -85,23 +105,25 @@ class NMS:
         Perform temporal NMS
         """
 
-        if no_reg:
-            all_props = self.props
-        else:
-            all_props = self._perform_regression()
+        # if no_reg:
+        #     all_props = self.props
+        # else:
+        #     all_props = self._perform_regression()
 
         all_new_props = []; all_new_scores = []
         K = self.scores[0].shape[1] # num of steps
-        for vid_idx, props in enumerate(all_props):
+        for vid_idx, props in enumerate(self.props):
             keep = set()
             N, K = self.scores[vid_idx].shape
 
             for k in range(K):
-                detections = np.zeros((N, 3))
+                detections = np.zeros((N, 5))
                 detections[:, 0] = props[:, 0]
                 detections[:, 1] = props[:, 1]
                 detections[:, 2] = self.scores[vid_idx][:, k]
-                keep |= set(self._perform_temporal_nms(detections, thres))
+                detections[:, 3] = self.regs[vid_idx][:, k, 0]
+                detections[:, 4] = self.regs[vid_idx][:, k, 1]
+                keep |= set(self._perform_temporal_nms(detections, thres, regression=(not no_reg)))
 
             keep = list(keep)
             new_props = props[keep, :]
@@ -350,7 +372,7 @@ class Trainer():
             for epoch in range(train_cfg['epochs']):
                 if (epoch + 1) % train_cfg['decay'] == 0:
                     lr /= 3
-                optimizer = optim.SGD(self.net.parameters(), lr=lr, momentum=0.9)
+                optimizer = optim.SGD(self.net.parameters(), lr=lr, momentum=train_cfg['momentum'])
                 
                 tot_loss = 0.0
                 for data in train_dataset:
@@ -365,6 +387,8 @@ class Trainer():
 
                     # Forward + backward + optimize
                     hidden = self.net.initHidden()
+                    if self.cuda_flag:
+                        hidden = hidden.cuda()
                     for score_vec in step_scores:
                         out, hidden = self.net(score_vec.view(1, -1), hidden)
                     loss = criterion(out, task_id)
@@ -378,17 +402,19 @@ class Trainer():
                 if val_data is not None and (epoch + 1) % train_cfg['freq'] == 0:
                     # Update validation loss
                     val_loss = 0.0
-                    for data in val_dataset:
-                        props, step_scores, task_id = data
-                        if self.cuda_flag:
-                            step_scores = step_scores.cuda()
-                            task_id = task_id.cuda()
+                    with torch.no_grad():
+                        for data in val_dataset:
+                            props, step_scores, task_id = data
+                            if self.cuda_flag:
+                                step_scores = step_scores.cuda()
+                                task_id = task_id.cuda()
 
-                        hidden = self.net.initHidden()
-                        for score_vec in step_scores:
-                            out, hidden = self.net(score_vec.view(1, -1), hidden)
-                        loss = criterion(out, task_id)
-                        val_loss += loss.item()
+                            hidden = self.net.initHidden()
+                            if self.cuda_flag: hidden = hidden.cuda()
+                            for score_vec in step_scores:
+                                out, hidden = self.net(score_vec.view(1, -1), hidden)
+                            loss = criterion(out, task_id)
+                            val_loss += loss.item()
 
                     val_loss /= len(val_dataset)
 
@@ -403,7 +429,7 @@ class Trainer():
             for epoch in range(train_cfg['epochs']):
                 if (epoch + 1) % train_cfg['decay'] == 0:
                     lr /= 3
-                optimizer = optim.SGD(self.net.parameters(), lr=lr, momentum=0.9)
+                optimizer = optim.SGD(self.net.parameters(), lr=lr, momentum=train_cfg['momentum'])
                      
                 tot_loss = 0.0
                 for step_scores, task_id in zip(train_data['scores'], train_data['task_ids']):
