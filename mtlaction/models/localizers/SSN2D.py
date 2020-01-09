@@ -57,12 +57,16 @@ class SSN2D(BaseLocalizer):
                 self.task_feat_pooling = task_head.pooling
 
                 if self.task_join != 'score': raise NotImplementedError #TODO
+                if self.task_feat_pooling != 'mean': raise NotImplementedError # TODO - Probably not reqd.
+
                 in_channels_task = cls_head.num_classes
                 if self.task_join == 'act_feat': in_channels_task = cls_head.in_channels_activity
                 elif self.task_join == 'comp_feat': in_channels_task = cls_head.in_channels_complete
                 
-                task_head.update({'in_channels_task': in_channels_task})
-                del task_head['pooling']
+                task_head.update({'num_steps': in_channels_task})
+                del task_head['pooling']; del task_head['join']
+
+                print (task_head)
 
                 self.task_head = builder.build_head(task_head)
                 print ("Something corresponding is missing here")
