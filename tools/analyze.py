@@ -40,6 +40,11 @@ def parse_args():
     parser_tc.add_argument('result_tc_dir', type=str, help="Path of result TC directory")
     parser_tc.add_argument('--pooling', type=str, choices=['mean', 'max'], help="Type of pooling for TC", default='mean')
 
+    # For TC--pruning
+    parser_mtl_tc = subparsers.add_parser('mtl_tc', help='Run COIN\'s TC on generated pickle files using predicted tasks via MTL')
+    parser_mtl_tc.add_argument('result_dir', type=str, help="Path of results directory")
+    parser_mtl_tc.add_argument('result_tc_dir', type=str, help="Path of result TC directory")
+
     # For eval
     parser_eval = subparsers.add_parser('eval', help='Evaluate the pickle files for task accuracy and MAP scores')
     parser_eval.add_argument('model_dir', type=str, help="Path of models directory")
@@ -147,6 +152,28 @@ def tc (result_dir, result_tc_dir, pooling='mean'):
         process = subprocess.Popen(command)
 
 
+def mtl_tc (result_dir, result_tc_dir):
+    """
+    Enforce term consistency over the generated scores
+    """
+    assert result_dir != result_tc_dir
+    try:
+        os.makedirs(result_tc_dir)
+    except:
+        pass
+
+    pkl_files = glob.glob(os.path.join(result_dir, '*.pkl'))
+    for pkl in pkl_files:
+        file_name = pkl.split('/')[-1]
+        tc_file = os.path.join(result_tc_dir, file_name)
+        
+        command = "python3 tools/localize_TC.py {} --out_pkl {} --mtl".format(
+            pkl, tc_file)
+        print (command, '\n')
+        command = shlex.split(command)
+        process = subprocess.Popen(command)
+
+
 def evaluate (model_dir, result_dir, eval_dir):
     """
     Evaluate the generated pickle file
@@ -239,6 +266,8 @@ if __name__ == '__main__':
         test(args.model_dir, args.result_dir, args.gpus, start=args.start, step=args.step)
     elif args.mode == 'tc':
         tc (args.result_dir, args.result_tc_dir, args.pooling)
+    elif args.mode == 'mtl_tc':
+        mtl_tc (args.result_dir, args.result_tc_dir)
     elif args.mode == 'eval':
         evaluate (args.model_dir, args.result_dir, args.eval_dir)
     elif args.mode == 'parse':

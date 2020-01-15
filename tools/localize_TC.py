@@ -16,7 +16,8 @@ def parse_args():
     parser.add_argument('--W', help='Path to the W matrix', default='data/coin/W.npy')
     parser.add_argument('--pooling', help='How to pool. Should be either \'mean\' or \'max\'',
                         type=str, default='mean', choices=['mean', 'max'])
-    
+    parser.add_argument('--mtl', help='Use task predictions from MTL', action='store_true', default=False)
+
     return parser.parse_args()
 
 
@@ -67,14 +68,53 @@ def enforce_TC(inpkl, outpkl, W_matrix, pooling='mean'):
     pickle.dump(results, open(outpkl, 'wb'))
 
 
+def TC_pruning(inpkl, outpkl, W_matrix):
+    """
+    Enforce task consistency on the generated scores using the W matrix and predicted task
+    """
+    W = np.load(W_matrix)
+
+    old_results = pickle.load(open(inpkl, 'rb'))
+    results = []
+    for (proposals, act_scores, comp_scores, reg, task_scores) in old_results:
+        task_prediction = np.argmax(task_scores)
+        N, K = comp_scores.shape
+        assert W.shape[0] == K and W.shape[1] == len(task_scores)
+
+        # Predict video
+        video_prediction = np.argmax(task_scores)
+
+        # Mask step scores
+        mask = (W.T)[video_prediction]
+        assert len(mask) == K
+
+        mask = np.insert(mask, 0, 1)
+        mask = 1 - mask
+        mask = mask.astype(bool)
+        assert len(mask) == K + 1 and mask.dtype == bool
+
+        big_mask = np.array([mask] * N)
+        assert (act_scores.shape == big_mask.shape == (N, K+1))
+       
+        act_scores[big_mask] = -100
+        
+        results.append((proposals, act_scores, comp_scores, reg, task_scores))
+    
+    pickle.dump(results, open(outpkl, 'wb'))
+
+
 if __name__ == '__main__':
     args = parse_args()
     inpkl = args.pkl
     outpkl = args.out_pkl
     W_matrix = args.W
+    mtl = args.mtl
 
     if outpkl is None:
         outpkl = inpkl.split('.pkl')[0] + '_tc.pkl'
 
-    enforce_TC(inpkl, outpkl, W_matrix, pooling=args.pooling)
+    if args.mtl:
+        TC_pruning(inpkl, outpkl, W_matrix)
+    else:
+        enforce_TC(inpkl, outpkl, W_matrix, pooling=args.pooling)
 

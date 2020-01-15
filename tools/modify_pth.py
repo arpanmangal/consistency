@@ -7,9 +7,9 @@ import os
 
 work_dir = '/home/cse/btech/cs1160321/consistency/work_dirs'
 template_path = os.path.join(work_dir, 'mtl_dmlp/epoch_120.pth')
-step_checkpoint = os.path.join(work_dir, '200_400_450/epoch_120.pth')
+step_checkpoint = os.path.join(work_dir, '200_400_450/epoch_255.pth')
 task_checkpoint = os.path.join(work_dir, 'tn/mlp_double/epoch_320.pth')
-combined_checkpoint = os.path.join(work_dir, 'mtl_pret/epoch_120.pth')
+combined_checkpoint = os.path.join(work_dir, 'mtl_bestssn/epoch_120.pth')
 
 if torch.cuda.is_available():
     model = torch.load(template_path)
@@ -18,7 +18,7 @@ if torch.cuda.is_available():
 else:
     model = torch.load(template_path, map_location=torch.device('cpu'))
     step_weights = torch.load(step_checkpoint, map_location=torch.device('cpu'))['state_dict']
-    task_weights = torch.load(task_checkpoint, map_location=torch.device('cpu'))['state_dict']
+    task_weights = torch.load(task_checkpoint, map_location=torch.device('cpu'))
 
 del model['optimizer']
 del model['meta']['config']
