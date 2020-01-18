@@ -1,6 +1,7 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+import numpy as np
 from .base import BaseLocalizer
 from .. import builder
 from ..registry import LOCALIZERS
@@ -65,8 +66,6 @@ class SSN2D(BaseLocalizer):
                 
                 task_head.update({'num_steps': in_channels_task})
                 del task_head['pooling']; del task_head['join']
-
-                print (task_head)
 
                 self.task_head = builder.build_head(task_head)
                 print ("Something corresponding is missing here")
@@ -215,6 +214,11 @@ class SSN2D(BaseLocalizer):
                      prop_tick_list,
                      reg_stats,
                      **kwargs):
+        # Call different function for perturbation
+        if 'perturb' in self.test_cfg.ssn:
+            return self.forward_test_perturb(num_modalities, img_meta, rel_prop_list, scaling_list, 
+                                             prop_tick_list, reg_stats, **kwargs)
+
         assert num_modalities == 1
         img_group = kwargs['img_group_0']
 
@@ -281,3 +285,110 @@ class SSN2D(BaseLocalizer):
 
         return rel_prop_list.cpu().numpy(), activity_scores.cpu().numpy(), \
             completeness_scores.cpu().numpy(), bbox_preds.cpu().numpy(), task_score
+
+    def forward_test_perturb(self,
+                     num_modalities,
+                     img_meta,
+                     rel_prop_list,
+                     scaling_list,
+                     prop_tick_list,
+                     reg_stats,
+                     **kwargs):
+
+        # print ('perturbing !!!')
+        assert self.test_cfg.ssn.perturb.type in ['oneway', 'twoway']
+        assert self.with_task_head and self.task_join == 'score'
+
+        # Preparing cls_head for test mode
+        if not self.is_test_prepared:
+            self.is_test_prepared = self.cls_head.prepare_test_fc(
+                self.segmental_consensus.feat_multiplier)
+
+        # Save the model so that we could restore the weights at the end
+        tmp_model_file = 'tmp_models/model_' + str(np.random.random()) + '.tmp.pth'
+        self._save_tmp_model(tmp_model_file)
+
+        assert num_modalities == 1
+        img_group = kwargs['img_group_0']
+
+        img_group = img_group[0]
+        num_crop = img_group.shape[0]
+        
+        # print (img_group.shape)
+        assert self.in_channels == img_group.shape[2] == 3
+
+        img_group = img_group.reshape(
+            (num_crop, -1, self.in_channels) + img_group.shape[3:])
+        # print (img_group.shape)
+        # exit(0)
+        
+        num_ticks = img_group.shape[1] # Number of sample frames from total frames
+
+        output = []
+        minibatch_size = self.test_cfg.ssn.sampler.batch_size
+        for ind in range(0, num_ticks, minibatch_size):
+            chunk = img_group[:, ind:ind + minibatch_size, ...].view(
+                (-1,) + img_group.shape[2:])
+            x = self.extract_feat(chunk.cuda())
+            x = self.spatial_temporal_module(x)
+            # merge crop to save memory
+            # TODO: A smarte way of dealing with arbitary long videos
+            x = x.reshape((num_crop, x.size(0)//num_crop, -1)).mean(dim=0)
+            output.append(x)
+        output = torch.cat(output, dim=0)
+        
+        output = self.cls_head(output, test_mode=True)
+
+        rel_prop_list = rel_prop_list.squeeze(0)
+        prop_tick_list = prop_tick_list.squeeze(0)
+        scaling_list = scaling_list.squeeze(0)
+        reg_stats = reg_stats.squeeze(0)
+        (activity_scores, completeness_scores,
+         bbox_preds) = self.segmental_consensus(
+            output, prop_tick_list, scaling_list)
+
+        if bbox_preds is not None:
+            bbox_preds = bbox_preds.view(-1, self.cls_head.num_classes, 2)
+            bbox_preds[:, :, 0] = bbox_preds[:, :, 0] * \
+                reg_stats[1, 0] + reg_stats[0, 0]
+            bbox_preds[:, :, 1] = bbox_preds[:, :, 1] * \
+                reg_stats[1, 1] + reg_stats[0, 1]
+
+        # Join the task branch over here
+        # Step 1: Calculate the scores
+        s1 = F.softmax(activity_scores[:, 1:], dim=1)
+        s2 = torch.exp(completeness_scores)
+        combined_scores = s1 * s2
+
+        # Step 2: Pool scores to create feature vector
+        if self.task_feat_pooling == 'mean':
+            combined_scores = torch.mean(combined_scores, dim=0)
+        else:
+            combined_scores = torch.max(combined_scores, dim=0).values
+
+        # Step 3: Pass through NN and compute loss
+        task_score = self.task_head(combined_scores)
+        task_score = task_score.cpu().numpy()
+
+        # Restore the model
+        self._restore_model(tmp_model_file)
+
+        return rel_prop_list.cpu().numpy(), activity_scores.cpu().numpy(), \
+            completeness_scores.cpu().numpy(), bbox_preds.cpu().numpy(), task_score
+
+    def _save_tmp_model(self, tmp_model_file):
+        """
+        Save the model weights in a file so that it could be updated later
+        """
+        torch.save(self.state_dict(), tmp_model_file)
+
+    def _restore_model(self, tmp_model_file):
+        """
+        Restore the model weights from the file
+        """
+        if torch.cuda.is_available():
+            model = torch.load(tmp_model_file)
+        else:
+            model = torch.load(tmp_model_file, map_location=torch.device('cpu'))
+
+        self.load_state_dict(model)
