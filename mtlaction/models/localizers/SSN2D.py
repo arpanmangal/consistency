@@ -1,5 +1,6 @@
 import torch
 import torch.nn as nn
+import torch.optim as optim
 import torch.nn.functional as F
 import numpy as np
 from .base import BaseLocalizer
@@ -319,62 +320,102 @@ class SSN2D(BaseLocalizer):
 
         img_group = img_group.reshape(
             (num_crop, -1, self.in_channels) + img_group.shape[3:])
+        # img_group.requires_grad = True
         # print (img_group.shape)
-        # exit(0)
         
         num_ticks = img_group.shape[1] # Number of sample frames from total frames
 
-        output = []
-        minibatch_size = self.test_cfg.ssn.sampler.batch_size
-        for ind in range(0, num_ticks, minibatch_size):
-            chunk = img_group[:, ind:ind + minibatch_size, ...].view(
-                (-1,) + img_group.shape[2:])
-            x = self.extract_feat(chunk.cuda())
-            x = self.spatial_temporal_module(x)
-            # merge crop to save memory
-            # TODO: A smarte way of dealing with arbitary long videos
-            x = x.reshape((num_crop, x.size(0)//num_crop, -1)).mean(dim=0)
-            output.append(x)
-        output = torch.cat(output, dim=0)
+        @torch.enable_grad()
+        def forward_pass (rel_prop_list, scaling_list, prop_tick_list, reg_stats):
+            """
+            The forward pass through the network
+            """
+            output = []
+            minibatch_size = self.test_cfg.ssn.sampler.batch_size
+            for ind in range(0, num_ticks, minibatch_size):
+                chunk = img_group[:, ind:ind + minibatch_size, ...].view(
+                    (-1,) + img_group.shape[2:])
+                x = self.extract_feat(chunk.cuda())
+                x = self.spatial_temporal_module(x)
+                # merge crop to save memory
+                # TODO: A smarte way of dealing with arbitary long videos
+                x = x.reshape((num_crop, x.size(0)//num_crop, -1)).mean(dim=0)
+                output.append(x)
+            output = torch.cat(output, dim=0)
+            
+            output = self.cls_head(output, test_mode=True)
+
+            # rel_prop_list1 = rel_prop_list
+            rel_prop_list = rel_prop_list.squeeze(0)
+            prop_tick_list = prop_tick_list.squeeze(0)
+            scaling_list = scaling_list.squeeze(0)
+            reg_stats = reg_stats.squeeze(0)
+            (activity_scores, completeness_scores,
+            bbox_preds) = self.segmental_consensus(
+                output, prop_tick_list, scaling_list)
+
+            if bbox_preds is not None:
+                bbox_preds = bbox_preds.view(-1, self.cls_head.num_classes, 2)
+                bbox_preds[:, :, 0] = bbox_preds[:, :, 0] * \
+                    reg_stats[1, 0] + reg_stats[0, 0]
+                bbox_preds[:, :, 1] = bbox_preds[:, :, 1] * \
+                    reg_stats[1, 1] + reg_stats[0, 1]
+
+            # Join the task branch over here
+            # Step 1: Calculate the scores
+            s1 = F.softmax(activity_scores[:, 1:], dim=1)
+            s2 = torch.exp(completeness_scores)
+            combined_scores = s1 * s2
+
+            # Step 2: Pool scores to create feature vector
+            if self.task_feat_pooling == 'mean':
+                combined_scores = torch.mean(combined_scores, dim=0)
+            else:
+                combined_scores = torch.max(combined_scores, dim=0).values
+
+            # Step 3: Pass through NN and compute loss
+            task_score = self.task_head(combined_scores).unsqueeze(0)
+
+            return rel_prop_list, activity_scores, completeness_scores, bbox_preds, task_score
+
         
-        output = self.cls_head(output, test_mode=True)
+        self.train()
+        optimizer = optim.SGD(self.parameters(),
+                              lr=self.test_cfg.ssn.perturb.optimizer['lr'],
+                              momentum=self.test_cfg.ssn.perturb.optimizer['momentum'],
+                              weight_decay=self.test_cfg.ssn.perturb.optimizer['weight_decay'])
+        # criterion = nn.CrossEntropyLoss()
 
-        rel_prop_list = rel_prop_list.squeeze(0)
-        prop_tick_list = prop_tick_list.squeeze(0)
-        scaling_list = scaling_list.squeeze(0)
-        reg_stats = reg_stats.squeeze(0)
-        (activity_scores, completeness_scores,
-         bbox_preds) = self.segmental_consensus(
-            output, prop_tick_list, scaling_list)
+        # Update weights
+        with torch.enable_grad():
+            for _ in range(2):
+                # Early stopping
+                optimizer.zero_grad()
 
-        if bbox_preds is not None:
-            bbox_preds = bbox_preds.view(-1, self.cls_head.num_classes, 2)
-            bbox_preds[:, :, 0] = bbox_preds[:, :, 0] * \
-                reg_stats[1, 0] + reg_stats[0, 0]
-            bbox_preds[:, :, 1] = bbox_preds[:, :, 1] * \
-                reg_stats[1, 1] + reg_stats[0, 1]
+                # Forward pass
+                rel_prop_list, activity_scores, completeness_scores, bbox_preds,\
+                    task_score = forward_pass(rel_prop_list, scaling_list, prop_tick_list, reg_stats)
+                task_predictions = torch.argmax(task_score).unsqueeze(0)
 
-        # Join the task branch over here
-        # Step 1: Calculate the scores
-        s1 = F.softmax(activity_scores[:, 1:], dim=1)
-        s2 = torch.exp(completeness_scores)
-        combined_scores = s1 * s2
+                # Backprop
+                # loss = criterion(task_score, hard_labels)
+                loss = F.cross_entropy(task_score, task_predictions)
+                loss.backward()
+                optimizer.step()
+                torch.cuda.empty_cache()
+                print ('Task Loss', loss.item())
+            print ('---------------------------------------------------\n')
 
-        # Step 2: Pool scores to create feature vector
-        if self.task_feat_pooling == 'mean':
-            combined_scores = torch.mean(combined_scores, dim=0)
-        else:
-            combined_scores = torch.max(combined_scores, dim=0).values
-
-        # Step 3: Pass through NN and compute loss
-        task_score = self.task_head(combined_scores)
-        task_score = task_score.cpu().numpy()
-
+        # Final forward pass
+        with torch.no_grad():
+            rel_prop_list, activity_scores, completeness_scores, bbox_preds,\
+                task_score = forward_pass(rel_prop_list, scaling_list, prop_tick_list, reg_stats)
+                
         # Restore the model
         self._restore_model(tmp_model_file)
 
         return rel_prop_list.cpu().numpy(), activity_scores.cpu().numpy(), \
-            completeness_scores.cpu().numpy(), bbox_preds.cpu().numpy(), task_score
+            completeness_scores.cpu().numpy(), bbox_preds.cpu().numpy(), task_score.cpu().numpy()
 
     def _save_tmp_model(self, tmp_model_file):
         """

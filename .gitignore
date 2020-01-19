@@ -106,5 +106,8 @@ venv.bak/
 ssn/
 *.pth
 *.pth.tar
+*.core
 
 trash/
+tmp_models/
+
