@@ -163,22 +163,29 @@ class SSN2D(BaseLocalizer):
         assert self.in_channels == img_group.shape[3] == 3
         
         # img_group has a shape of [n, 8, 9, 3, 224, 224]
+        # n is 2 for us
+        # after below the shape becomes [144, 3, 244, 244]
         img_group = img_group.reshape(
             (-1, self.in_channels) + img_group.shape[4:])
 
+        # after below x.shape == [144, 1024, 7, 7]
         x = self.extract_feat(img_group)
-        
+
+        # after below x.shape == [144, 1024, 1, 1]
         if self.with_spatial_temporal_module:
             x = self.spatial_temporal_module(x)
-        
+
+        # after below x.shape == [144, 1024, 1, 1]
         if self.dropout is not None:
             x = self.dropout(x)
         
+        # below shapes [16, 1024], [16, 3072]
         activity_feat, completeness_feat = self.segmental_consensus(
             x, prop_scaling)
         
         losses = dict()
         if self.with_cls_head:
+            # shapes = [16, 32], [16, 31], [16, 62]
             activity_score, completeness_score, bbox_pred = self.cls_head(
                 (activity_feat, completeness_feat))
             loss_cls = self.cls_head.loss(activity_score, completeness_score,
@@ -201,6 +208,7 @@ class SSN2D(BaseLocalizer):
                     combined_scores = torch.max(combined_scores, dim=1).values
 
                 # Step 3: Pass through NN and compute loss
+                # shape == [2, 7]
                 task_score = self.task_head(combined_scores)
                 loss_task = self.task_head.loss(task_score, task_labels.squeeze(), self.train_cfg)
                 losses.update(loss_task)
@@ -315,18 +323,34 @@ class SSN2D(BaseLocalizer):
         img_group = img_group[0]
         num_crop = img_group.shape[0]
         
-        # print (img_group.shape)
         assert self.in_channels == img_group.shape[2] == 3
 
+        # img_group.shape == [1, num_ticks, 3, 224, 224]
         img_group = img_group.reshape(
             (num_crop, -1, self.in_channels) + img_group.shape[3:])
-        # img_group.requires_grad = True
-        # print (img_group.shape)
         
         num_ticks = img_group.shape[1] # Number of sample frames from total frames
 
-        @torch.enable_grad()
-        def forward_pass (rel_prop_list, scaling_list, prop_tick_list, reg_stats):
+        def forward_pass_train (img_group, num_ticks, rel_prop_list, scaling_list, prop_tick_list, reg_stats):
+            """
+            The forward pass while training
+            """
+            x = self.extract_feat(img_group)
+            x = self.spatial_temporal_module(x)
+            x = self.dropout(x)
+            activity_feat, completeness_feat = self.segmental_consensus(
+                x, scaling_list.squeeze(0))
+            activity_score, completeness_score, bbox_pred = self.cls_head(
+                (activity_feat, completeness_feat))
+            s1 = F.softmax(activity_score[:, 1:], dim=1)
+            s2 = torch.exp(completeness_score)
+            combined_scores = s1 * s2
+            combined_scores = combined_scores.reshape((num_videos, activity_score.shape[0] // num_videos, -1))
+            combined_scores = torch.mean(combined_scores, dim=1)
+            task_score = self.task_head(combined_scores)
+            return task_score
+
+        def forward_pass (img_group, num_ticks, rel_prop_list, scaling_list, prop_tick_list, reg_stats):
             """
             The forward pass through the network
             """
@@ -334,22 +358,23 @@ class SSN2D(BaseLocalizer):
             minibatch_size = self.test_cfg.ssn.sampler.batch_size
             for ind in range(0, num_ticks, minibatch_size):
                 chunk = img_group[:, ind:ind + minibatch_size, ...].view(
-                    (-1,) + img_group.shape[2:])
-                x = self.extract_feat(chunk.cuda())
-                x = self.spatial_temporal_module(x)
+                    (-1,) + img_group.shape[2:]) # chunk.shape == [16, 3, 244, 244]
+                x = self.extract_feat(chunk.cuda()) # x.shape == [16, 1024, 7, 7]
+                x = self.spatial_temporal_module(x) # x.shape == [16, 1024, 1, 1]
                 # merge crop to save memory
                 # TODO: A smarte way of dealing with arbitary long videos
-                x = x.reshape((num_crop, x.size(0)//num_crop, -1)).mean(dim=0)
+                x = x.reshape((num_crop, x.size(0)//num_crop, -1)).mean(dim=0) # x.shape == [16, 1024]
                 output.append(x)
-            output = torch.cat(output, dim=0)
+            output = torch.cat(output, dim=0) # output.shape == [num_ticks, 1024]
             
-            output = self.cls_head(output, test_mode=True)
+            output = self.cls_head(output, test_mode=True)  # output.shape == [num_ticks, 311], 311 = 32 + 3(31+62)
 
             # rel_prop_list1 = rel_prop_list
             rel_prop_list = rel_prop_list.squeeze(0)
             prop_tick_list = prop_tick_list.squeeze(0)
             scaling_list = scaling_list.squeeze(0)
             reg_stats = reg_stats.squeeze(0)
+            # below shapes: [n, 32], [n, 31], [n, 62]
             (activity_scores, completeness_scores,
             bbox_preds) = self.segmental_consensus(
                 output, prop_tick_list, scaling_list)
@@ -374,42 +399,80 @@ class SSN2D(BaseLocalizer):
                 combined_scores = torch.max(combined_scores, dim=0).values
 
             # Step 3: Pass through NN and compute loss
-            task_score = self.task_head(combined_scores).unsqueeze(0)
+            task_score = self.task_head(combined_scores).unsqueeze(0) # task_score.shape == [1, 7]
 
             return rel_prop_list, activity_scores, completeness_scores, bbox_preds, task_score
 
-        
-        self.train()
+        # Processing all the imgs leads to CUDA out of memory => So we will use lesser images
+        def reduce_img_group_size(num_ticks):
+            reduction_factor = (num_ticks // 100) + 1
+            return list(range(0, num_ticks, reduction_factor))
+
+        self.eval()
+        print ('lr = ', self.test_cfg.ssn.perturb.optimizer['lr'])
         optimizer = optim.SGD(self.parameters(),
                               lr=self.test_cfg.ssn.perturb.optimizer['lr'],
-                              momentum=self.test_cfg.ssn.perturb.optimizer['momentum'],
-                              weight_decay=self.test_cfg.ssn.perturb.optimizer['weight_decay'])
+                              momentum=self.test_cfg.ssn.perturb.optimizer['momentum'])
         # criterion = nn.CrossEntropyLoss()
 
+        img_group_short = img_group[:, reduce_img_group_size(num_ticks), ...]
+
+        print ('at the top')
+        print (img_group.shape, img_group_short.shape) # [1, 149, 3, 224, 224]
+        # print (type(rel_prop_list), rel_prop_list.shape) # [1, 35, 2]
+        # print (type(scaling_list), scaling_list.shape) # [1, 35, 2]
+        # print (type(prop_tick_list), prop_tick_list.shape) #[1, 35, 4])
+        # print (type(reg_stats), reg_stats.shape) # [1, 2, 2]
+        # print (type(img_group_short), img_group_short.shape)
+        # print ('-------------------------------------------')
+        # print (rel_prop_list, rel_prop_list.dtype)
+        # print ('^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^')
+        # print (prop_tick_list, prop_tick_list.dtype)
+        # print ('===========================================')
+        # print (scaling_list, scaling_list.dtype)
+        # print ('******************************************')
+        # exit(0)
+
         # Update weights
-        with torch.enable_grad():
-            for _ in range(2):
+        num_times = 3
+        for _ in range(num_times):
+            # with torch.no_grad():
+            with torch.enable_grad():
                 # Early stopping
                 optimizer.zero_grad()
 
                 # Forward pass
-                rel_prop_list, activity_scores, completeness_scores, bbox_preds,\
-                    task_score = forward_pass(rel_prop_list, scaling_list, prop_tick_list, reg_stats)
+                _, _, _, _, task_score = forward_pass(img_group_short.clone().detach(), img_group_short.shape[1],
+                                                      rel_prop_list.clone().detach(), scaling_list.clone().detach(),
+                                                      prop_tick_list.clone().detach(), reg_stats.clone().detach())
                 task_predictions = torch.argmax(task_score).unsqueeze(0)
+
+                # print ('in the loop')
+                # print (type(rel_prop_list), rel_prop_list.shape)
+                # print (type(scaling_list), scaling_list.shape)
+                # print (type(prop_tick_list), prop_tick_list.shape)
+                # print (type(reg_stats), reg_stats.shape)
+                # print (type(img_group_short), img_group_short.shape)
+                # print ('-------------------------------------------')
 
                 # Backprop
                 # loss = criterion(task_score, hard_labels)
+                print (task_score, task_predictions)
                 loss = F.cross_entropy(task_score, task_predictions)
                 loss.backward()
-                optimizer.step()
-                torch.cuda.empty_cache()
-                print ('Task Loss', loss.item())
-            print ('---------------------------------------------------\n')
+                # optimizer.step()
+                # print ('Task Loss', loss.item())
+        print ('---------------------------------------------------\n')
 
         # Final forward pass
+        # Restoring weights to confirm they are not changed
+        # self._restore_model(tmp_model_file)
+        # self.eval()
         with torch.no_grad():
             rel_prop_list, activity_scores, completeness_scores, bbox_preds,\
-                task_score = forward_pass(rel_prop_list, scaling_list, prop_tick_list, reg_stats)
+                task_score = forward_pass(img_group, num_ticks, rel_prop_list, scaling_list, prop_tick_list, reg_stats)
+            print ('############')
+            print (task_score)
                 
         # Restore the model
         self._restore_model(tmp_model_file)

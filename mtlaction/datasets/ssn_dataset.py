@@ -268,6 +268,8 @@ class SSNDataset(Dataset):
             self.fg_per_video - self.bg_per_video
 
         self.test_interval = self.test_cfg.ssn.sampler.test_interval
+        # Limiting the max number of ticks to prevent CUDA out of mem while backprop
+        self.max_frame_ticks = self.test_cfg.ssn.sampler.max_frame_ticks
 
         # parameters for frame fetching
         # number of consecutive frames
@@ -704,6 +706,8 @@ class SSNDataset(Dataset):
             0, frame_cnt - self.old_length, self.test_interval, dtype=int) + 1
 
         num_sampled_frames = len(frame_ticks)
+        print ('&&&', num_sampled_frames)
+        # exit(0)
 
         # print (props)
         # print (len(props))
@@ -726,9 +730,11 @@ class SSNDataset(Dataset):
             out_frames.append([])
         out_img_meta = []
         for proposal in props:
+            # rel_prop is the list of (start, end) intervals in range 0-1
             rel_prop = (proposal.start_frame / frame_cnt,
                         proposal.end_frame / frame_cnt)
             rel_duration = rel_prop[1] - rel_prop[0]
+            # aug_ratio == (0.5, 0.5) acc. to config
             rel_starting_duration = rel_duration * self.aug_ratio[0]
             rel_ending_duration = rel_duration * self.aug_ratio[1]
             rel_starting = rel_prop[0] - rel_starting_duration
