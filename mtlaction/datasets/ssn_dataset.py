@@ -702,12 +702,16 @@ class SSNDataset(Dataset):
         props = video_info.proposals
         video_id = video_info.video_id
         frame_cnt = video_info.num_frames
-        frame_ticks = np.arange(
-            0, frame_cnt - self.old_length, self.test_interval, dtype=int) + 1
+
+        # Processing all the imgs leads to CUDA out of memory => So we will use lesser images
+        sampling_interval = self.test_interval
+        frame_ticks = [None] * 1000
+        while len(frame_ticks) > self.max_frame_ticks:
+            frame_ticks = np.arange(
+               0, frame_cnt - self.old_length, sampling_interval, dtype=int) + 1
+            sampling_interval += 1
 
         num_sampled_frames = len(frame_ticks)
-        print ('&&&', num_sampled_frames)
-        # exit(0)
 
         # print (props)
         # print (len(props))

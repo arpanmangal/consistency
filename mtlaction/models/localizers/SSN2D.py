@@ -331,25 +331,6 @@ class SSN2D(BaseLocalizer):
         
         num_ticks = img_group.shape[1] # Number of sample frames from total frames
 
-        def forward_pass_train (img_group, num_ticks, rel_prop_list, scaling_list, prop_tick_list, reg_stats):
-            """
-            The forward pass while training
-            """
-            x = self.extract_feat(img_group)
-            x = self.spatial_temporal_module(x)
-            x = self.dropout(x)
-            activity_feat, completeness_feat = self.segmental_consensus(
-                x, scaling_list.squeeze(0))
-            activity_score, completeness_score, bbox_pred = self.cls_head(
-                (activity_feat, completeness_feat))
-            s1 = F.softmax(activity_score[:, 1:], dim=1)
-            s2 = torch.exp(completeness_score)
-            combined_scores = s1 * s2
-            combined_scores = combined_scores.reshape((num_videos, activity_score.shape[0] // num_videos, -1))
-            combined_scores = torch.mean(combined_scores, dim=1)
-            task_score = self.task_head(combined_scores)
-            return task_score
-
         def forward_pass (img_group, num_ticks, rel_prop_list, scaling_list, prop_tick_list, reg_stats):
             """
             The forward pass through the network
@@ -404,21 +385,22 @@ class SSN2D(BaseLocalizer):
             return rel_prop_list, activity_scores, completeness_scores, bbox_preds, task_score
 
         # Processing all the imgs leads to CUDA out of memory => So we will use lesser images
-        def reduce_img_group_size(num_ticks):
-            reduction_factor = (num_ticks // 100) + 1
-            return list(range(0, num_ticks, reduction_factor))
+        # def reduce_img_group_size(num_ticks):
+        #     reduction_factor = (num_ticks // 100) + 1
+        #     return list(range(0, num_ticks, reduction_factor))
 
         self.eval()
-        print ('lr = ', self.test_cfg.ssn.perturb.optimizer['lr'])
+        # print ('lr = ', self.test_cfg.ssn.perturb.optimizer['lr'])
         optimizer = optim.SGD(self.parameters(),
                               lr=self.test_cfg.ssn.perturb.optimizer['lr'],
                               momentum=self.test_cfg.ssn.perturb.optimizer['momentum'])
         # criterion = nn.CrossEntropyLoss()
 
-        img_group_short = img_group[:, reduce_img_group_size(num_ticks), ...]
+        # img_group_short = img_group[:, reduce_img_group_size(num_ticks), ...]
 
-        print ('at the top')
-        print (img_group.shape, img_group_short.shape) # [1, 149, 3, 224, 224]
+        # print ('at the top')
+        # print (img_group.shape)
+        # print (img_group.shape, img_group_short.shape) # [1, 149, 3, 224, 224]
         # print (type(rel_prop_list), rel_prop_list.shape) # [1, 35, 2]
         # print (type(scaling_list), scaling_list.shape) # [1, 35, 2]
         # print (type(prop_tick_list), prop_tick_list.shape) #[1, 35, 4])
@@ -434,15 +416,15 @@ class SSN2D(BaseLocalizer):
         # exit(0)
 
         # Update weights
-        num_times = 3
-        for _ in range(num_times):
-            # with torch.no_grad():
+        num_times = self.test_cfg.ssn.perturb.num_backprops
+        for bp in range(num_times):
+            print ('#%d / %d' % (bp, num_times))
             with torch.enable_grad():
                 # Early stopping
                 optimizer.zero_grad()
 
                 # Forward pass
-                _, _, _, _, task_score = forward_pass(img_group_short.clone().detach(), img_group_short.shape[1],
+                _, _, _, _, task_score = forward_pass(img_group.clone().detach(), img_group.shape[1],
                                                       rel_prop_list.clone().detach(), scaling_list.clone().detach(),
                                                       prop_tick_list.clone().detach(), reg_stats.clone().detach())
                 task_predictions = torch.argmax(task_score).unsqueeze(0)
@@ -460,9 +442,9 @@ class SSN2D(BaseLocalizer):
                 print (task_score, task_predictions)
                 loss = F.cross_entropy(task_score, task_predictions)
                 loss.backward()
-                # optimizer.step()
-                # print ('Task Loss', loss.item())
-        print ('---------------------------------------------------\n')
+                torch.cuda.empty_cache() # To empty the cache from previous iterations
+                optimizer.step()
+                print ('Task Loss', loss.item())
 
         # Final forward pass
         # Restoring weights to confirm they are not changed
@@ -473,6 +455,8 @@ class SSN2D(BaseLocalizer):
                 task_score = forward_pass(img_group, num_ticks, rel_prop_list, scaling_list, prop_tick_list, reg_stats)
             print ('############')
             print (task_score)
+            torch.cuda.empty_cache()
+        print ('---------------------------------------------------\n')
                 
         # Restore the model
         self._restore_model(tmp_model_file)

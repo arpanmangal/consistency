@@ -9,6 +9,7 @@ import glob
 import time
 from tqdm import tqdm
 import matplotlib.pyplot as plt
+import numpy as np
 
 
 def parse_args():
@@ -26,6 +27,23 @@ def parse_args():
     parser_test.add_argument('gpus', type=int, help="Number of GPUs to use")
     parser_test.add_argument('--start', type=int, help="Start epoch", default=10)
     parser_test.add_argument('--step', type=int, help="Step size of evaluation", default=5)
+
+    # For testing with backpropagation
+    parser_bp = subparsers.add_parser('bp', help="Run backpropagation while testing for TC")
+    parser_bp.add_argument('type', choices=['oneway'], help="Kind of backprop to do")
+    parser_bp.add_argument('num_times', type=int, help="Number of times to do backprop")
+    parser_bp.add_argument('model_path', type=str, help="Path of model")
+    parser_bp.add_argument('config', type=str, help="Base config file")
+    parser_bp.add_argument('result_pkl', type=str, help="Path of result pickle")
+    parser_bp.add_argument('gpus', type=int, help="Number of GPUs to use")
+
+    #   perturb=dict(
+    #         type='oneway',
+    #         num_backprops=3,
+    #         optimizer = dict(
+    #             type='SGD', lr=0.00025, momentum=0.1, weight_decay=1e-6)
+    #         ))
+    #     )
 
     # For pruning the proposals -- throw away too long / short proposals
     parser_prune = subparsers.add_parser('prune', help="Prune the proposals")
@@ -98,6 +116,34 @@ def test(model_dir, result_dir, gpus, start=10, end=1000, step=5):
         process.wait()
 
 
+def bp(ptype, num_times, model_path, config_file, result_pkl, gpus):
+    """
+    Run backpropagation while testing for TC
+    """
+    assert os.path.exists(model_path)
+    assert os.path.exists(config_file)
+
+    tmp_config = 'tmp_models/{}_config.py'.format(np.random.randint(1000))
+    with open(tmp_config, 'w') as config:
+        with open(config_file, 'r') as bconf:
+            for line in bconf.readlines():
+                if re.search("type=,", line):
+                    line = line[:-2] + "'%s',\n" % ptype
+                elif re.search("num_backprops=", line):
+                    line = line[:-3] + "%d,\n" % num_times
+                config.write(line)
+
+    log_file = result_pkl.split('.pkl')[0] + '.log'
+    command = "python3 tools/test_localizer.py {} {} --gpus {} --out {}".format(
+            tmp_config, model_path, gpus, result_pkl)
+    print (command, '\n')
+    
+    command = shlex.split(command)
+    with open(log_file, 'w') as outfile:
+        process = subprocess.Popen(command, stdout=outfile)
+    process.wait()
+    
+
 def prune(result_dir, prune_dir, low, hi):
     """
     Prune the pickle scores, by removing too large / short proposals
@@ -132,7 +178,7 @@ def prune(result_dir, prune_dir, low, hi):
 
 def tc (result_dir, result_tc_dir, pooling='mean'):
     """
-    Enforce term consistency over the generated scores
+    Enforce task consistency (COIN's TC) over the generated scores
     """
     assert result_dir != result_tc_dir
     try:
@@ -154,7 +200,7 @@ def tc (result_dir, result_tc_dir, pooling='mean'):
 
 def mtl_tc (result_dir, result_tc_dir):
     """
-    Enforce term consistency over the generated scores
+    Enforce task consistency (using the MTL task predictions) over the generated scores
     """
     assert result_dir != result_tc_dir
     try:
@@ -230,7 +276,7 @@ def plot (eval_dirs, labels, plot_type, save_path, low_limit, hi_limit, title=''
     assert len(eval_dirs) == len(labels)
 
     fig = plt.figure()
-    for eval_dir, label in zip(eval_dirs, labels):
+    for idx, (eval_dir, label) in enumerate(zip(eval_dirs, labels)):
         score_file = os.path.join(eval_dir, 'scores.json')
         with open(score_file) as f:
             scores = json.load(f)
@@ -240,6 +286,10 @@ def plot (eval_dirs, labels, plot_type, save_path, low_limit, hi_limit, title=''
             X.append(int(epoch))
             Y.append(float(score[plot_type]))
 
+        if idx == 0:
+            first_series = np.array(Y)
+        
+        Y = np.array(Y) - first_series
         plt.plot(X, Y, linestyle='solid', label=label)
 
     for x in range(100):
@@ -264,6 +314,8 @@ if __name__ == '__main__':
         prune(args.result_dir, args.prune_dir, args.l, args.h)
     elif args.mode == 'test':
         test(args.model_dir, args.result_dir, args.gpus, start=args.start, step=args.step)
+    elif args.mode == 'bp':
+        bp(args.type, args.num_times, args.model_path, args.config, args.result_pkl, args.gpus)
     elif args.mode == 'tc':
         tc (args.result_dir, args.result_tc_dir, args.pooling)
     elif args.mode == 'mtl_tc':
