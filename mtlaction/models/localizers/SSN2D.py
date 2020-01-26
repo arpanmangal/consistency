@@ -375,67 +375,42 @@ class SSN2D(BaseLocalizer):
 
             # Step 2: Pool scores to create feature vector
             if self.task_feat_pooling == 'mean':
-                combined_scores = torch.mean(combined_scores, dim=0)
+                mean_combined_scores = torch.mean(combined_scores, dim=0)
             else:
-                combined_scores = torch.max(combined_scores, dim=0).values
+                mean_combined_scores = torch.max(combined_scores, dim=0).values
 
             # Step 3: Pass through NN and compute loss
-            task_score = self.task_head(combined_scores).unsqueeze(0) # task_score.shape == [1, 7]
+            task_score = self.task_head(mean_combined_scores).unsqueeze(0) # task_score.shape == [1, 7]
 
-            return rel_prop_list, activity_scores, completeness_scores, bbox_preds, task_score
-
-        # Processing all the imgs leads to CUDA out of memory => So we will use lesser images
-        # def reduce_img_group_size(num_ticks):
-        #     reduction_factor = (num_ticks // 100) + 1
-        #     return list(range(0, num_ticks, reduction_factor))
-
-        self.eval()
-        # print ('lr = ', self.test_cfg.ssn.perturb.optimizer['lr'])
-        optimizer = optim.SGD(self.parameters(),
-                              lr=self.test_cfg.ssn.perturb.optimizer['lr'],
-                              momentum=self.test_cfg.ssn.perturb.optimizer['momentum'])
-        # criterion = nn.CrossEntropyLoss()
-
-        # img_group_short = img_group[:, reduce_img_group_size(num_ticks), ...]
-
-        # print ('at the top')
-        # print (img_group.shape)
-        # print (img_group.shape, img_group_short.shape) # [1, 149, 3, 224, 224]
-        # print (type(rel_prop_list), rel_prop_list.shape) # [1, 35, 2]
-        # print (type(scaling_list), scaling_list.shape) # [1, 35, 2]
-        # print (type(prop_tick_list), prop_tick_list.shape) #[1, 35, 4])
-        # print (type(reg_stats), reg_stats.shape) # [1, 2, 2]
-        # print (type(img_group_short), img_group_short.shape)
-        # print ('-------------------------------------------')
-        # print (rel_prop_list, rel_prop_list.dtype)
-        # print ('^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^')
-        # print (prop_tick_list, prop_tick_list.dtype)
-        # print ('===========================================')
-        # print (scaling_list, scaling_list.dtype)
-        # print ('******************************************')
-        # exit(0)
+            return rel_prop_list, activity_scores, completeness_scores, bbox_preds, task_score, combined_scores
 
         # Update weights
+        self.eval()
+        # criterion = nn.CrossEntropyLoss()
         num_times = self.test_cfg.ssn.perturb.num_backprops
         for bp in range(num_times):
+            # Early stopping
             print ('#%d / %d' % (bp, num_times))
             with torch.enable_grad():
-                # Early stopping
+                # Freeze task layers and create optimizer
+                for param in self.task_head.parameters():
+                    param.requires_grad = False
+                optimizer = optim.SGD(filter(lambda p: p.requires_grad, self.parameters()),
+                                lr=self.test_cfg.ssn.perturb.optimizer['lr'],
+                                momentum=self.test_cfg.ssn.perturb.optimizer['momentum'])
+
                 optimizer.zero_grad()
 
                 # Forward pass
-                _, _, _, _, task_score = forward_pass(img_group.clone().detach(), img_group.shape[1],
+                _, _, _, _, task_score, combined_scores = forward_pass(img_group.clone().detach(), img_group.shape[1],
                                                       rel_prop_list.clone().detach(), scaling_list.clone().detach(),
                                                       prop_tick_list.clone().detach(), reg_stats.clone().detach())
                 task_predictions = torch.argmax(task_score).unsqueeze(0)
 
-                # print ('in the loop')
-                # print (type(rel_prop_list), rel_prop_list.shape)
-                # print (type(scaling_list), scaling_list.shape)
-                # print (type(prop_tick_list), prop_tick_list.shape)
-                # print (type(reg_stats), reg_stats.shape)
-                # print (type(img_group_short), img_group_short.shape)
-                # print ('-------------------------------------------')
+                # print (combined_scores.shape)
+                # print (combined_scores)
+                # print (torch.argmax(combined_scores, dim=1))
+                # exit(0)
 
                 # Backprop
                 # loss = criterion(task_score, hard_labels)
@@ -452,7 +427,7 @@ class SSN2D(BaseLocalizer):
         # self.eval()
         with torch.no_grad():
             rel_prop_list, activity_scores, completeness_scores, bbox_preds,\
-                task_score = forward_pass(img_group, num_ticks, rel_prop_list, scaling_list, prop_tick_list, reg_stats)
+                task_score, _ = forward_pass(img_group, num_ticks, rel_prop_list, scaling_list, prop_tick_list, reg_stats)
             print ('############')
             print (task_score)
             torch.cuda.empty_cache()
