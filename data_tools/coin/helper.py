@@ -27,13 +27,13 @@ def read_block (tag_file, tag_pruning_thres=0.6):
             props.append(f.readline().strip().split(' '))
 
         # Have a minimum of two proposals
-        obj['preds'] = []
-        for prop in props:
-            if (float(prop[-1]) - float(prop[-2])) / obj['frames'] < tag_pruning_thres:
-                obj['preds'].append(prop)
+        obj['preds'] = props
+        # for prop in props:
+        #     if (float(prop[-1]) - float(prop[-2])) / obj['frames'] < tag_pruning_thres:
+        #         obj['preds'].append(prop)
 
-        if len(obj['preds']) < 2:
-            obj['preds'] = props
+        # if len(obj['preds']) < 2:
+        #     obj['preds'] = props
 
         yield obj
 
