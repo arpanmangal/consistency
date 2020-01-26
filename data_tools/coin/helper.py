@@ -7,7 +7,7 @@ import sys
 import json
 
 # Start reading
-def read_block (tag_file):
+def read_block (tag_file, tag_pruning_thres=0.6):
     f = open(tag_file, 'r')
     while (len(f.readline()) > 0):
         # Keep reading the block
@@ -21,10 +21,19 @@ def read_block (tag_file):
         for _c in range(corrects):
             obj['correct'].append(f.readline().strip().split(' '))
         
-        obj['preds'] = []
+        props = []
         preds = int(f.readline().strip())
         for _p in range(preds):
-            obj['preds'].append(f.readline().strip().split(' '))
+            props.append(f.readline().strip().split(' '))
+
+        # Have a minimum of two proposals
+        obj['preds'] = []
+        for prop in props:
+            if (float(prop[-1]) - float(prop[-2])) / obj['frames'] < tag_pruning_thres:
+                obj['preds'].append(prop)
+
+        if len(obj['preds']) < 2:
+            obj['preds'] = props
 
         yield obj
 

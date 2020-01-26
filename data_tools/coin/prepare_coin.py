@@ -119,7 +119,7 @@ def create_subset_tag_files (absolute_consistency_path, prefix, vid_split_map, C
         id = block['id']
         split = vid_split_map[id]
         if id in vid_ids:
-            task = task_mapping(str(COIN[id]['recipe_type']))
+            task = task_mapping[int(COIN[id]['recipe_type'])]
             modify_block(block, subset_frames_path, prefix, step_mapping, task)
             if split == 'training':
                 write_block (block, train_tag, train_idx, no_task=no_task)
