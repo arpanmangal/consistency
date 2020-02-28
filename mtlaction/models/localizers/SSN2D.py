@@ -163,22 +163,29 @@ class SSN2D(BaseLocalizer):
         assert self.in_channels == img_group.shape[3] == 3
         
         # img_group has a shape of [n, 8, 9, 3, 224, 224]
+        # n is 2 for us
+        # after below the shape becomes [144, 3, 244, 244]
         img_group = img_group.reshape(
             (-1, self.in_channels) + img_group.shape[4:])
 
+        # after below x.shape == [144, 1024, 7, 7]
         x = self.extract_feat(img_group)
         
+        # after below x.shape == [144, 1024, 1, 1]
         if self.with_spatial_temporal_module:
             x = self.spatial_temporal_module(x)
         
+        # after below x.shape == [144, 1024, 1, 1]
         if self.dropout is not None:
             x = self.dropout(x)
         
+        # below shapes [16, 1024], [16, 3072]
         activity_feat, completeness_feat = self.segmental_consensus(
             x, prop_scaling)
         
         losses = dict()
         if self.with_cls_head:
+            # shapes = [16, 32], [16, 31], [16, 62]
             activity_score, completeness_score, bbox_pred = self.cls_head(
                 (activity_feat, completeness_feat))
             loss_cls = self.cls_head.loss(activity_score, completeness_score,
@@ -201,6 +208,7 @@ class SSN2D(BaseLocalizer):
                     combined_scores = torch.max(combined_scores, dim=1).values
 
                 # Step 3: Pass through NN and compute loss
+                # shape == [2, 7]
                 task_score = self.task_head(combined_scores)
                 loss_task = self.task_head.loss(task_score, task_labels.squeeze(), self.train_cfg)
                 losses.update(loss_task)

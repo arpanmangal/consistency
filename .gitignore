@@ -108,3 +108,5 @@ ssn/
 *.pth.tar
 
 trash/
+tmp_models/
+*.core

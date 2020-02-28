@@ -132,7 +132,7 @@ def prune(result_dir, prune_dir, low, hi):
 
 def tc (result_dir, result_tc_dir, pooling='mean'):
     """
-    Enforce term consistency over the generated scores
+    Enforce task consistency (COIN's TC) over the generated scores
     """
     assert result_dir != result_tc_dir
     try:
@@ -154,7 +154,7 @@ def tc (result_dir, result_tc_dir, pooling='mean'):
 
 def mtl_tc (result_dir, result_tc_dir):
     """
-    Enforce term consistency over the generated scores
+    Enforce task consistency (using the MTL task predictions) over the generated scores
     """
     assert result_dir != result_tc_dir
     try:
