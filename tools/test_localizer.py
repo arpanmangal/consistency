@@ -20,11 +20,13 @@ from mtlaction.core.evaluation.localize_utils import (results2det,
 
 
 def single_test(model, data_loader):
+    print ('in single test')
     model.eval()
     results = []
     dataset = data_loader.dataset
     prog_bar = mmcv.ProgressBar(len(dataset))
     for data in data_loader:
+        print (type(data)); exit(0)
         with torch.no_grad():
             result = model(return_loss=False, **data)
         results.append(result)
@@ -91,6 +93,7 @@ def main():
     
     dataset = obj_from_dict(cfg.data.test, datasets, dict(test_mode=True))
 
+    print (args.gpus)
     if args.gpus == 1:
         model = build_localizer(
             cfg.model, train_cfg=None, test_cfg=cfg.test_cfg)

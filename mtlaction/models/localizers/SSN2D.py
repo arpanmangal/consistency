@@ -399,27 +399,47 @@ class SSN2D(BaseLocalizer):
                                 lr=self.test_cfg.ssn.perturb.optimizer['lr'],
                                 momentum=self.test_cfg.ssn.perturb.optimizer['momentum'])
 
-                optimizer.zero_grad()
 
+                # Task -> Step updation
                 # Forward pass
-                _, _, _, _, task_score, combined_scores = forward_pass(img_group.clone().detach(), img_group.shape[1],
+                # optimizer.zero_grad()
+                # _, _, _, _, task_score, _ = forward_pass(img_group.clone().detach(), img_group.shape[1],
+                #                                       rel_prop_list.clone().detach(), scaling_list.clone().detach(),
+                #                                       prop_tick_list.clone().detach(), reg_stats.clone().detach())
+                # task_predictions = torch.argmax(task_score).unsqueeze(0)
+
+                # # Backprop
+                # # loss = criterion(task_score, hard_labels)
+                # print (task_score, task_predictions)
+                # loss = F.cross_entropy(task_score, task_predictions)
+                # loss.backward()
+                # torch.cuda.empty_cache() # To empty the cache from previous iterations
+                # optimizer.step()
+                # print ('Task Loss', loss.item())
+
+                # Task -> Step updation
+                # Forward pass
+                optimizer.zero_grad()
+                _, activity_scores, _, _, _, _ = forward_pass(img_group.clone().detach(), img_group.shape[1],
                                                       rel_prop_list.clone().detach(), scaling_list.clone().detach(),
                                                       prop_tick_list.clone().detach(), reg_stats.clone().detach())
-                task_predictions = torch.argmax(task_score).unsqueeze(0)
+                # step_predictions = torch.argmax(combined_scores, dim=1)
+                # combined_scores = torch.log(combined_scores)
+                step_predictions = torch.argmax(activity_scores, dim=1)
+                print (step_predictions)
 
-                # print (combined_scores.shape)
-                # print (combined_scores)
-                # print (torch.argmax(combined_scores, dim=1))
-                # exit(0)
-
-                # Backprop
-                # loss = criterion(task_score, hard_labels)
-                print (task_score, task_predictions)
-                loss = F.cross_entropy(task_score, task_predictions)
+                loss = F.cross_entropy(activity_scores, step_predictions)
                 loss.backward()
                 torch.cuda.empty_cache() # To empty the cache from previous iterations
                 optimizer.step()
-                print ('Task Loss', loss.item())
+                print ('Step Loss', loss.item())
+                # print (combined_scores.shape)
+                # print (step_predictions.shape)
+                # print (combined_scores)
+                # print (torch.sum(combined_scores, dim=1))
+                # print (torch.sum(torch.exp(combined_scores), dim=1))
+                # exit(0)
+
 
         # Final forward pass
         # Restoring weights to confirm they are not changed

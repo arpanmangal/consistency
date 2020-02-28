@@ -78,7 +78,11 @@ def main():
     model = build_localizer(
         cfg.model, train_cfg=cfg.train_cfg, test_cfg=cfg.test_cfg)
 
+    print ("Model built: ", type(model))
+
     train_dataset = get_trimmed_dataset(cfg.data.train)
+    print ("dataset loaded", type(train_dataset))
+
     train_network(
         model,
         train_dataset,
