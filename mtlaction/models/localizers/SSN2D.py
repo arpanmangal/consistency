@@ -17,6 +17,7 @@ class SSN2D(BaseLocalizer):
                  segmental_consensus=None,
                  cls_head=None,
                  task_head=None,
+                 aux_task_head=None,
                  train_cfg=None,
                  test_cfg=None):
 
@@ -46,6 +47,12 @@ class SSN2D(BaseLocalizer):
             self.is_test_prepared = False
         else:
             raise NotImplementedError
+
+        if aux_task_head is not None:
+            self.aux_task_head = builder.build_head(aux_task_head)
+        else:
+            self.aux_task_head = None
+        #    raise NotImplementedError
 
         if task_head is not None:
             self.task_join = task_head.join # Place where to join the task head
@@ -100,6 +107,10 @@ class SSN2D(BaseLocalizer):
         return hasattr(self, 'cls_head') and self.cls_head is not None
 
     @property
+    def with_aux_task_head(self):
+        return hasattr(self, 'aux_task_head') and self.aux_task_head is not None
+
+    @property
     def with_task_head(self):
         return hasattr(self, 'task_head') and self.task_head is not None
 
@@ -143,6 +154,9 @@ class SSN2D(BaseLocalizer):
         if self.with_task_head:
             self.task_head.init_weights()
 
+        if self.with_aux_task_head:
+            self.aux_task_head.init_weights()
+
     def extract_feat(self, img_group):
         x = self.backbone(img_group)
         return x
@@ -182,12 +196,20 @@ class SSN2D(BaseLocalizer):
         # below shapes [16, 1024], [16, 3072]
         activity_feat, completeness_feat = self.segmental_consensus(
             x, prop_scaling)
-        
+     
+     
         losses = dict()
+   
+        aux_task_pred = None
+        if self.with_aux_task_head:
+            aux_task_pred = self.aux_task_head(activity_feat)
+            loss_aux_task = self.aux_task_head.loss(aux_task_pred, task_labels.squeeze(), self.train_cfg)
+            losses.update(loss_aux_task)
+
         if self.with_cls_head:
             # shapes = [16, 32], [16, 31], [16, 62]
             activity_score, completeness_score, bbox_pred = self.cls_head(
-                (activity_feat, completeness_feat))
+                (activity_feat, completeness_feat, aux_task_pred))
             loss_cls = self.cls_head.loss(activity_score, completeness_score,
                                           bbox_pred, prop_type, prop_labels,
                                           reg_targets, self.train_cfg)

@@ -12,6 +12,7 @@ class SSNHead(nn.Module):
                  dropout_ratio=0.8,
                  in_channels_activity=3072,
                  in_channels_complete=3072,
+                 in_channels_tasks=7,
                  num_classes=20,
                  with_bg=False,
                  with_reg=True,
@@ -22,6 +23,7 @@ class SSNHead(nn.Module):
         self.dropout_ratio = dropout_ratio
         self.in_channels_activity = in_channels_activity
         self.in_channels_complete = in_channels_complete
+        self.in_channels_tasks = in_channels_tasks
         self.num_classes = num_classes - 1 if with_bg else num_classes
         self.with_reg = with_reg
         self.init_std = init_std
@@ -31,7 +33,7 @@ class SSNHead(nn.Module):
         else:
             self.dropout = None
 
-        self.activity_fc = nn.Linear(in_channels_activity, num_classes + 1)
+        self.activity_fc = nn.Linear(in_channels_activity+in_channels_tasks, num_classes + 1)
         self.completeness_fc = nn.Linear(in_channels_complete, num_classes)
         if self.with_reg:
             self.regressor_fc = nn.Linear(in_channels_complete, num_classes * 2)
@@ -77,7 +79,11 @@ class SSNHead(nn.Module):
 
     def forward(self, input, test_mode=False):
         if not test_mode:
-            activity_feat, completeness_feat = input
+            activity_feat, completeness_feat, task_feat = input
+            if task_feat is None:
+                assert self.in_channels_tasks == 0
+            activity_feat = torch.cat((activity_feat, task_feat), dim=1)
+            
             if self.dropout is not None:
                 activity_feat = self.dropout(activity_feat)
                 completeness_feat = self.dropout(completeness_feat)
