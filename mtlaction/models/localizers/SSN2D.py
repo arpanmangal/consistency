@@ -48,39 +48,46 @@ class SSN2D(BaseLocalizer):
         else:
             raise NotImplementedError
 
+        # Task head for MTL
+        if task_head is not None:
+            self.task_join = task_head.join # Place where to join the task head
+            assert self.task_join in ['score', 'act_feat', 'comp_feat']
+            assert task_head.pooling in ['mean', 'max']
+
+            # Way to pool the features for task head
+            self.task_feat_pooling = task_head.pooling
+
+            if self.task_join != 'score': raise NotImplementedError #TODO
+            if self.task_feat_pooling != 'mean': raise NotImplementedError # TODO - Probably not reqd.
+
+            in_channels_task = cls_head.num_classes
+            if self.task_join == 'act_feat': in_channels_task = cls_head.in_channels_activity
+            elif self.task_join == 'comp_feat': in_channels_task = cls_head.in_channels_complete
+            
+            task_head.update({'num_steps': in_channels_task})
+            del task_head['pooling']; del task_head['join']
+
+            print (task_head)
+
+            self.task_head = builder.build_head(task_head)
+            print ("Something corresponding is missing here")
+        else:
+            self.task_head = None
+
+        # Task middleware for MTL++
         if aux_task_head is not None:
+            if not self.with_task_head:
+                raise NotImplementedError("Task Head is reqd if using MTL++")
+            
+            # Prepare and initialize the head
+            in_channels_task = cls_head.in_channels_activity
+            num_tasks = aux_task_head.num_tasks
+            assert task_head.num_tasks == num_tasks
+            assert cls_head.num_tasks is not None and cls_head.num_tasks == num_tasks
+            aux_task_head.update({'in_feature_dim': in_channels_task})
             self.aux_task_head = builder.build_head(aux_task_head)
         else:
             self.aux_task_head = None
-        #    raise NotImplementedError
-
-        if task_head is not None:
-            self.task_join = task_head.join # Place where to join the task head
-            if self.task_join is not None:
-                assert self.task_join in ['score', 'act_feat', 'comp_feat']
-                assert task_head.pooling in ['mean', 'max']
-
-                # Way to pool the features for task head
-                self.task_feat_pooling = task_head.pooling
-
-                if self.task_join != 'score': raise NotImplementedError #TODO
-                if self.task_feat_pooling != 'mean': raise NotImplementedError # TODO - Probably not reqd.
-
-                in_channels_task = cls_head.num_classes
-                if self.task_join == 'act_feat': in_channels_task = cls_head.in_channels_activity
-                elif self.task_join == 'comp_feat': in_channels_task = cls_head.in_channels_complete
-                
-                task_head.update({'num_steps': in_channels_task})
-                del task_head['pooling']; del task_head['join']
-
-                print (task_head)
-
-                self.task_head = builder.build_head(task_head)
-                print ("Something corresponding is missing here")
-            else:
-                self.task_head = None
-        else:
-            raise NotImplementedError
 
         self.train_cfg = train_cfg
         self.test_cfg = test_cfg
@@ -196,7 +203,6 @@ class SSN2D(BaseLocalizer):
         # below shapes [16, 1024], [16, 3072]
         activity_feat, completeness_feat = self.segmental_consensus(
             x, prop_scaling)
-     
      
         losses = dict()
    

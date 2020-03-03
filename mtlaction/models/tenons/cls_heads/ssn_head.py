@@ -12,7 +12,7 @@ class SSNHead(nn.Module):
                  dropout_ratio=0.8,
                  in_channels_activity=3072,
                  in_channels_complete=3072,
-                 in_channels_tasks=7,
+                 in_channels_tasks=0,
                  num_classes=20,
                  with_bg=False,
                  with_reg=True,
@@ -33,11 +33,10 @@ class SSNHead(nn.Module):
         else:
             self.dropout = None
 
-        self.activity_fc = nn.Linear(in_channels_activity+in_channels_tasks, num_classes + 1)
+        self.activity_fc = nn.Linear(in_channels_activity + in_channels_tasks, num_classes + 1)
         self.completeness_fc = nn.Linear(in_channels_complete, num_classes)
         if self.with_reg:
             self.regressor_fc = nn.Linear(in_channels_complete, num_classes * 2)
-
 
     def init_weights(self):
         nn.init.normal_(self.activity_fc.weight, 0, self.init_std)
@@ -76,13 +75,15 @@ class SSNHead(nn.Module):
         self.test_fc.bias.data = bias
         return True
 
-
     def forward(self, input, test_mode=False):
         if not test_mode:
             activity_feat, completeness_feat, task_feat = input
             if task_feat is None:
                 assert self.in_channels_tasks == 0
-            activity_feat = torch.cat((activity_feat, task_feat), dim=1)
+            else:
+                activity_feat = torch.cat((activity_feat, task_feat), dim=1)
+            
+            assert activity_feat.shape[1] == self.in_channels_activity + self.in_channels_tasks
             
             if self.dropout is not None:
                 activity_feat = self.dropout(activity_feat)
@@ -111,7 +112,6 @@ class SSNHead(nn.Module):
         labels = labels.view(-1)
         act_indexer = ((prop_type == 0) + (prop_type == 2)).nonzero().squeeze()
         comp_indexer = ((prop_type == 0) + (prop_type == 1)).nonzero().squeeze()
-
 
         denum = train_cfg.ssn.sampler.fg_ratio + train_cfg.ssn.sampler.bg_ratio + train_cfg.ssn.sampler.incomplete_ratio
         fg_per_video = int(train_cfg.ssn.sampler.num_per_video * (train_cfg.ssn.sampler.fg_ratio / denum))
