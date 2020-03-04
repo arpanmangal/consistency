@@ -9,7 +9,7 @@ class SSNTaskHead(nn.Module):
     Task head operating over pooled step scores
     """
 
-    def __init__(self, num_steps : int, num_tasks : int, middle_layers : List[int], init_std=0.001):
+    def __init__(self, num_steps, num_tasks, middle_layers, init_std=0.001):
         super(SSNTaskHead, self).__init__()
 
         self.in_features = num_steps
@@ -45,7 +45,7 @@ class SSNAuxTaskHead(nn.Module):
     Task head operating over the latent features Z
     """
 
-    def __init__(self, in_feature_dim : int, num_tasks : int, middle_layers : List[int], init_std=0.001):
+    def __init__(self, in_feature_dim, num_tasks, middle_layers, init_std=0.001):
         super(SSNAuxTaskHead, self).__init__()
 
         self.in_features = in_feature_dim

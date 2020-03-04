@@ -83,10 +83,11 @@ class SSN2D(BaseLocalizer):
             in_channels_task = cls_head.in_channels_activity
             num_tasks = aux_task_head.num_tasks
             assert task_head.num_tasks == num_tasks
-            assert cls_head.num_tasks is not None and cls_head.num_tasks == num_tasks
+            assert 'in_channels_tasks' in cls_head and cls_head.in_channels_tasks == num_tasks
             aux_task_head.update({'in_feature_dim': in_channels_task})
             self.aux_task_head = builder.build_head(aux_task_head)
         else:
+            assert 'in_channels_tasks' not in cls_head
             self.aux_task_head = None
 
         self.train_cfg = train_cfg
@@ -206,16 +207,38 @@ class SSN2D(BaseLocalizer):
      
         losses = dict()
    
-        aux_task_pred = None
+        one_hot_task_input = None
         if self.with_aux_task_head:
-            aux_task_pred = self.aux_task_head(activity_feat)
+            # print ('Aux task head')
+            # print (activity_feat.shape)
+            num_per_video = activity_feat.shape[0] // num_videos
+            input_feat = activity_feat.reshape((num_videos, num_per_video, -1))
+            input_feat = torch.mean(input_feat, dim=1)
+            # print (input_feat.shape)
+            aux_task_pred = self.aux_task_head(input_feat)
+            # print (aux_task_pred.shape)
             loss_aux_task = self.aux_task_head.loss(aux_task_pred, task_labels.squeeze(), self.train_cfg)
             losses.update(loss_aux_task)
+
+            # While training let's use the actual task labels as the aux_task_pred to reduce the errors
+            # print (task_labels, task_labels.squeeze())
+            # print (type(aux_task_pred))
+
+            num_tasks = aux_task_pred.shape[1]
+            one_hot_task_input = (task_labels == torch.arange(num_tasks).cuda().reshape(1, num_tasks)).float()
+            # print (one_hot_task_input)
+            # print (one_hot_task_input.shape)
+            
+            one_hot_task_input = one_hot_task_input.repeat(1, num_per_video).view(-1, num_tasks)
+
+            # print (one_hot_task_input)
+            # print (one_hot_task_input.shape)
+
 
         if self.with_cls_head:
             # shapes = [16, 32], [16, 31], [16, 62]
             activity_score, completeness_score, bbox_pred = self.cls_head(
-                (activity_feat, completeness_feat, aux_task_pred))
+                (activity_feat, completeness_feat, one_hot_task_input))
             loss_cls = self.cls_head.loss(activity_score, completeness_score,
                                           bbox_pred, prop_type, prop_labels,
                                           reg_targets, self.train_cfg)
