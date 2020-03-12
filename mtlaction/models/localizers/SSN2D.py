@@ -36,6 +36,9 @@ class SSN2D(BaseLocalizer):
         if self.dropout_ratio != 0:
             self.dropout = nn.Dropout(p=self.dropout_ratio)
 
+        # At train time: same as config file
+        # At test time: {'type': 'STPPReorganized', 'standalong_classifier': True, 'feat_dim': 311,
+        #            'act_score_len': 32, 'comp_score_len': 31, 'reg_score_len': 62, 'stpp_cfg': (1, 1, 1)}
         if segmental_consensus is not None:
             self.segmental_consensus = builder.build_segmental_consensus(
                 segmental_consensus)
@@ -301,8 +304,65 @@ class SSN2D(BaseLocalizer):
         
         if not self.is_test_prepared:
             self.is_test_prepared = self.cls_head.prepare_test_fc(
-                self.segmental_consensus.feat_multiplier)
-        output = self.cls_head(output, test_mode=True)
+                self.segmental_consensus.feat_multiplier,
+                aux_task_head=self.with_aux_task_head)
+
+        # if aux_task_head is available, we will use it to predict task from the [n, 1024 features itself]
+        # next it will be passed as input to the cls_head
+        aux_task_pred = None
+        if self.with_aux_task_head:
+            n_ticks = output.shape[0]
+            input_feat = torch.mean(output, dim=0).reshape(1, -1)
+            aux_task_pred = self.aux_task_head(input_feat)
+
+            num_tasks = aux_task_pred.shape[1]
+            aux_task_pred = aux_task_pred.repeat(1, n_ticks).view(-1, num_tasks)
+            assert aux_task_pred.shape == output.shape
+
+        # input: output.shape == [n, 1024]
+        # output: output.shape == [n, 311]
+        # n is variable -- num proposals for the given video
+        output = self.cls_head((output, aux_task_pred), test_mode=True)
+
+        # meaning of the below quantities
+        # rel_prop_list = [n, 2] torch tensor, containing (s,e) tuples of proposal starting and ending times
+        # 0 <= s < e <= 1
+        # 
+        # prop_list = [n, 4] torch tensor, purpose: UNKOWN
+        # example: torch.Size([23, 4])
+        #     tensor([[  0,   0, 130, 133],
+        #             [  0,   6, 121, 133],
+        #             [  0,  10, 112, 133],
+        #             [  0,  10, 100, 133],
+        #             [  0,  10,  89, 128],
+        #             [  0,  10,  79, 114],
+        #             [  0,  10,  59,  83],
+        #             [ 34,  60, 112, 133],
+        #             ...
+        # 
+        # scaling_list = [n, 2] torch tensor, purpose: UNKOWN
+        # example: torch.Size([23, 2])
+        #         tensor([[0.0000, 0.0437],
+        #                 [0.1139, 0.2073],
+        #                 [0.2102, 0.4007],
+        #                 [0.2384, 0.7225],
+        #                 [0.2723, 1.0000],
+        #                 [0.3107, 1.0000],
+        #                 [0.4414, 1.0000],
+        #                 [1.0000, 0.7821],
+        #                 [1.0000, 1.0000],
+        #                 [1.0000, 1.0000],
+        #                 [1.0000, 1.0000],
+        #                 [1.0000, 1.0000],
+        #                 [1.0000, 1.0000],
+        #                 [1.0000, 1.0000],
+        #                 [1.0000, 1.0000],
+        # 
+        # reg_stats: [2, 2] torch tensor, pupose: UNKOWN
+        # example: torch.Size([2, 2])
+        #     tensor([[-0.0032, -0.0267],
+        #             [ 0.0960,  0.1922]]
+        # 
 
         rel_prop_list = rel_prop_list.squeeze(0)
         prop_tick_list = prop_tick_list.squeeze(0)
@@ -337,6 +397,11 @@ class SSN2D(BaseLocalizer):
             task_score = task_score.cpu().numpy()
         else:
             task_score = None
+
+        if self.aux_task_head:
+            # do a backprop on KL loss bw the two predicted tasks
+            # TODO
+            bp = 'Done'
 
         return rel_prop_list.cpu().numpy(), activity_scores.cpu().numpy(), \
             completeness_scores.cpu().numpy(), bbox_preds.cpu().numpy(), task_score

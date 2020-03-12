@@ -34,9 +34,9 @@ class SSNHead(nn.Module):
             self.dropout = None
 
         self.activity_fc = nn.Linear(in_channels_activity + in_channels_tasks, num_classes + 1)
-        self.completeness_fc = nn.Linear(in_channels_complete, num_classes)
+        self.completeness_fc = nn.Linear(in_channels_complete + in_channels_tasks, num_classes)
         if self.with_reg:
-            self.regressor_fc = nn.Linear(in_channels_complete, num_classes * 2)
+            self.regressor_fc = nn.Linear(in_channels_complete + in_channels_tasks, num_classes * 2)
 
     def init_weights(self):
         nn.init.normal_(self.activity_fc.weight, 0, self.init_std)
@@ -47,32 +47,123 @@ class SSNHead(nn.Module):
             nn.init.normal_(self.regressor_fc.weight, 0, self.init_std)
             nn.init.constant_(self.regressor_fc.bias, 0)
 
-    def prepare_test_fc(self, stpp_feat_multiplier):
-        # TODO: support the case of standalone=False
+    def prepare_test_fc(self, stpp_feat_multiplier, aux_task_head=False):
+        # aux_task_head is true when using the task head middleware
+        task_head_available = self.in_channels_tasks > 0
+        assert aux_task_head == task_head_available
+        
+        print ('in prepare_test_fc')
+        print (stpp_feat_multiplier)
+        print (self.activity_fc.in_features, self.activity_fc.out_features, self.activity_fc.weight.shape, self.activity_fc.bias.shape)
+        print (self.completeness_fc.in_features, self.completeness_fc.out_features, self.completeness_fc.weight.shape, self.completeness_fc.bias.shape)
+        print (self.regressor_fc.in_features, self.regressor_fc.out_features, self.regressor_fc.weight.shape, self.regressor_fc.bias.shape)
+
+        # TODO (for SSN guys -- never gonna happen!): support the case of standalone=False
         self.test_fc = nn.Linear(self.activity_fc.in_features,
                                  self.activity_fc.out_features
                                  + self.completeness_fc.out_features * stpp_feat_multiplier
                                  + (self.regressor_fc.out_features * stpp_feat_multiplier if self.with_reg else 0))
-        reorg_comp_weight = self.completeness_fc.weight.data.view(
-                self.completeness_fc.out_features, stpp_feat_multiplier,
-                self.activity_fc.in_features).transpose(0, 1).contiguous().view(-1, self.activity_fc.in_features)
+        
+        if not aux_task_head:
+            # function of the below line:
+            # self.completeness_fc.weight.shape = [31, 3 * 1024]
+            # after doing a view: [31, 3, 1024]
+            # after transpose: [3, 31, 1024]
+            # after view: [93, 1024]
+            # i.e. earlier it was [W1 | W2 | W3]
+            # now it's [
+            #   W1
+            #   W2
+            #   W3
+            # ]
+            reorg_comp_weight = self.completeness_fc.weight.data.view(
+                    self.completeness_fc.out_features, stpp_feat_multiplier,
+                    self.activity_fc.in_features).transpose(0, 1).contiguous().view(-1, self.activity_fc.in_features)
+        else:
+            # Now with aux task head we have
+            # initially [W1 | W2 | W3 | WT]
+            # Finally: [
+            #   W1 | WT/3
+            #   W2 | WT/3
+            #   W3 | WT/3
+            # ]
+            WT = self.completeness_fc.weight.data[:, -self.in_channels_tasks:]
+            stacked_WT_by3 = WT.repeat(stpp_feat_multiplier, 1).view(-1, self.in_channels_tasks) / float(stpp_feat_multiplier)
+
+            actual_num_act_features = self.activity_fc.in_features - self.in_channels_tasks
+            W123 = self.completeness_fc.weight.data[:, :-self.in_channels_tasks]
+            reorg_comp_weight = W123.view(
+                    self.completeness_fc.out_features, stpp_feat_multiplier,
+                    actual_num_act_features).transpose(0, 1).contiguous().view(-1, actual_num_act_features)
+
+            print (stacked_WT_by3.shape, W123.shape, reorg_comp_weight.shape)
+            assert stacked_WT_by3.size(0) == reorg_comp_weight.size(0)
+            assert stacked_WT_by3.size(1) == self.in_channels_tasks
+            reorg_comp_weight = torch.cat((reorg_comp_weight, stacked_WT_by3), dim=1)
+
+        # self.completeness_fc.bias.shape = [31]
+        # after view [1, 31]
+        # after expand [3, 31] with copies along the row dim (dim 0)
+        # after view: [3 * 31] with [31-31-31] layout
+        # divided by 3
+        # no change with aux task head
         reorg_comp_bias = self.completeness_fc.bias.data.view(1, -1).expand(
                 stpp_feat_multiplier, self.completeness_fc.out_features).contiguous().view(-1) / stpp_feat_multiplier
+
+        print (reorg_comp_weight.shape)
+        print (reorg_comp_bias.shape)
 
         weight = torch.cat((self.activity_fc.weight.data, reorg_comp_weight))
         bias = torch.cat((self.activity_fc.bias.data, reorg_comp_bias))
 
+        print (weight.shape)
+        print (bias.shape)
+
         if self.with_reg:
-            reorg_reg_weight = self.regressor_fc.weight.data.view(
+            if not aux_task_head:
+                # similar to above completness
+                # [62, 3 * 1024] --view--> [62, 3, 1024] --transpose--> [3, 62, 1024] --view-> [3*62,1024]
+                # [W1 | W2 | W3] --> [
+                #   W1
+                #   W2
+                #   W3
+                # ]
+                reorg_reg_weight = self.regressor_fc.weight.data.view(
+                        self.regressor_fc.out_features, stpp_feat_multiplier,
+                        self.activity_fc.in_features).transpose(0, 1).contiguous().view(-1, self.activity_fc.in_features)
+            else:
+                # initially [W1 | W2 | W3 | WT]
+                # Finally: [
+                #   W1 | WT/3
+                #   W2 | WT/3
+                #   W3 | WT/3
+                # ]
+                WT = self.regressor_fc.weight.data[:, -self.in_channels_tasks:]
+                stacked_WT_by3 = WT.repeat(stpp_feat_multiplier, 1).view(-1, self.in_channels_tasks) / float(stpp_feat_multiplier)
+
+                actual_num_act_features = self.activity_fc.in_features - self.in_channels_tasks
+                W123 = self.regressor_fc.weight.data[:, :-self.in_channels_tasks]
+                reorg_reg_weight = W123.view(
                     self.regressor_fc.out_features, stpp_feat_multiplier,
-                    self.activity_fc.in_features).transpose(0, 1).contiguous().view(-1, self.activity_fc.in_features)
+                    actual_num_act_features).transpose(0, 1).contiguous().view(-1, actual_num_act_features)
+            
+                assert stacked_WT_by3.size(0) == reorg_reg_weight.size(0)
+                assert stacked_WT_by3.size(1) == self.in_channels_tasks
+                reorg_reg_weight = torch.cat((reorg_reg_weight, stacked_WT_by3), dim=1)
+
+            # remains same
             reorg_reg_bias = self.regressor_fc.bias.data.view(1, -1).expand(
                     stpp_feat_multiplier, self.regressor_fc.out_features).contiguous().view(-1) / stpp_feat_multiplier
             weight = torch.cat((weight, reorg_reg_weight))
             bias = torch.cat((bias, reorg_reg_bias))
 
+            print (reorg_reg_weight.shape, reorg_comp_bias.shape)
+            print (weight.shape, bias.shape)
+
         self.test_fc.weight.data = weight
         self.test_fc.bias.data = bias
+        print (self.test_fc.weight.shape, self.test_fc.bias.shape)
+        exit(0)
         return True
 
     def forward(self, input, test_mode=False):
@@ -81,9 +172,13 @@ class SSNHead(nn.Module):
             if task_feat is None:
                 assert self.in_channels_tasks == 0
             else:
+                assert activity_feat.size(0) == task_feat.size(0)
+                assert completeness_feat.size(0) == task_feat.size(0)
                 activity_feat = torch.cat((activity_feat, task_feat), dim=1)
+                completeness_feat = torch.cat((completeness_feat, task_feat), dim=1)
             
-            assert activity_feat.shape[1] == self.in_channels_activity + self.in_channels_tasks
+            assert activity_feat.size(1) == self.in_channels_activity + self.in_channels_tasks
+            assert completeness_feat.size(1) == self.in_channels_complete + self.in_channels_tasks
             
             if self.dropout is not None:
                 activity_feat = self.dropout(activity_feat)
@@ -94,8 +189,16 @@ class SSNHead(nn.Module):
             bbox_pred = self.regressor_fc(completeness_feat) if self.with_reg else None
 
             return act_score, comp_score, bbox_pred
+
         else:
-            test_score = self.test_fc(input)
+            feat, task_feat = input
+            if task_feat is None:
+                assert self.in_channels_tasks == 0
+            else:
+                assert feat.size(0) == task_feat.size(0)
+                feat = torch.cat((feat, task_feat), dim=1)
+
+            test_score = self.test_fc(feat)
             return test_score
 
     def loss(self,

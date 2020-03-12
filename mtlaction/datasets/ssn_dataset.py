@@ -708,7 +708,7 @@ class SSNDataset(Dataset):
         # Processing all the imgs leads to CUDA out of memory => So we will use lesser images
         sampling_interval = self.test_interval
         frame_ticks = None
-        while not frame_ticks or len(frame_ticks) > self.max_frame_ticks:
+        while frame_ticks is None or len(frame_ticks) > self.max_frame_ticks:
             frame_ticks = np.arange(
                0, frame_cnt - self.old_length, sampling_interval, dtype=int) + 1
             sampling_interval += 1
