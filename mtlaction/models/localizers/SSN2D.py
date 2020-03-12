@@ -212,31 +212,17 @@ class SSN2D(BaseLocalizer):
    
         one_hot_task_input = None
         if self.with_aux_task_head:
-            # print ('Aux task head')
-            # print (activity_feat.shape)
             num_per_video = activity_feat.shape[0] // num_videos
             input_feat = activity_feat.reshape((num_videos, num_per_video, -1))
             input_feat = torch.mean(input_feat, dim=1)
-            # print (input_feat.shape)
             aux_task_pred = self.aux_task_head(input_feat)
-            # print (aux_task_pred.shape)
             loss_aux_task = self.aux_task_head.loss(aux_task_pred, task_labels.squeeze(), self.train_cfg)
             losses.update(loss_aux_task)
 
             # While training let's use the actual task labels as the aux_task_pred to reduce the errors
-            # print (task_labels, task_labels.squeeze())
-            # print (type(aux_task_pred))
-
             num_tasks = aux_task_pred.shape[1]
             one_hot_task_input = (task_labels == torch.arange(num_tasks).cuda().reshape(1, num_tasks)).float()
-            # print (one_hot_task_input)
-            # print (one_hot_task_input.shape)
-            
             one_hot_task_input = one_hot_task_input.repeat(1, num_per_video).view(-1, num_tasks)
-
-            # print (one_hot_task_input)
-            # print (one_hot_task_input.shape)
-
 
         if self.with_cls_head:
             # shapes = [16, 32], [16, 31], [16, 62]
@@ -311,13 +297,13 @@ class SSN2D(BaseLocalizer):
         # next it will be passed as input to the cls_head
         aux_task_pred = None
         if self.with_aux_task_head:
-            n_ticks = output.shape[0]
+            n_ticks = output.size(0)
             input_feat = torch.mean(output, dim=0).reshape(1, -1)
             aux_task_pred = self.aux_task_head(input_feat)
 
-            num_tasks = aux_task_pred.shape[1]
+            num_tasks = aux_task_pred.size(1)
             aux_task_pred = aux_task_pred.repeat(1, n_ticks).view(-1, num_tasks)
-            assert aux_task_pred.shape == output.shape
+            assert aux_task_pred.size(0) == output.size(0)
 
         # input: output.shape == [n, 1024]
         # output: output.shape == [n, 311]

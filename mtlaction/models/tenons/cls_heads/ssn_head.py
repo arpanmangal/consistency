@@ -52,12 +52,6 @@ class SSNHead(nn.Module):
         task_head_available = self.in_channels_tasks > 0
         assert aux_task_head == task_head_available
         
-        print ('in prepare_test_fc')
-        print (stpp_feat_multiplier)
-        print (self.activity_fc.in_features, self.activity_fc.out_features, self.activity_fc.weight.shape, self.activity_fc.bias.shape)
-        print (self.completeness_fc.in_features, self.completeness_fc.out_features, self.completeness_fc.weight.shape, self.completeness_fc.bias.shape)
-        print (self.regressor_fc.in_features, self.regressor_fc.out_features, self.regressor_fc.weight.shape, self.regressor_fc.bias.shape)
-
         # TODO (for SSN guys -- never gonna happen!): support the case of standalone=False
         self.test_fc = nn.Linear(self.activity_fc.in_features,
                                  self.activity_fc.out_features
@@ -96,7 +90,6 @@ class SSNHead(nn.Module):
                     self.completeness_fc.out_features, stpp_feat_multiplier,
                     actual_num_act_features).transpose(0, 1).contiguous().view(-1, actual_num_act_features)
 
-            print (stacked_WT_by3.shape, W123.shape, reorg_comp_weight.shape)
             assert stacked_WT_by3.size(0) == reorg_comp_weight.size(0)
             assert stacked_WT_by3.size(1) == self.in_channels_tasks
             reorg_comp_weight = torch.cat((reorg_comp_weight, stacked_WT_by3), dim=1)
@@ -110,14 +103,8 @@ class SSNHead(nn.Module):
         reorg_comp_bias = self.completeness_fc.bias.data.view(1, -1).expand(
                 stpp_feat_multiplier, self.completeness_fc.out_features).contiguous().view(-1) / stpp_feat_multiplier
 
-        print (reorg_comp_weight.shape)
-        print (reorg_comp_bias.shape)
-
         weight = torch.cat((self.activity_fc.weight.data, reorg_comp_weight))
         bias = torch.cat((self.activity_fc.bias.data, reorg_comp_bias))
-
-        print (weight.shape)
-        print (bias.shape)
 
         if self.with_reg:
             if not aux_task_head:
@@ -157,13 +144,9 @@ class SSNHead(nn.Module):
             weight = torch.cat((weight, reorg_reg_weight))
             bias = torch.cat((bias, reorg_reg_bias))
 
-            print (reorg_reg_weight.shape, reorg_comp_bias.shape)
-            print (weight.shape, bias.shape)
-
+        # test_fc.weight.shape == [311, 1024], and bias.shape == [311]
         self.test_fc.weight.data = weight
         self.test_fc.bias.data = bias
-        print (self.test_fc.weight.shape, self.test_fc.bias.shape)
-        exit(0)
         return True
 
     def forward(self, input, test_mode=False):
