@@ -75,6 +75,10 @@ def parse_args():
     parser_bootstrap.add_argument('--cons_arch', type=str, help='Path of the cons_arch model')
     parser_bootstrap.add_argument('--save', type=str, help='Path where to save the transferred model')
 
+    # Testing on final test set
+    parser_test_bm = subparsers.add_parser('finaltest', help="Testing final best models on actual test set")
+    parser_test_bm.add_argument('eval_path', type=str, help='Path of the eval python file')
+
     # Validating the args
     args = parser.parse_args()
 
@@ -342,6 +346,163 @@ def bootstrap(mode, ssn=None, mtlssn=None, cons_arch=None, task_head=None, epoch
         raise ValueError("Invalid Mode")
 
 
+def test_best_models(eval_path, prune_low_range=0.05, prune_high_range=0.6):
+    """
+    This function is used to get final test scores using the best val model
+    """
+    import sys
+    sys.path.append(eval_path)
+    print (eval_path)
+    from eval import models, refresh, result_dir, gpus
+    
+    for name in refresh:
+        print ('Testing model %s...' % name)
+        rdir = os.path.join(result_dir, name)
+        try: os.makedirs(rdir)
+        except: pass
+
+        model = models[name]
+        checkpoint = model['checkpoint']
+
+        # Result Raw
+        config_file = os.path.join(
+            '/'.join(checkpoint.split('/')[:-1]),
+            'config.py'
+        )
+        result_file = os.path.join(rdir, 'result_raw.pkl')
+        log_file = os.path.join(rdir, 'test.log')
+
+        command = "python3 tools/test_localizer.py {} {} --gpus {} --out {}".format(
+            config_file, checkpoint, gpus, result_file)
+        print (command, '\n')
+        command = shlex.split(command)
+        with open(log_file, 'w') as outfile:
+            process = subprocess.Popen(command, stdout=outfile)
+        process.wait()
+
+        if 'tag_pruning' in model and model['tag_pruning']:
+            # TAG Pruning
+            result_pr_file = os.path.join(rdir, 'result_pr.pkl')
+            pkl_data = pickle.load(open(result_file, 'rb'))
+
+            results = []
+            for data_idx, (props, act_scores, comp_scores, regs, task_scores) in enumerate(pkl_data):
+                keep = []
+                for idx, p in enumerate(props):
+                    if (prune_low_range < p[1] - p[0] < prune_high_range):
+                        keep.append(idx)
+                if len(keep) == 0:
+                    keep = [0] # Keep the first element
+                    print ('index {} is completely useless!!'.format(data_idx))
+                results.append((props[keep, :], act_scores[keep, :], comp_scores[keep, :], regs[keep, :, :], task_scores))
+
+            pickle.dump(results, open(result_pr_file, 'wb'))
+            result_file = result_pr_file
+
+        # Consistency Pruning
+        if 'TC' in model and model['TC'] == 'COIN':
+            result_tc_file = os.path.join(rdir, 'result_tc.pkl')
+            command = "python3 tools/localize_TC.py {} --out_pkl {} --pooling {}".format(
+                result_file, result_tc_file, 'mean')
+            print (command, '\n')
+            command = shlex.split(command)
+            process = subprocess.Popen(command)
+            process.wait()
+            result_file = result_tc_file
+        elif 'TC' in model and model['TC'] == 'MTL':
+            result_tc_file = os.path.join(rdir, 'result_tc.pkl')
+            command = "python3 tools/localize_TC.py {} --out_pkl {} --mtl".format(
+                result_file, result_tc_file)
+            print (command, '\n')
+            command = shlex.split(command)
+            process = subprocess.Popen(command)
+            process.wait()
+            result_file = result_tc_file
+
+        # Eval
+        log_file = os.path.join(rdir, 'eval.log')
+        command = "python3 tools/eval_localize_results.py {} {} --eval coin".format(
+            config_file, result_file)
+        print (command, '\n')
+        command = shlex.split(command)
+        with open(log_file, 'w') as outfile:
+            process = subprocess.Popen(command, stdout=outfile)
+        process.wait()
+
+        print ('\n==================================\n')
+    
+
+# def test_best_models(models, names, tc_types, result_dir, gpus):
+#     """
+#     This function is used to get final test scores using the best val model
+#     """
+#     assert len(models) == len(names) == len(tc_types)
+#     for tc in tc_types: assert tc in [0, 1] # 0 for COIN TC, 1 for MTL pred TC
+
+#     dirs = [result_dir] + [os.path.join(result_dir, name) for name in names]
+#     for rdir in dirs:
+#         try: os.makedirs(rdir)
+#         except: pass
+
+#     def coin_tc(result_pkl, result_tc_pkl):
+#         command = "python3 tools/localize_TC.py {} --out_pkl {} --pooling {}".format(
+#             result_pkl, result_tc_pkl, pooling='mean')
+#         print (command, '\n')
+#         command = shlex.split(command)
+#         process = subprocess.Popen(command)
+#         process.wait()
+
+#     def mtl_tc(result_pkl, result_tc_pkl):
+#         command = "python3 tools/localize_TC.py {} --out_pkl {} --mtl".format(
+#             result_pkl, result_tc_pkl)
+#         print (command, '\n')
+#         command = shlex.split(command)
+#         process = subprocess.Popen(command)
+#         process.wait()
+
+#     for model, name, tc in zip(models, names, tc_types):
+#         rdir = os.path.join(result_dir, name)
+
+#         # Result Raw
+#         config_file = os.path.join(
+#             '/'.join(model.split('/')[:-1]),
+#             'config.py'
+#         )
+#         result_raw_file = os.path.join(rdir, 'result_raw.pkl')
+#         log_file = os.path.join(rdir, 'test.log')
+
+#         command = "python3 tools/test_localizer.py {} {} --gpus {} --out {}".format(
+#             config_file, model, gpus, result_raw_file)
+#         print (command, '\n')
+#         command = shlex.split(command)
+#         with open(log_file, 'w') as outfile:
+#             process = subprocess.Popen(command, stdout=outfile)
+#         process.wait()
+
+#         # Result Pruned
+#         result_pr_file = os.path.join(rdir, 'result_pr.pkl')
+#         pkl_data = pickle.load(open(result_raw_file, 'rb'))
+
+#         results = []
+#         for data_idx, (props, act_scores, comp_scores, regs, task_scores) in enumerate(pkl_data):
+#             keep = []
+#             for idx, p in enumerate(props):
+#                 if (low < p[1] - p[0] < hi):
+#                     keep.append(idx)
+#             if len(keep) == 0:
+#                 keep = [0] # Keep the first element
+#                 print ('index {} is completely useless!!'.format(data_idx))
+#             results.append((props[keep, :], act_scores[keep, :], comp_scores[keep, :], regs[keep, :, :], task_scores))
+
+#         pickle.dump(results, open(result_pr_file, 'wb'))
+
+#         # Results TC
+#         result_raw_tc_file = os.path.join(rdir, 'result_raw_tc.pkl')
+#         result_pr_tc_file = os.path.join(rdir, 'result_pr_tc.pkl')
+#         if tc == 0: # coin tc
+#             coin_tc(result, )
+
+
 if __name__ == '__main__':
     # time.sleep(1)
     args = parse_args()
@@ -363,5 +524,7 @@ if __name__ == '__main__':
         plot (args.eval_dirs, args.labels, args.plot_type, args.save_path, args.lo, args.hi, args.title)
     elif args.mode == 'bs':
         bootstrap(args.bs_mode, ssn=args.ssn, mtlssn=args.mtlssn, cons_arch=args.cons_arch, task_head=args.task_head, save_checkpoint_pth=args.save)
+    elif args.mode == 'finaltest':
+        test_best_models(args.eval_path)
     else:
         raise ValueError("Go Away")
