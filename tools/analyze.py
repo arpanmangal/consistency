@@ -7,6 +7,7 @@ import subprocess, shlex
 import argparse
 import glob
 import time
+import torch
 from tqdm import tqdm
 import matplotlib.pyplot as plt
 
@@ -65,6 +66,15 @@ def parse_args():
     parser_plot.add_argument('--save_path', type=str, help='Path where to save the plot', required=True)
     parser_plot.add_argument('--title', type=str, default='', help='Plot title')
     
+    # Transfering the weights of separately trained model to the big model
+    parser_bootstrap = subparsers.add_parser('bs', help='Transfer the trained weights of different models')
+    parser_bootstrap.add_argument('bs_mode', choices=['mtlssn', 'cons'])
+    parser_bootstrap.add_argument('--ssn', type=str, help='Path of the SSN model')
+    parser_bootstrap.add_argument('--mtlssn', type=str, help='Path of the MTL SSN model')
+    parser_bootstrap.add_argument('--task_head', type=str, help='Path of the Task Head model')
+    parser_bootstrap.add_argument('--cons_arch', type=str, help='Path of the cons_arch model')
+    parser_bootstrap.add_argument('--save', type=str, help='Path where to save the transferred model')
+
     # Validating the args
     args = parser.parse_args()
 
@@ -255,6 +265,83 @@ def plot (eval_dirs, labels, plot_type, save_path, low_limit, hi_limit, title=''
     plt.savefig(save_path)
 
 
+def bootstrap(mode, ssn=None, mtlssn=None, cons_arch=None, task_head=None, epoch=100, save_checkpoint_pth='bootstrapped.pth'):
+    assert mode in ['mtlssn', 'cons']
+    assert ssn is not None and task_head is not None
+    if mode == 'mtlssn': assert mtlssn is not None
+    if mode == 'cons': assert cons_arch is not None
+
+    models = dict()
+    # Read the task and ssn weights
+    def load_weights(checkpoint_pth, state_dict=True, get_meta_info=False):
+        if torch.cuda.is_available():
+            model = torch.load(checkpoint_pth)
+        else:
+            model = torch.load(checkpoint_pth, map_location=torch.device('cpu'))
+        
+        if get_meta_info:
+            # Return info about the meta
+            return model['meta']
+
+        if state_dict:
+            return model['state_dict']
+        else:
+            return model
+
+    def get_top_keys(model):
+        return set({w.split('.')[0] for w in model.keys()})
+
+    def save_model(model_state_dict, meta_info):
+        meta_info = {
+            'epoch': epoch,
+            'iter': epoch * meta_info['iter'] / meta_info['epoch']
+        }
+        torch.save(dict({
+            'state_dict': model_state_dict,
+            'meta': meta_info
+        }), save_checkpoint_pth)
+
+    models['ssn'] = load_weights(ssn)
+    models['task_head'] = load_weights(task_head, state_dict=False)
+
+    assert get_top_keys(models['ssn']) == set({'backbone', 'cls_head'})
+    assert get_top_keys(models['task_head']) == set({'fcs'})
+
+    if mode == 'mtlssn':
+        # Transfer weights from task_head, SSN -> MTL arch
+        template = load_weights(mtlssn)
+        assert get_top_keys(template) == set({'backbone', 'cls_head', 'task_head'})
+        for k, w in models['ssn'].items():
+            template[k] = w
+        for k, w in models['task_head'].items():
+            template['task_head.%s' % k] = w
+        meta_info = load_weights(mtlssn, get_meta_info=True)
+        save_model(template, meta_info)
+        # torch.save(dict({'state_dict': template}), save_checkpoint_pth)
+
+    elif mode == 'cons':
+        # Transfer weights from task,ssn -> cons
+        template = load_weights(cons_arch)
+        assert get_top_keys(template) == set({'backbone', 'cls_head', 'aux_task_head', 'task_head'})
+        for k, w in models['ssn'].items():
+            # Transfer only the backbone weights
+            if k.split('.')[0] == 'backbone': template[k] = w
+        for k, w in models['task_head'].items():
+            template['task_head.%s' % k] = w
+        meta_info = load_weights(cons_arch, get_meta_info=True)
+        save_model(template, meta_info)
+        # torch.save(dict({
+        #     'state_dict': template,
+        #     'meta': dict({
+        #         'epoch': 100,
+        #         'iter': 
+        #     })
+        # }), save_checkpoint_pth)
+
+    else:
+        raise ValueError("Invalid Mode")
+
+
 if __name__ == '__main__':
     # time.sleep(1)
     args = parse_args()
@@ -274,5 +361,7 @@ if __name__ == '__main__':
         parse_scores (args.eval_dir)
     elif args.mode == 'plot':
         plot (args.eval_dirs, args.labels, args.plot_type, args.save_path, args.lo, args.hi, args.title)
+    elif args.mode == 'bs':
+        bootstrap(args.bs_mode, ssn=args.ssn, mtlssn=args.mtlssn, cons_arch=args.cons_arch, task_head=args.task_head, save_checkpoint_pth=args.save)
     else:
         raise ValueError("Go Away")
