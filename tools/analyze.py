@@ -10,6 +10,7 @@ import time
 import torch
 from tqdm import tqdm
 import matplotlib.pyplot as plt
+import termtables as tt
 
 
 def parse_args():
@@ -352,7 +353,6 @@ def test_best_models(eval_path, prune_low_range=0.05, prune_high_range=0.6):
     """
     import sys
     sys.path.append(eval_path)
-    print (eval_path)
     from eval import models, refresh, result_dir, gpus
     
     for name in refresh:
@@ -430,78 +430,36 @@ def test_best_models(eval_path, prune_low_range=0.05, prune_high_range=0.6):
         process.wait()
 
         print ('\n==================================\n')
-    
 
-# def test_best_models(models, names, tc_types, result_dir, gpus):
-#     """
-#     This function is used to get final test scores using the best val model
-#     """
-#     assert len(models) == len(names) == len(tc_types)
-#     for tc in tc_types: assert tc in [0, 1] # 0 for COIN TC, 1 for MTL pred TC
 
-#     dirs = [result_dir] + [os.path.join(result_dir, name) for name in names]
-#     for rdir in dirs:
-#         try: os.makedirs(rdir)
-#         except: pass
+    # Parse log files and extract task accuracy and map scores
+    test_scores = []
+    for name in models.keys():
+        log_file = os.path.join(result_dir, name, 'eval.log')
+        if not os.path.isfile(log_file):
+            continue
 
-#     def coin_tc(result_pkl, result_tc_pkl):
-#         command = "python3 tools/localize_TC.py {} --out_pkl {} --pooling {}".format(
-#             result_pkl, result_tc_pkl, pooling='mean')
-#         print (command, '\n')
-#         command = shlex.split(command)
-#         process = subprocess.Popen(command)
-#         process.wait()
+        for line in open(log_file, 'r'):
+            if re.search("Task Classification Accuracy:", line):
+                task_acc_line = line
+            if re.search("mean AP", line):
+                map_line = line
 
-#     def mtl_tc(result_pkl, result_tc_pkl):
-#         command = "python3 tools/localize_TC.py {} --out_pkl {} --mtl".format(
-#             result_pkl, result_tc_pkl)
-#         print (command, '\n')
-#         command = shlex.split(command)
-#         process = subprocess.Popen(command)
-#         process.wait()
+        float_regex = r"[-+]?\d*\.\d+|\d+"
+        task_acc = float(re.findall(float_regex, task_acc_line)[0])
+        map_scores = [float(s) for s in re.findall(float_regex, map_line)]
 
-#     for model, name, tc in zip(models, names, tc_types):
-#         rdir = os.path.join(result_dir, name)
+        scores = [name]+map_scores+[task_acc]
+        test_scores.append(scores)
 
-#         # Result Raw
-#         config_file = os.path.join(
-#             '/'.join(model.split('/')[:-1]),
-#             'config.py'
-#         )
-#         result_raw_file = os.path.join(rdir, 'result_raw.pkl')
-#         log_file = os.path.join(rdir, 'test.log')
-
-#         command = "python3 tools/test_localizer.py {} {} --gpus {} --out {}".format(
-#             config_file, model, gpus, result_raw_file)
-#         print (command, '\n')
-#         command = shlex.split(command)
-#         with open(log_file, 'w') as outfile:
-#             process = subprocess.Popen(command, stdout=outfile)
-#         process.wait()
-
-#         # Result Pruned
-#         result_pr_file = os.path.join(rdir, 'result_pr.pkl')
-#         pkl_data = pickle.load(open(result_raw_file, 'rb'))
-
-#         results = []
-#         for data_idx, (props, act_scores, comp_scores, regs, task_scores) in enumerate(pkl_data):
-#             keep = []
-#             for idx, p in enumerate(props):
-#                 if (low < p[1] - p[0] < hi):
-#                     keep.append(idx)
-#             if len(keep) == 0:
-#                 keep = [0] # Keep the first element
-#                 print ('index {} is completely useless!!'.format(data_idx))
-#             results.append((props[keep, :], act_scores[keep, :], comp_scores[keep, :], regs[keep, :, :], task_scores))
-
-#         pickle.dump(results, open(result_pr_file, 'wb'))
-
-#         # Results TC
-#         result_raw_tc_file = os.path.join(rdir, 'result_raw_tc.pkl')
-#         result_pr_tc_file = os.path.join(rdir, 'result_pr_tc.pkl')
-#         if tc == 0: # coin tc
-#             coin_tc(result, )
-
+        string = tt.to_string(
+            test_scores,
+            header=["model"]+['mAP @ 0.%d' % i for i in range(1, 10)]+["Task Acc."],
+            style=tt.styles.ascii_thin_double,
+            padding=(0, 1),
+            alignment="c"*11
+        )
+        print (string)
 
 if __name__ == '__main__':
     # time.sleep(1)
