@@ -55,6 +55,26 @@ def modify_block (block, subset_frames_path, prefix, step_mapping, task):
         p[4] = str(int(int(p[4]) * scaling))
 
 
+def modify_block_simple (block, frames_path, prefix, task_id):
+    id = block['id']
+    block['path'] = os.path.join(prefix, id)
+    new_frames = len(glob.glob(os.path.join(frames_path, id, '*')))
+    old_frames = block['frames']
+    block['frames'] = new_frames
+    scaling = new_frames / old_frames
+    block['task'] = task_id
+
+    for c in block['correct']:
+        c[0] = str(int(c[0]) - 1)
+        c[1] = str(int(int(c[1]) * scaling))
+        c[2] = str(int(int(c[2]) * scaling))
+
+    for p in block['preds']:
+        p[0] = str(int(p[0]) - 1)
+        p[3] = str(int(int(p[3]) * scaling))
+        p[4] = str(int(int(p[4]) * scaling))
+
+
 def write_block (block, ofile, idx, no_task=False):
     with open(ofile, 'a') as f:
         f.write('# %d\n' % idx)
