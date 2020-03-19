@@ -65,12 +65,18 @@ def modify_block_simple (block, frames_path, prefix, task_id):
     block['task'] = task_id
 
     for c in block['correct']:
-        c[0] = str(int(c[0]) - 1)
+        c0 = int(c[0])
+        assert c0 == 0 or c0 > 1
+        if c0 > 1:
+            c[0] = str(c0 - 1)
         c[1] = str(int(int(c[1]) * scaling))
         c[2] = str(int(int(c[2]) * scaling))
 
     for p in block['preds']:
-        p[0] = str(int(p[0]) - 1)
+        p0 = int(p[0])
+        assert p0 == 0 or p0 > 1
+        if p0 > 1:
+            p[0] = str(p0 - 1)
         p[3] = str(int(int(p[3]) * scaling))
         p[4] = str(int(int(p[4]) * scaling))
 
