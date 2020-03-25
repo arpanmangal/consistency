@@ -1,6 +1,8 @@
 import torch
 import torch.nn as nn
+import torch.optim as optim
 import torch.nn.functional as F
+import numpy as np
 from .base import BaseLocalizer
 from .. import builder
 from ..registry import LOCALIZERS
@@ -263,6 +265,13 @@ class SSN2D(BaseLocalizer):
                      prop_tick_list,
                      reg_stats,
                      **kwargs):
+        # Call different function for perturbation
+        print (self.with_aux_task_head)
+        print (self.test_cfg.ssn)
+        if self.with_aux_task_head and 'perturb' in self.test_cfg.ssn and self.test_cfg.ssn.perturb.numbps > 0:
+            return self.forward_test_perturb(num_modalities, img_meta, rel_prop_list, scaling_list, 
+                                             prop_tick_list, reg_stats, **kwargs)
+
         assert num_modalities == 1
         img_group = kwargs['img_group_0']
 
@@ -391,3 +400,214 @@ class SSN2D(BaseLocalizer):
 
         return rel_prop_list.cpu().numpy(), activity_scores.cpu().numpy(), \
             completeness_scores.cpu().numpy(), bbox_preds.cpu().numpy(), task_score
+
+    def forward_test_perturb(self,
+                     num_modalities,
+                     img_meta,
+                     rel_prop_list,
+                     scaling_list,
+                     prop_tick_list,
+                     reg_stats,
+                     **kwargs):
+
+        # print ('perturbing !!!')
+        # assert self.test_cfg.ssn.perturb.type in ['oneway', 'twoway']
+        assert self.with_task_head and self.task_join == 'score'
+        assert self.with_aux_task_head
+
+        # Preparing cls_head for test mode, preparing early so as to save
+        if not self.is_test_prepared:
+            self.is_test_prepared = self.cls_head.prepare_test_fc(
+                self.segmental_consensus.feat_multiplier,
+                aux_task_head=self.with_aux_task_head)
+
+        # Save the model so that we could restore the weights at the end
+        tmp_model_file = 'tmp_models/model_' + str(np.random.random()) + '.tmp.pth'
+        self._save_tmp_model(tmp_model_file)
+
+        assert num_modalities == 1
+        img_group = kwargs['img_group_0']
+
+        img_group = img_group[0]
+        num_crop = img_group.shape[0]
+        
+        assert self.in_channels == img_group.shape[2] == 3
+
+        # img_group.shape == [1, num_ticks, 3, 224, 224]
+        img_group = img_group.reshape(
+            (num_crop, -1, self.in_channels) + img_group.shape[3:])
+        num_ticks = img_group.shape[1] # Number of sample frames from total frames
+
+        def forward_pass (img_group, num_ticks, rel_prop_list, scaling_list, prop_tick_list, reg_stats):
+            """
+            The forward pass through the network
+            """
+            output = []
+            minibatch_size = self.test_cfg.ssn.sampler.batch_size
+            for ind in range(0, num_ticks, minibatch_size):
+                chunk = img_group[:, ind:ind + minibatch_size, ...].view(
+                    (-1,) + img_group.shape[2:]) # chunk.shape == [16, 3, 244, 244]
+                x = self.extract_feat(chunk.cuda()) # x.shape == [16, 1024, 7, 7]
+                x = self.spatial_temporal_module(x) # x.shape == [16, 1024, 1, 1]
+                # merge crop to save memory
+                # TODO: A smarte way of dealing with arbitary long videos
+                x = x.reshape((num_crop, x.size(0)//num_crop, -1)).mean(dim=0) # x.shape == [16, 1024]
+                output.append(x)
+            output = torch.cat(output, dim=0) # output.shape == [num_ticks, 1024]
+            
+            # we will use aux_task_head to predict task from the [n, 1024 features itself]
+            # next it will be passed as input to the cls_head
+            n_ticks = output.size(0)
+            input_feat = torch.mean(output, dim=0).reshape(1, -1)
+            aux_task_pred = self.aux_task_head(input_feat)
+
+            num_tasks = aux_task_pred.size(1)
+            aux_task_pred = aux_task_pred.repeat(1, n_ticks).view(-1, num_tasks)
+            assert aux_task_pred.size(0) == output.size(0)
+
+            # input: output.shape == [n, 1024]
+            # output: output.shape == [n, 311]
+            # n is variable -- num proposals for the given video
+            # 311 = 32 + 3(31+62)
+            output = self.cls_head((output, aux_task_pred), test_mode=True)
+
+            rel_prop_list = rel_prop_list.squeeze(0)
+            prop_tick_list = prop_tick_list.squeeze(0)
+            scaling_list = scaling_list.squeeze(0)
+            reg_stats = reg_stats.squeeze(0)
+            # below shapes: [n, 32], [n, 31], [n, 62]
+            (activity_scores, completeness_scores,
+            bbox_preds) = self.segmental_consensus(
+                output, prop_tick_list, scaling_list)
+
+            if bbox_preds is not None:
+                bbox_preds = bbox_preds.view(-1, self.cls_head.num_classes, 2)
+                bbox_preds[:, :, 0] = bbox_preds[:, :, 0] * \
+                    reg_stats[1, 0] + reg_stats[0, 0]
+                bbox_preds[:, :, 1] = bbox_preds[:, :, 1] * \
+                    reg_stats[1, 1] + reg_stats[0, 1]
+
+            # Join the task branch over here
+            # Step 1: Calculate the scores
+            s1 = F.softmax(activity_scores[:, 1:], dim=1)
+            s2 = torch.exp(completeness_scores)
+            combined_scores = s1 * s2
+
+            # Step 2: Pool scores to create feature vector
+            if self.task_feat_pooling == 'mean':
+                mean_combined_scores = torch.mean(combined_scores, dim=0)
+            else:
+                mean_combined_scores = torch.max(combined_scores, dim=0).values
+
+            # Step 3: Pass through NN and compute loss
+            task_score = self.task_head(mean_combined_scores).unsqueeze(0) # task_score.shape == [1, 7]
+
+            return rel_prop_list, activity_scores, completeness_scores, bbox_preds, task_score, aux_task_pred
+
+        # Update weights
+        self.eval()
+        # criterion = nn.CrossEntropyLoss()
+        num_times = self.test_cfg.ssn.perturb.numbps
+        for bp in range(num_times):
+            # Early stopping
+            print ('#%d / %d' % (bp, num_times))
+            with torch.enable_grad():
+                # Freeze heads and create optimizer
+                for param in self.task_head.parameters():
+                    param.requires_grad = False
+                for param in self.aux_task_head.parameters():
+                    param.requires_grad = False
+                for param in self.cls_head.parameters():
+                    param.requires_grad = False
+
+                optimizer = optim.SGD(filter(lambda p: p.requires_grad, self.parameters()),
+                                lr=self.test_cfg.ssn.perturb.optimizer['lr'],
+                                momentum=self.test_cfg.ssn.perturb.optimizer['momentum'])
+
+
+                # Task -> Step updation
+                # Forward pass
+                # optimizer.zero_grad()
+                # _, _, _, _, task_score, _ = forward_pass(img_group.clone().detach(), img_group.shape[1],
+                #                                       rel_prop_list.clone().detach(), scaling_list.clone().detach(),
+                #                                       prop_tick_list.clone().detach(), reg_stats.clone().detach())
+                # task_predictions = torch.argmax(task_score).unsqueeze(0)
+
+                # # Backprop
+                # # loss = criterion(task_score, hard_labels)
+                # print (task_score, task_predictions)
+                # loss = F.cross_entropy(task_score, task_predictions)
+                # loss.backward()
+                # torch.cuda.empty_cache() # To empty the cache from previous iterations
+                # optimizer.step()
+                # print ('Task Loss', loss.item())
+
+                # Task -> Step updation
+                # Forward pass
+                optimizer.zero_grad()
+                _, _, _, _, task_score, aux_task_pred = forward_pass(img_group.clone().detach(), img_group.shape[1],
+                                                      rel_prop_list.clone().detach(), scaling_list.clone().detach(),
+                                                      prop_tick_list.clone().detach(), reg_stats.clone().detach())
+
+                assert task_score.size(0) == 1 # Exactly one row (since one video)
+                # task_score = torch.softmax(task_score, dim=1)
+                # aux_task_pred = torch.softmax(aux_task_pred[:1], dim=1) 
+
+                # print (task_score)
+                # print (aux_task_pred)
+                task_ground_truth_prob = torch.softmax(task_score, dim=1)
+                task_pred = torch.softmax(aux_task_pred[:1], dim=1) # All rows are same
+
+                # print (task_ground_truth_prob)
+                # print (task_pred)
+                # exit(0)
+
+                # loss = F.cross_entropy(activity_scores, step_predictions)
+                loss = F.kl_div(task_pred.log(), task_ground_truth_prob, None, None, 'sum')
+
+                loss.backward()
+                torch.cuda.empty_cache() # To empty the cache from previous iterations
+                optimizer.step()
+                print ('Step Loss', loss.item())
+                # print (combined_scores.shape)
+                # print (step_predictions.shape)
+                # print (combined_scores)
+                # print (torch.sum(combined_scores, dim=1))
+                # print (torch.sum(torch.exp(combined_scores), dim=1))
+                # exit(0)
+
+
+        # Final forward pass
+        # Restoring weights to confirm they are not changed
+        # self._restore_model(tmp_model_file)
+        # self.eval()
+        with torch.no_grad():
+            rel_prop_list, activity_scores, completeness_scores, bbox_preds,\
+                task_score, _ = forward_pass(img_group, num_ticks, rel_prop_list, scaling_list, prop_tick_list, reg_stats)
+            print ('############')
+            print (task_score)
+            torch.cuda.empty_cache()
+        print ('---------------------------------------------------\n')
+                
+        # Restore the model
+        self._restore_model(tmp_model_file)
+
+        return rel_prop_list.cpu().numpy(), activity_scores.cpu().numpy(), \
+            completeness_scores.cpu().numpy(), bbox_preds.cpu().numpy(), task_score.cpu().numpy()
+
+    def _save_tmp_model(self, tmp_model_file):
+        """
+        Save the model weights in a file so that it could be updated later
+        """
+        torch.save(self.state_dict(), tmp_model_file)
+
+    def _restore_model(self, tmp_model_file):
+        """
+        Restore the model weights from the file
+        """
+        if torch.cuda.is_available():
+            model = torch.load(tmp_model_file)
+        else:
+            model = torch.load(tmp_model_file, map_location=torch.device('cpu'))
+
+        self.load_state_dict(model)

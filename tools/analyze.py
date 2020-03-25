@@ -452,14 +452,14 @@ def test_best_models(eval_path, prune_low_range=0.05, prune_high_range=0.6):
         scores = [name]+map_scores+[task_acc]
         test_scores.append(scores)
 
-        string = tt.to_string(
-            test_scores,
-            header=["model"]+['mAP @ 0.%d' % i for i in range(1, 10)]+["Task Acc."],
-            style=tt.styles.ascii_thin_double,
-            padding=(0, 1),
-            alignment="c"*11
-        )
-        print (string)
+    string = tt.to_string(
+        test_scores,
+        header=["model"]+['mAP @ 0.%d' % i for i in range(1, 10)]+["Task Acc."],
+        style=tt.styles.ascii_thin_double,
+        padding=(0, 1),
+        alignment="c"*11
+    )
+    print (string)
 
 if __name__ == '__main__':
     # time.sleep(1)
