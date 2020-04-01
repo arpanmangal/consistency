@@ -77,6 +77,7 @@ def TC_pruning(inpkl, outpkl, W_matrix):
     old_results = pickle.load(open(inpkl, 'rb'))
     results = []
     for (proposals, act_scores, comp_scores, reg, task_scores) in old_results:
+        task_scores = task_scores.squeeze()
         task_prediction = np.argmax(task_scores)
         N, K = comp_scores.shape
         assert W.shape[0] == K and W.shape[1] == len(task_scores)
