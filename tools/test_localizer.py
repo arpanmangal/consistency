@@ -28,8 +28,8 @@ def single_test(model, data_loader):
         with torch.no_grad():
             result = model(return_loss=False, **data)
         results.append(result)
-
-        batch_size = data['img_group_0'].data[0].size(0)
+        #print(data['img_group_0'].data[0])
+        batch_size = len(data['img_group_0'].data[0])#.size(0)
         for _ in range(batch_size):
             prog_bar.update()
     return results

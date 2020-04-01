@@ -10,7 +10,7 @@ from .utils import (to_tensor, parse_directory,
                     process_localize_proposal_list,
                     load_localize_proposal_file)
 
-from mtlaction.core.bbox1d import temporal_iou
+from mmaction.core.bbox1d import temporal_iou
 
 
 class SSNInstance(object):
@@ -82,12 +82,12 @@ class SSNVideoRecord(object):
     def __init__(self, prop_record):
         self._data = prop_record
 
-        frame_count = int(self._data[2])
+        frame_count = int(self._data[1])
 
         self.gt = [
             SSNInstance(int(x[1]), int(x[2]), frame_count, label=int(x[0]),
                         best_iou=1.0)
-            for x in self._data[3] if int(x[2]) > int(x[1])
+            for x in self._data[2] if int(x[2]) > int(x[1])
         ]
 
         self.gt = list(filter(lambda x: x.start_frame < frame_count, self.gt))
@@ -95,7 +95,7 @@ class SSNVideoRecord(object):
         self.proposals = [
             SSNInstance(int(x[3]), int(x[4]), frame_count, label=int(x[0]),
                         best_iou=float(x[1]), overlap_self=float(x[2]))
-            for x in self._data[4] if int(x[4]) > int(x[3])
+            for x in self._data[3] if int(x[4]) > int(x[3])
         ]
 
         self.proposals = list(
@@ -106,12 +106,8 @@ class SSNVideoRecord(object):
         return self._data[0]
 
     @property
-    def task_id(self):
-        return self._data[1]
-
-    @property
     def num_frames(self):
-        return int(self._data[2])
+        return int(self._data[1])
 
     def get_fg(self, fg_thresh, with_gt=True):
         fg = [p for p in self.proposals if p.best_iou > fg_thresh]
@@ -205,7 +201,6 @@ class SSNDataset(Dataset):
 
         proposal_infos = load_localize_proposal_file(self.proposal_file)
         self.video_infos = [SSNVideoRecord(p) for p in proposal_infos]
-        print ('In SSN dataset, got #videos: ',len(self.video_infos))
 
         # filter videos with no annotation during training
         if filter_gt or not test_mode:
@@ -217,7 +212,6 @@ class SSNDataset(Dataset):
         self.video_dict = {
             record.video_id: record for record in self.video_infos}
 
-        # self.task_ids = [record.task_id for record in self.video_infoss]
         # construct three pools:
         # 1. Foreground
         # 2. Background
@@ -268,9 +262,7 @@ class SSNDataset(Dataset):
             self.fg_per_video - self.bg_per_video
 
         self.test_interval = self.test_cfg.ssn.sampler.test_interval
-        # Limiting the max number of ticks to prevent CUDA out of mem while backprop at test time
-        self.max_frame_ticks = self.test_cfg.ssn.sampler.max_frame_ticks
-        
+
         # parameters for frame fetching
         # number of consecutive frames
         self.old_length = new_length * new_step
@@ -414,11 +406,6 @@ class SSNDataset(Dataset):
                 '["RGB", "RGBDiff", "Flow"]')
 
     def _video_centric_sampling(self, record):
-        """
-        Returns list of
-        ((video_id, SSNInstance of a proposal), proposal_type-0/1/2)
-        of size 8
-        """
         fg = record.get_fg(self.train_cfg.ssn.assigner.fg_iou_thr,
                            self.train_cfg.ssn.sampler.add_gt_as_proposals)
         incomp, bg = record.get_negatives(
@@ -466,8 +453,6 @@ class SSNDataset(Dataset):
         return out_props
 
     def __getitem__(self, idx):
-        # print (self.test_mode)
-        # print ('__getitem__ called!! idx: ', idx)
         if self.test_mode:
             return self.prepare_test_imgs(idx)
         else:
@@ -549,16 +534,12 @@ class SSNDataset(Dataset):
 
     def prepare_train_imgs(self, idx):
         if self.video_centric:
-            video_info = self.video_infos[idx] # An instance of SSNVideoRecord
-            props = self._video_centric_sampling(video_info) # List of ((vid_id, SSNInstance), proposal_type) of size 8
-            # print ('in prepare_train:', self.video_centric, len(props), type(props[0]), type(video_info))
+            video_info = self.video_infos[idx]
+            props = self._video_centric_sampling(video_info)
         else:
-            raise ValueError ("Sorry this was not expected!")
             props = self._random_sampling()
 
         out_frames = []
-        
-        # self.modalities is list of modalities ex. ['RGB']
         for _ in range(len(self.modalities)):
             out_frames.append([])
         out_prop_scaling = []
@@ -661,7 +642,6 @@ class SSNDataset(Dataset):
         for i in range(len(out_frames)):
             out_frames[i] = np.array(out_frames[i])
 
-        # print (out_frames[0].shape)
         data.update({
             'img_group_0': DC(to_tensor(out_frames[0]), stack=True,
                               pad_dims=2),
@@ -685,19 +665,11 @@ class SSNDataset(Dataset):
             to_tensor(np.array(out_prop_labels)), stack=True, pad_dims=None)
         data['prop_type'] = DC(
             to_tensor(np.array(out_prop_type)), stack=True, pad_dims=None)
-        data['task_labels'] = DC(
-            to_tensor(video_info.task_id), stack=True, pad_dims=None)
-        # print ('The data is ready')
-        # print (data.keys())
-        # print (np.array(out_prop_reg_targets).shape)
-        # print (np.array(out_prop_scaling).shape)
-        # print (np.array(out_prop_labels).shape)
-        # print (np.array(out_prop_type).shape)
 
         return data
 
     def prepare_test_imgs(self, idx):
-        video_info = self.video_infos[idx] # An instance of SSNVideoRecord
+        video_info = self.video_infos[idx]
 
         props = video_info.proposals
         video_id = video_info.video_id
@@ -705,23 +677,7 @@ class SSNDataset(Dataset):
         frame_ticks = np.arange(
             0, frame_cnt - self.old_length, self.test_interval, dtype=int) + 1
 
-        # Processing all the imgs leads to CUDA out of memory => So we will use lesser images
-        sampling_interval = self.test_interval
-        frame_ticks = None
-        while not frame_ticks or len(frame_ticks) > self.max_frame_ticks:
-            frame_ticks = np.arange(
-               0, frame_cnt - self.old_length, sampling_interval, dtype=int) + 1
-            sampling_interval += 1
-
         num_sampled_frames = len(frame_ticks)
-
-        # print (props)
-        # print (len(props))
-        # print (video_id)
-        # print (task_id)
-        # print (frame_cnt)
-        # print (frame_ticks)
-        # print (num_sampled_frames)
 
         if len(props) == 0:
             props.append(SSNInstance(0, frame_cnt - 1, frame_cnt))
@@ -730,17 +686,13 @@ class SSNDataset(Dataset):
         proposal_tick_list = []
         scaling_list = []
         out_frames = []
-        # print (self.modalities)
-
         for _ in range(len(self.modalities)):
             out_frames.append([])
         out_img_meta = []
         for proposal in props:
-            # rel_prop is the list of (start, end) intervals in range 0-1
             rel_prop = (proposal.start_frame / frame_cnt,
                         proposal.end_frame / frame_cnt)
             rel_duration = rel_prop[1] - rel_prop[0]
-            # aug_ratio == (0.5, 0.5) acc. to config
             rel_starting_duration = rel_duration * self.aug_ratio[0]
             rel_ending_duration = rel_duration * self.aug_ratio[1]
             rel_starting = rel_prop[0] - rel_starting_duration

@@ -26,7 +26,7 @@ def build_dataloader(dataset,
         batch_size = imgs_per_gpu
         num_workers = workers_per_gpu
     else:
-        raise ValueError ("This function is currently disabled")
+        #raise ValueError ("This function is currently disabled")
         if not kwargs.get('shuffle', True):
             sampler = None
         else:

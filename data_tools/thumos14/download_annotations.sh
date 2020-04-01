@@ -1,4 +1,4 @@
-#! /usr/bin/bash env
+#!/bin/bash
 
 DATA_DIR="../../data/thumos14/"
 

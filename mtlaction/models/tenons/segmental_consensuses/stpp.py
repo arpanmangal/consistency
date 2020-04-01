@@ -36,8 +36,8 @@ class StructuredTemporalPyramidPooling(nn.Module):
 
     def forward(self, input, scaling):
         x1 = self.num_seg[0]
-        x2 = x1 + self.num_seg[1]
-        n_seg = x2 + self.num_seg[2]
+        x2 = x1 + self.num_seg[1] # sum(self.num_seg[:-1])
+        n_seg = x2 + self.num_seg[2] # sum(self.num_seg)
 
         feat_dim = input.size(1)
         src = input.view(-1, n_seg, feat_dim)

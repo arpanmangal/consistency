@@ -147,10 +147,9 @@ def load_localize_proposal_file(filename):
         vid = info[offset]
         offset += 1
 
-        n_frame = int(float(info[1]) * float(info[3]))
-        task_id = int(info[2])
-        n_gt = int(info[4])
-        offset = 5
+        n_frame = int(float(info[1]) * float(info[2]))
+        n_gt = int(info[3])
+        offset = 4
 
         gt_boxes = [x.split() for x in info[offset: offset + n_gt]]
         offset += n_gt
@@ -158,30 +157,28 @@ def load_localize_proposal_file(filename):
         offset += 1
         pr_boxes = [x.split() for x in info[offset: offset + n_pr]]
 
-        return vid, task_id, n_frame, gt_boxes, pr_boxes
+        return vid, n_frame, gt_boxes, pr_boxes
 
     return [parse_group(l) for l in info_list]
 
 
 def process_localize_proposal_list(norm_proposal_list,
                                    out_list_name, frame_dict):
-    raise ValueError("This function has ceased to be functional until further notice :P")
     norm_proposals = load_localize_proposal_file(norm_proposal_list)
 
     processed_proposal_list = []
     for idx, prop in enumerate(norm_proposals):
         vid = prop[0]
-        task_id = prop[1]
         frame_info = frame_dict[vid]
         frame_cnt = frame_info[1]
         frame_path = frame_info[0].split('/')[-1]
 
         gt = [[int(x[0]), int(float(x[1]) * frame_cnt),
-               int(float(x[2]) * frame_cnt)] for x in prop[3]]
+               int(float(x[2]) * frame_cnt)] for x in prop[2]]
 
         prop = [[int(x[0]), float(x[1]), float(x[2]),
                  int(float(x[3]) * frame_cnt), int(float(x[4]) * frame_cnt)]
-                for x in prop[4]]
+                for x in prop[3]]
 
         out_tmpl = "# {idx}\n{path}\n{fc}\n1\n{num_gt}\n{gt}{num_prop}\n{prop}"
 
@@ -268,6 +265,76 @@ def build_split_list(split, frame_info, shuffle=False):
     train_rgb_list, train_flow_list = build_set_list(split[0])
     test_rgb_list, test_flow_list = build_set_list(split[1])
     return (train_rgb_list, test_rgb_list), (train_flow_list, test_flow_list)
+
+
+def mimic_ucf101(frame_path, anno_dir):
+    # Create classInd.txt, trainlist01.txt, testlist01.txt as in UCF101
+
+    classes_list = os.listdir(frame_path)
+    classes_list.sort()
+
+    classDict = {}
+    classIndFile = os.path.join(anno_dir, 'classInd.txt')
+    with open(classIndFile, 'w') as f:
+        for class_id, class_name in enumerate(classes_list):
+            classDict[class_name] = class_id
+            cur_line = str(class_id + 1) + ' ' + class_name + '\r\n'
+            f.write(cur_line)
+
+
+    for split_id in range(1, 4):
+        splitTrainFile = os.path.join(anno_dir, 'trainlist%02d.txt' % (split_id))
+        with open(splitTrainFile, 'w') as target_train_f:
+            for class_name in classDict.keys():
+                fname = class_name + '_test_split%d.txt' % (split_id)
+                fname_path = os.path.join(anno_dir, fname)
+                source_f = open(fname_path, 'r')
+                source_info = source_f.readlines()
+                for _, source_line in enumerate(source_info):
+                    cur_info = source_line.split(' ')
+                    video_name = cur_info[0]
+                    if cur_info[1] == '1':
+                        target_line = class_name + '/' + video_name + ' ' + str(classDict[class_name] + 1) + '\n'
+                        target_train_f.write(target_line)
+
+        splitTestFile = os.path.join(anno_dir, 'testlist%02d.txt' % (split_id))
+        with open(splitTestFile, 'w') as target_test_f:
+            for class_name in classDict.keys():
+                fname = class_name + '_test_split%d.txt' % (split_id)
+                fname_path = os.path.join(anno_dir, fname)
+                source_f = open(fname_path, 'r')
+                source_info = source_f.readlines()
+                for _, source_line in enumerate(source_info):
+                    cur_info = source_line.split(' ')
+                    video_name = cur_info[0]
+                    if cur_info[1] == '2':
+                        target_line = class_name + '/' + video_name + ' ' + str(classDict[class_name] + 1) + '\n'
+                        target_test_f.write(target_line)
+
+
+def parse_hmdb51_splits(level):
+    
+    mimic_ucf101('data/hmdb51/rawframes', 'data/hmdb51/annotations')
+
+    class_ind = [x.strip().split()
+                 for x in open('data/hmdb51/annotations/classInd.txt')]
+    class_mapping = {x[1]: int(x[0]) - 1 for x in class_ind}
+
+    def line2rec(line):
+        items = line.strip().split(' ')
+        vid = items[0].split('.')[0]
+        vid = '/'.join(vid.split('/')[-level:])
+        label = class_mapping[items[0].split('/')[0]]
+        return vid, label
+
+    splits = []
+    for i in range(1, 4):
+        train_list = [line2rec(x) for x in open(
+            'data/hmdb51/annotations/trainlist{:02d}.txt'.format(i))]
+        test_list = [line2rec(x) for x in open(
+            'data/hmdb51/annotations/testlist{:02d}.txt'.format(i))]
+        splits.append((train_list, test_list))
+    return splits
 
 
 def parse_ucf101_splits(level):
