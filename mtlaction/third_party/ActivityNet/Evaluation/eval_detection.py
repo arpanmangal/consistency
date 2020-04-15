@@ -205,7 +205,7 @@ def compute_average_precision_detection(ground_truth, prediction, tiou_threshold
     if prediction.empty:
         return ap
 
-    npos = float(len(ground_truth))
+    npos = float(len(ground_truth) + 1e-15)
     lock_gt = np.ones((len(tiou_thresholds),len(ground_truth))) * -1
     # Sort predictions by decreasing score order.
     sort_idx = prediction['score'].values.argsort()[::-1]

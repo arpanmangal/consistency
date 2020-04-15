@@ -5,6 +5,7 @@ Preparing the full coin dataset
 import os, shutil
 import glob
 import json
+import operator
 import argparse
 import numpy as np
 from itertools import chain
@@ -20,6 +21,7 @@ def parse_args():
                         default='')
     parser.add_argument('--no_task', help='Specify to exclude task ID from the TAG files', action='store_true',
                         default=False)
+    parser.add_argument('--num_classes', default=780)
 
     args = parser.parse_args()
 
@@ -78,7 +80,7 @@ def create_frames_folder (absolute_consistency_path, vid_task_map):
             continue
  
 
-def create_tag_file (in_tag_path, out_tag_path, frames_path, vid_task_map, prefix='', no_task=False, val_path=None):
+def create_tag_file (in_tag_path, out_tag_path, frames_path, vid_task_map, prefix='', no_task=False, num_classes=0, val_path=None):
     """
     Create the TAG proposal file correcting the shifted step_id error,
     adding task_id and splitting into validation set
@@ -88,6 +90,7 @@ def create_tag_file (in_tag_path, out_tag_path, frames_path, vid_task_map, prefi
     blocks = [b for b in read_block(in_tag_path)]
 
     # Do a frequency analysis of step ids in TAGs
+    # TODO: Contains a subtle bug - we need step_video_freq not step_freq
     step_freq = dict()
     for block in blocks:
         for c in block['correct']:
@@ -95,6 +98,10 @@ def create_tag_file (in_tag_path, out_tag_path, frames_path, vid_task_map, prefi
             else: step_freq[c[0]] = 1
 
     train_step_freq = dict(); val_step_freq = dict()
+    for c in range(0, num_classes):
+        train_step_freq[str(c)] = 0
+        val_step_freq[str(c)] = 0
+        
     np.random.seed(0) # Deterministic random
 
     def determine_split(block):
@@ -110,18 +117,21 @@ def create_tag_file (in_tag_path, out_tag_path, frames_path, vid_task_map, prefi
                 split = ['train', 'val']
                 break
             
-            if step_id not in train_step_freq and step_id not in val_step_freq:
+            if train_step_freq[step_id] == 0 and val_step_freq[step_id] == 0:
+            # if (step_id not in train_step_freq) and (step_id not in val_step_freq):
                 # Offer to any set randomly
                 if np.random.rand() > 0.5: split = ['train']
                 else: split = ['val']
                 break 
 
-            if step_id not in train_step_freq:
+            if train_step_freq[step_id] == 0:
+            # if step_id not in train_step_freq:
                 # Offer to train
                 split = ['train']
                 break
 
-            if step_id not in val_step_freq:
+            if val_step_freq[step_id] == 0:
+            # if step_id not in val_step_freq:
                 # Offer to val set
                 split = ['val']
                 break
@@ -138,16 +148,24 @@ def create_tag_file (in_tag_path, out_tag_path, frames_path, vid_task_map, prefi
         for c in block['correct']:
             step_id = c[0]
             if 'train' in split:
-                if step_id in train_step_freq: train_step_freq[step_id] += 1
-                else: train_step_freq[step_id] = 1
+                train_step_freq[step_id] += 1
+                # if step_id in train_step_freq: train_step_freq[step_id] += 1
+                # else: train_step_freq[step_id] = 1
             if 'val' in split:
-                if step_id in val_step_freq: val_step_freq[step_id] += 1
-                else: val_step_freq[step_id] = 1
+                val_step_freq[step_id] += 1
+                # if step_id in val_step_freq: val_step_freq[step_id] += 1
+                # else: val_step_freq[step_id] = 1
 
         return split
 
     # Write into out_tag file
     train_idx = val_idx = 1
+    with open(out_tag_path, 'w') as f:
+        overwritten = True
+    if val_path is not None:
+        with open(val_path, 'w') as f:
+            overwritten = True
+
     for block in blocks:
         split = determine_split(block)
 
@@ -165,6 +183,11 @@ def create_tag_file (in_tag_path, out_tag_path, frames_path, vid_task_map, prefi
             write_block(block, val_path, val_idx, no_task=no_task)
             val_idx += 1
 
+    # print (sorted(train_step_freq.items(), key=operator.itemgetter(1)))
+    # print ('\n')
+    # print (sorted(val_step_freq.items(), key=operator.itemgetter(1)))
+    # # print (train_step_freq, val_step_freq, '\n\n\n')
+    # print ('\n\n\n')
 
 def create_W_matrix(COIN):
     """
@@ -218,10 +241,10 @@ if __name__ == '__main__':
     frames_path = os.path.join(absolute_consistency_path, 'data/coin/all_frames')
     create_tag_file (test_full_path, test_tag,
                      frames_path=frames_path, vid_task_map=vid_task_map,
-                     prefix=args.tag_prefix, no_task=args.no_task)
+                     prefix=args.tag_prefix, no_task=args.no_task, num_classes=args.num_classes)
     create_tag_file (train_full_path, train_tag,
                      frames_path=frames_path, vid_task_map=vid_task_map,
-                     prefix=args.tag_prefix, no_task=args.no_task,
+                     prefix=args.tag_prefix, no_task=args.no_task, num_classes=args.num_classes,
                      val_path=val_tag)
 
     # Creating the belonging matrix
@@ -232,3 +255,4 @@ if __name__ == '__main__':
         json.dump(step_to_task_map, outfile, indent=4)
     np.save(W_matrix_file, W_matrix)
     print ("Created W matrix")
+

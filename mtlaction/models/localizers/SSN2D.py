@@ -266,8 +266,6 @@ class SSN2D(BaseLocalizer):
                      reg_stats,
                      **kwargs):
         # Call different function for perturbation
-        print (self.with_aux_task_head)
-        print (self.test_cfg.ssn)
         if self.with_aux_task_head and 'perturb' in self.test_cfg.ssn and self.test_cfg.ssn.perturb.numbps > 0:
             return self.forward_test_perturb(num_modalities, img_meta, rel_prop_list, scaling_list, 
                                              prop_tick_list, reg_stats, **kwargs)
