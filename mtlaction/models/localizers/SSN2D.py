@@ -105,6 +105,13 @@ class SSN2D(BaseLocalizer):
         if modality == 'Flow' or modality == 'RGBDiff':
             self._construct_2d_backbone_conv1(in_channels)
 
+        # Freeze backbone weights if fine-tuning
+        if 'freeze' in self.train_cfg.ssn:
+            if 'backbone' in self.train_cfg.ssn.freeze:
+                print ("Freezing the backbone weights")
+                for param in self.backbone.parameters():
+                    param.requires_grad = False
+
     @property
     def with_spatial_temporal_module(self):
         return (hasattr(self, 'spatial_temporal_module') and
@@ -188,7 +195,7 @@ class SSN2D(BaseLocalizer):
         num_videos = img_group.shape[0]
 
         assert self.in_channels == img_group.shape[3] == 3
-        
+
         # img_group has a shape of [n, 8, 9, 3, 224, 224]
         # n is 2 for us
         # after below the shape becomes [144, 3, 244, 244]
@@ -255,6 +262,8 @@ class SSN2D(BaseLocalizer):
                 loss_task = self.task_head.loss(task_score, task_labels.squeeze(), self.train_cfg)
                 losses.update(loss_task)
 
+        # Empty cache
+        torch.cuda.empty_cache()
         return losses
 
     def forward_test(self,

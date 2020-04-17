@@ -71,7 +71,13 @@ def _dist_train(model, dataset, cfg, validate=False):
     # put model on gpus
     model = MMDistributedDataParallel(model.cuda())
     # build runner
-    runner = Runner(model, batch_processor, cfg.optimizer, cfg.work_dir,
+    # Hard-coding type of optimizer for now
+    print ('Training #Params: ', len(list(filter(lambda p: p.requires_grad, model.parameters()))))
+    optimizer = torch.optim.SGD(filter(lambda p: p.requires_grad, model.parameters()),
+                                lr=cfg.optimizer.lr,
+                                momentum=cfg.optimizer.momentum,
+                                weight_decay=cfg.optimizer.weight_decay)
+    runner = Runner(model, batch_processor, optimizer, cfg.work_dir,
                     cfg.log_level)
     # register hooks
     optimizer_config = DistOptimizerHook(**cfg.optimizer_config)

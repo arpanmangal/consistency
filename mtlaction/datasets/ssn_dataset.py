@@ -383,6 +383,8 @@ class SSNDataset(Dataset):
         for i, x in enumerate(self.video_infos):
             if len(x.gt) > 0:
                 valid_inds.append(i)
+            else:
+                print (x.video_id)
         return valid_inds
 
     def _set_group_flag(self):
