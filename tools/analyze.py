@@ -76,6 +76,23 @@ def parse_args():
     parser_bootstrap.add_argument('--cons_arch', type=str, help='Path of the cons_arch model')
     parser_bootstrap.add_argument('--save', type=str, help='Path where to save the transferred model')
 
+    # Remove optimizer
+    parser_ro = subparsers.add_parser('ro', help='Transfer the trained weights of different models')
+    parser_ro.add_argument('-m', type=str, help='Path of the SSN model')
+    parser_ro.add_argument('--save', type=str)
+
+    # Transfer backbone weights
+    parser_tb = subparsers.add_parser('tb', help='Transfer the trained weights of different models')
+    parser_tb.add_argument('-a', type=str, help='Path of the SSN model')
+    parser_tb.add_argument('-b', type=str, help='Path of the MTL SSN model')
+    parser_tb.add_argument('--save', type=str)
+
+    # Transfering weights from old backbone to newer backbone
+    parser_oldweights = subparsers.add_parser('oback', help='Transfer the old backbone weights to new model')
+    parser_oldweights.add_argument('--old', required=True, type=str, help='Path of the old model')
+    parser_oldweights.add_argument('--new', required=True, type=str, help='Path of the new model')
+    parser_oldweights.add_argument('--save', required=True, type=str, help='Path where to save the transferred model')
+
     # Testing on final test set
     parser_test_bm = subparsers.add_parser('finaltest', help="Testing final best models on actual test set")
     parser_test_bm.add_argument('eval_path', type=str, help='Path of the eval python file')
@@ -269,6 +286,93 @@ def plot (eval_dirs, labels, plot_type, save_path, low_limit, hi_limit, title=''
     plt.xlabel('# Epochs')
     plt.savefig(save_path)
 
+
+def transfer_old_backbone(old, new, save):
+    def load(checkpoint):
+        if torch.cuda.is_available():
+            model = torch.load(checkpoint)
+        else:
+            model = torch.load(checkpoint, map_location=torch.device('cpu'))
+
+        return model
+        
+    old_model = load(old)['state_dict']
+    new_model = load(new)
+
+    for k in old_model.keys():
+        nk = 'backbone.' + k
+        assert new_model['state_dict'][nk].size() == old_model[k].size()
+        new_model['state_dict'][nk] = old_model[k]
+    
+    torch.save(new_model, save)
+
+
+def remove_optimizer(checkpoint_pth, save_checkpoint_pth, epoch=1):
+    """
+    Remove the optimizer from the model
+    """
+    if torch.cuda.is_available():
+        model = torch.load(checkpoint_pth)
+    else:
+        model = torch.load(checkpoint_pth, map_location=torch.device('cpu'))
+
+    meta_info = model['meta']
+    meta_info = {
+        'epoch': epoch,
+        'iter': epoch * meta_info['iter'] / meta_info['epoch']
+    }
+    torch.save(dict({
+        'state_dict': model['state_dict'],
+        'meta': meta_info
+    }), save_checkpoint_pth)
+
+
+def transfer_backbone(modelA, modelB, save_checkpoint_pth, epoch=1):
+    """
+    Transfer backbone weights from modelA to modelB
+    """
+    def load_weights(checkpoint_pth, state_dict=True, get_meta_info=False):
+        if torch.cuda.is_available():
+            model = torch.load(checkpoint_pth)
+        else:
+            model = torch.load(checkpoint_pth, map_location=torch.device('cpu'))
+
+        if get_meta_info:
+            # Return info about the meta
+            return model['meta']
+
+        if state_dict:
+            return model['state_dict']
+        else:
+            return model
+
+    def get_top_keys(model):
+        return set({w.split('.')[0] for w in model.keys()})
+
+    def save_model(model_state_dict, meta_info):
+        meta_info = {
+            'epoch': epoch,
+            'iter': epoch * meta_info['iter'] / meta_info['epoch']
+        }
+        torch.save(dict({
+            'state_dict': model_state_dict,
+            'meta': meta_info
+        }), save_checkpoint_pth)
+
+    model = load_weights(modelA)
+    template = load_weights(modelB)
+    assert get_top_keys(model) == set({'backbone', 'cls_head'})
+    assert get_top_keys(template) == set({'backbone', 'cls_head'})
+
+    for k, w in model.items():
+        if 'backbone' in k:
+            template[k] = w
+        else:
+            print ('%s not transferred' % k)
+
+    meta_info = load_weights(modelB, get_meta_info=True)
+    save_model(template, meta_info)
+    
 
 def bootstrap(mode, ssn=None, mtlssn=None, cons_arch=None, task_head=None, epoch=100, save_checkpoint_pth='bootstrapped.pth'):
     assert mode in ['mtlssn', 'cons']
@@ -480,8 +584,14 @@ if __name__ == '__main__':
         parse_scores (args.eval_dir)
     elif args.mode == 'plot':
         plot (args.eval_dirs, args.labels, args.plot_type, args.save_path, args.lo, args.hi, args.title)
+    elif args.mode == 'oback':
+        transfer_old_backbone(args.old, args.new, args.save)
+    elif args.mode == 'ro':
+        remove_optimizer(args.m, args.save)
     elif args.mode == 'bs':
         bootstrap(args.bs_mode, ssn=args.ssn, mtlssn=args.mtlssn, cons_arch=args.cons_arch, task_head=args.task_head, save_checkpoint_pth=args.save)
+    elif args.mode == 'tb':
+        transfer_backbone(args.a, args.b, args.save)
     elif args.mode == 'finaltest':
         test_best_models(args.eval_path)
     else:
