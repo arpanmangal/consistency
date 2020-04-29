@@ -82,6 +82,10 @@ def create_tag_file (in_tag_path, out_tag_path, frames_path, vid_task_map, prefi
         vid_id = block['id']
         task_id = vid_task_map[vid_id]
         modify_block_simple(block, frames_path, prefix, task_id, class_stats)
+        if len(block['correct']) == 0:
+            # This block will be deleted
+            print ('Deleting %s' % vid_id)
+            continue
         write_block(block, out_tag_path, idx, no_task=no_task)
         idx += 1
 
@@ -138,7 +142,7 @@ def modify_block_simple (block, frames_path, prefix, task_id, class_stats):
             if class_stats['blacklist'][c0]:
                 assert np.isnan(class_stats['new_ID'][c0])
                 remove_cidx.append(idx)
-                c[0] = '0'
+                c[0] = '$'
             else:
                 c[0] = str(int(class_stats['new_ID'][c0]))
 
@@ -149,7 +153,7 @@ def modify_block_simple (block, frames_path, prefix, task_id, class_stats):
     block['correct'] = [c for idx, c in enumerate(block['correct']) if idx not in remove_cidx]
 
     remove_pidx = []
-    for p in block['preds']:
+    for idx, p in enumerate(block['preds']):
         p0 = int(p[0])
         assert p0 == 0 or p0 > 1
         if p0 > 1:
@@ -159,7 +163,7 @@ def modify_block_simple (block, frames_path, prefix, task_id, class_stats):
             if class_stats['blacklist'][p0]:
                 assert np.isnan(class_stats['new_ID'][p0])
                 remove_pidx.append(idx)
-                p[0] = '0'
+                p[0] = '$'
             else:
                 p[0] = str(int(class_stats['new_ID'][p0]))
 
