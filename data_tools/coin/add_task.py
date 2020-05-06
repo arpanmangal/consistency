@@ -121,6 +121,30 @@ def create_tag_file (in_tag_path, out_tag_path, frames_path, vid_stats, vid_task
         idx += 1
 
 
+def create_W_matrix(step_task_map):
+    """
+    Create the belongs to matrix W
+    (i, j)th entry is 1 if step i belongs to task j, otherwise 0
+    """
+
+    steps = set(step_task_map.keys())
+    tasks = set(step_task_map.values())
+
+    W = np.zeros(
+        # COIN TAG files have 1 shifted step_ids
+        (len(steps) + 1, len(tasks)),
+        dtype=int
+    )
+
+    for s, t in step_task_map.items():
+        # COIN TAG files have 1 shifted step_ids
+        assert 1 <= s <= len(steps)
+        assert 0 <= t < len(tasks)
+        W[s][t] = 1
+
+    return W
+
+
 if __name__ == '__main__':
     root = '/home/cse/btech/cs1160321/consistency'
     newdatapath = os.path.join(root, 'data/tcoin')
@@ -139,11 +163,20 @@ if __name__ == '__main__':
     new_train = os.path.join(newdatapath, 'coin_tag_train_proposal_list.txt')
     new_test = os.path.join(newdatapath, 'coin_tag_test_proposal_list.txt')
 
-    create_tag_file (train_full_path, new_train,
-                    frames_path=newframes, vid_stats=vid_stats,
-                    vid_task_map=vid_task_map, step_task_map=step_task_map)
-    create_tag_file (test_full_path, new_test,
-                    frames_path=newframes, vid_stats=vid_stats,
-                    vid_task_map=vid_task_map, step_task_map=step_task_map)
+    # create_tag_file (train_full_path, new_train,
+    #                 frames_path=newframes, vid_stats=vid_stats,
+    #                 vid_task_map=vid_task_map, step_task_map=step_task_map)
+    # create_tag_file (test_full_path, new_test,
+    #                 frames_path=newframes, vid_stats=vid_stats,
+    #                 vid_task_map=vid_task_map, step_task_map=step_task_map)
+                    
+    # Create W matrix
+    W_matrix = create_W_matrix (step_task_map)
+    step_to_task_map_path = os.path.join(newdatapath, 'step_to_task.json')
+    W_matrix_file = os.path.join(newdatapath, 'W.npy')
+    with open(step_to_task_map_path, 'w') as outfile:
+        json.dump(step_task_map, outfile, indent=4)
+    np.save(W_matrix_file, W_matrix)
+    print ("Created W matrix")
 
     
