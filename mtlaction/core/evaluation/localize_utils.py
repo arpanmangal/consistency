@@ -145,11 +145,13 @@ def det2df(detections, cls):
 def eval_ap(iou, iou_idx, cls, gt, prediction):
     ap = compute_average_precision_detection(gt, prediction, iou)
     sys.stdout.flush()
+    # print ('#', cls, iou_idx, ap)
     return cls, iou_idx, ap
 
 
 def eval_ap_parallel(detections, gt_by_cls, iou_range, worker=32):
     ap_values = np.zeros((len(detections), len(iou_range)))
+    print ('in eval_ap_parallel:', ap_values.shape)
 
     def callback(rst):
         sys.stdout.flush()
@@ -165,4 +167,6 @@ def eval_ap_parallel(detections, gt_by_cls, iou_range, worker=32):
                                          callback=callback))
     pool.close()
     pool.join()
+    # print ('$$$')
+    # print (ap_values)
     return ap_values

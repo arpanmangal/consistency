@@ -21,27 +21,30 @@ class StructuredTemporalPyramidPooling(nn.Module):
 
         self.sc = standalong_classifier
 
-        starting_parts, starting_mult = parse_stage_config(stpp_cfg[0])
-        course_parts, course_mult = parse_stage_config(stpp_cfg[1])
-        ending_parts, ending_mult = parse_stage_config(stpp_cfg[2])
+        starting_parts, starting_mult = parse_stage_config(stpp_cfg[0]) # (1,), 1
+        course_parts, course_mult = parse_stage_config(stpp_cfg[1]) # (1,), 1
+        ending_parts, ending_mult = parse_stage_config(stpp_cfg[2]) # (1,), 1
 
-        self.feat_multiplier = starting_mult + course_mult + ending_mult
-        self.parts = (starting_parts, course_parts, ending_parts)
-        self.norm_num = (starting_mult, course_mult, ending_mult)
+        self.feat_multiplier = starting_mult + course_mult + ending_mult # 3
+        self.parts = (starting_parts, course_parts, ending_parts) # ((1,),(1,),(1,))
+        self.norm_num = (starting_mult, course_mult, ending_mult) # (1,1,1)
 
-        self.num_seg = num_seg
+        self.num_seg = num_seg # (2,5,2)
 
     def init_weights(self):
         pass
 
     def forward(self, input, scaling):
-        x1 = self.num_seg[0]
-        x2 = x1 + self.num_seg[1]
-        n_seg = x2 + self.num_seg[2]
-
-        feat_dim = input.size(1)
-        src = input.view(-1, n_seg, feat_dim)
-        num_sample = src.size(0)
+        # input dim == [144, 1024, 1, 1]
+        # 144 == 2 * 8 * 9
+        # output dim == [16, 1024], [16, 3072]
+        x1 = self.num_seg[0] # 2
+        x2 = x1 + self.num_seg[1] # 7
+        n_seg = x2 + self.num_seg[2] # 9
+ 
+        feat_dim = input.size(1) # 1024
+        src = input.view(-1, n_seg, feat_dim) # (2*8, 9, 1024)
+        num_sample = src.size(0) # 2 * 8
 
         scaling = scaling.view(-1, 2)
 
@@ -62,12 +65,21 @@ class StructuredTemporalPyramidPooling(nn.Module):
         feature_parts.extend(get_stage_stpp(src[:, x1:x2, :], self.parts[1], self.norm_num[1], None))
         feature_parts.extend(get_stage_stpp(src[:, x2:, :], self.parts[2], self.norm_num[2], scaling[:, 1]))
         stpp_feat = torch.cat(feature_parts, dim=1)
+
+        # returns activity_feat, completeness_feat
+        # activity_feat is just mean of the middle 5 CNNs
         if not self.sc:
             return stpp_feat, stpp_feat
         else:
             course_feat = src[:, x1:x2, :].mean(dim=1)
             return course_feat, stpp_feat
 
+
+"""
+Used at test time with following config
+{'type': 'STPPReorganized', 'standalong_classifier': True, 'feat_dim': 311,
+'act_score_len': 32, 'comp_score_len': 31, 'reg_score_len': 62, 'stpp_cfg': (1, 1, 1)}
+"""
 
 @SEGMENTAL_CONSENSUSES.register_module
 class STPPReorganized(nn.Module):
@@ -85,16 +97,16 @@ class STPPReorganized(nn.Module):
         self.reg_score_len = reg_score_len
         self.with_regression = with_regression
 
-        starting_parts, starting_mult = parse_stage_config(stpp_cfg[0])
-        course_parts, course_mult = parse_stage_config(stpp_cfg[1])
-        ending_parts, ending_mult = parse_stage_config(stpp_cfg[2])
+        starting_parts, starting_mult = parse_stage_config(stpp_cfg[0]) # (1,), 1
+        course_parts, course_mult = parse_stage_config(stpp_cfg[1]) # (1,), 1
+        ending_parts, ending_mult = parse_stage_config(stpp_cfg[2]) # (1,), 1
 
-        self.feat_multiplier = starting_mult + course_mult + ending_mult
-        self.stpp_cfg = (starting_parts, course_parts, ending_parts)
+        self.feat_multiplier = starting_mult + course_mult + ending_mult # 3
+        self.stpp_cfg = (starting_parts, course_parts, ending_parts) # ((1,), (1,), (1,))
 
-        self.act_slice = slice(0, self.act_score_len if self.sc else (self.act_score_len * self.feat_multiplier))
-        self.comp_slice = slice(self.act_slice.stop, self.act_slice.stop + self.comp_score_len * self.feat_multiplier)
-        self.reg_slice = slice(self.comp_slice.stop, self.comp_slice.stop + self.reg_score_len * self.feat_multiplier)
+        self.act_slice = slice(0, self.act_score_len if self.sc else (self.act_score_len * self.feat_multiplier)) # slice(0, 32)
+        self.comp_slice = slice(self.act_slice.stop, self.act_slice.stop + self.comp_score_len * self.feat_multiplier) # slice(32, 32 + 31 * 3) = (32, 125)
+        self.reg_slice = slice(self.comp_slice.stop, self.comp_slice.stop + self.reg_score_len * self.feat_multiplier) # slice(125, 125+62*3) = (125,311)
 
 
     def init_weights(self):
@@ -102,11 +114,16 @@ class STPPReorganized(nn.Module):
 
     def forward(self, input, proposal_ticks, scaling):
         assert input.size(1) == self.feat_dim
+        # n_ticks is the number of proposals in the given video
         n_ticks = proposal_ticks.size(0)
 
+        # out: A zero matrix of size [n, 32]
+        # raw: Input act. feautres of size [n, 32]
         out_act_scores = torch.zeros((n_ticks, self.act_score_len)).type_as(input)
         raw_act_scores = input[:, self.act_slice]
 
+        # out: A zero matrix of size [n, 31]
+        # raw: Input comp. features of size [n, 31 * 3]
         out_comp_scores = torch.zeros((n_ticks, self.comp_score_len)).type_as(input)
         raw_comp_scores = input[:, self.comp_slice]
 

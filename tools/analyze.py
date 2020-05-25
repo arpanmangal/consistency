@@ -7,8 +7,10 @@ import subprocess, shlex
 import argparse
 import glob
 import time
+import torch
 from tqdm import tqdm
 import matplotlib.pyplot as plt
+import termtables as tt
 
 
 def parse_args():
@@ -65,6 +67,36 @@ def parse_args():
     parser_plot.add_argument('--save_path', type=str, help='Path where to save the plot', required=True)
     parser_plot.add_argument('--title', type=str, default='', help='Plot title')
     
+    # Transfering the weights of separately trained model to the big model
+    parser_bootstrap = subparsers.add_parser('bs', help='Transfer the trained weights of different models')
+    parser_bootstrap.add_argument('bs_mode', choices=['mtlssn', 'cons'])
+    parser_bootstrap.add_argument('--ssn', type=str, help='Path of the SSN model')
+    parser_bootstrap.add_argument('--mtlssn', type=str, help='Path of the MTL SSN model')
+    parser_bootstrap.add_argument('--task_head', type=str, help='Path of the Task Head model')
+    parser_bootstrap.add_argument('--cons_arch', type=str, help='Path of the cons_arch model')
+    parser_bootstrap.add_argument('--save', type=str, help='Path where to save the transferred model')
+
+    # Remove optimizer
+    parser_ro = subparsers.add_parser('ro', help='Transfer the trained weights of different models')
+    parser_ro.add_argument('-m', type=str, help='Path of the SSN model')
+    parser_ro.add_argument('--save', type=str)
+
+    # Transfer backbone weights
+    parser_tb = subparsers.add_parser('tb', help='Transfer the trained weights of different models')
+    parser_tb.add_argument('-a', type=str, help='Path of the SSN model')
+    parser_tb.add_argument('-b', type=str, help='Path of the MTL SSN model')
+    parser_tb.add_argument('--save', type=str)
+
+    # Transfering weights from old backbone to newer backbone
+    parser_oldweights = subparsers.add_parser('oback', help='Transfer the old backbone weights to new model')
+    parser_oldweights.add_argument('--old', required=True, type=str, help='Path of the old model')
+    parser_oldweights.add_argument('--new', required=True, type=str, help='Path of the new model')
+    parser_oldweights.add_argument('--save', required=True, type=str, help='Path where to save the transferred model')
+
+    # Testing on final test set
+    parser_test_bm = subparsers.add_parser('finaltest', help="Testing final best models on actual test set")
+    parser_test_bm.add_argument('eval_path', type=str, help='Path of the eval python file')
+
     # Validating the args
     args = parser.parse_args()
 
@@ -255,6 +287,284 @@ def plot (eval_dirs, labels, plot_type, save_path, low_limit, hi_limit, title=''
     plt.savefig(save_path)
 
 
+def transfer_old_backbone(old, new, save):
+    def load(checkpoint):
+        if torch.cuda.is_available():
+            model = torch.load(checkpoint)
+        else:
+            model = torch.load(checkpoint, map_location=torch.device('cpu'))
+
+        return model
+        
+    old_model = load(old)['state_dict']
+    new_model = load(new)
+
+    for k in old_model.keys():
+        nk = 'backbone.' + k
+        assert new_model['state_dict'][nk].size() == old_model[k].size()
+        new_model['state_dict'][nk] = old_model[k]
+    
+    torch.save(new_model, save)
+
+
+def remove_optimizer(checkpoint_pth, save_checkpoint_pth, epoch=1):
+    """
+    Remove the optimizer from the model
+    """
+    if torch.cuda.is_available():
+        model = torch.load(checkpoint_pth)
+    else:
+        model = torch.load(checkpoint_pth, map_location=torch.device('cpu'))
+
+    meta_info = model['meta']
+    meta_info = {
+        'epoch': epoch,
+        'iter': epoch * meta_info['iter'] / meta_info['epoch']
+    }
+    torch.save(dict({
+        'state_dict': model['state_dict'],
+        'meta': meta_info
+    }), save_checkpoint_pth)
+
+
+def transfer_backbone(modelA, modelB, save_checkpoint_pth, epoch=1):
+    """
+    Transfer backbone weights from modelA to modelB
+    """
+    def load_weights(checkpoint_pth, state_dict=True, get_meta_info=False):
+        if torch.cuda.is_available():
+            model = torch.load(checkpoint_pth)
+        else:
+            model = torch.load(checkpoint_pth, map_location=torch.device('cpu'))
+
+        if get_meta_info:
+            # Return info about the meta
+            return model['meta']
+
+        if state_dict:
+            return model['state_dict']
+        else:
+            return model
+
+    def get_top_keys(model):
+        return set({w.split('.')[0] for w in model.keys()})
+
+    def save_model(model_state_dict, meta_info):
+        meta_info = {
+            'epoch': epoch,
+            'iter': epoch * meta_info['iter'] / meta_info['epoch']
+        }
+        torch.save(dict({
+            'state_dict': model_state_dict,
+            'meta': meta_info
+        }), save_checkpoint_pth)
+
+    model = load_weights(modelA)
+    template = load_weights(modelB)
+    assert get_top_keys(model) == set({'backbone', 'cls_head'})
+    assert get_top_keys(template) == set({'backbone', 'cls_head'})
+
+    for k, w in model.items():
+        if 'backbone' in k:
+            template[k] = w
+        else:
+            print ('%s not transferred' % k)
+
+    meta_info = load_weights(modelB, get_meta_info=True)
+    save_model(template, meta_info)
+    
+
+def bootstrap(mode, ssn=None, mtlssn=None, cons_arch=None, task_head=None, epoch=100, save_checkpoint_pth='bootstrapped.pth'):
+    assert mode in ['mtlssn', 'cons']
+    assert ssn is not None and task_head is not None
+    if mode == 'mtlssn': assert mtlssn is not None
+    if mode == 'cons': assert cons_arch is not None
+
+    models = dict()
+    # Read the task and ssn weights
+    def load_weights(checkpoint_pth, state_dict=True, get_meta_info=False):
+        if torch.cuda.is_available():
+            model = torch.load(checkpoint_pth)
+        else:
+            model = torch.load(checkpoint_pth, map_location=torch.device('cpu'))
+        
+        if get_meta_info:
+            # Return info about the meta
+            return model['meta']
+
+        if state_dict:
+            return model['state_dict']
+        else:
+            return model
+
+    def get_top_keys(model):
+        return set({w.split('.')[0] for w in model.keys()})
+
+    def save_model(model_state_dict, meta_info):
+        meta_info = {
+            'epoch': epoch,
+            'iter': epoch * meta_info['iter'] / meta_info['epoch']
+        }
+        torch.save(dict({
+            'state_dict': model_state_dict,
+            'meta': meta_info
+        }), save_checkpoint_pth)
+
+    models['ssn'] = load_weights(ssn)
+    models['task_head'] = load_weights(task_head, state_dict=False)
+
+    assert get_top_keys(models['ssn']) == set({'backbone', 'cls_head'})
+    assert get_top_keys(models['task_head']) == set({'fcs'})
+
+    if mode == 'mtlssn':
+        # Transfer weights from task_head, SSN -> MTL arch
+        template = load_weights(mtlssn)
+        assert get_top_keys(template) == set({'backbone', 'cls_head', 'task_head'})
+        for k, w in models['ssn'].items():
+            template[k] = w
+        for k, w in models['task_head'].items():
+            template['task_head.%s' % k] = w
+        meta_info = load_weights(mtlssn, get_meta_info=True)
+        save_model(template, meta_info)
+        # torch.save(dict({'state_dict': template}), save_checkpoint_pth)
+
+    elif mode == 'cons':
+        # Transfer weights from task,ssn -> cons
+        template = load_weights(cons_arch)
+        assert get_top_keys(template) == set({'backbone', 'cls_head', 'aux_task_head', 'task_head'})
+        for k, w in models['ssn'].items():
+            # Transfer only the backbone weights
+            if k.split('.')[0] == 'backbone': template[k] = w
+        for k, w in models['task_head'].items():
+            template['task_head.%s' % k] = w
+        meta_info = load_weights(cons_arch, get_meta_info=True)
+        save_model(template, meta_info)
+        # torch.save(dict({
+        #     'state_dict': template,
+        #     'meta': dict({
+        #         'epoch': 100,
+        #         'iter': 
+        #     })
+        # }), save_checkpoint_pth)
+
+    else:
+        raise ValueError("Invalid Mode")
+
+
+def test_best_models(eval_path, prune_low_range=0.05, prune_high_range=0.6):
+    """
+    This function is used to get final test scores using the best val model
+    """
+    import sys
+    sys.path.append(eval_path)
+    from eval import models, refresh, result_dir, gpus
+    
+    for name in refresh:
+        print ('Testing model %s...' % name)
+        rdir = os.path.join(result_dir, name)
+        try: os.makedirs(rdir)
+        except: pass
+
+        model = models[name]
+        checkpoint = model['checkpoint']
+
+        # Result Raw
+        config_file = os.path.join(
+            '/'.join(checkpoint.split('/')[:-1]),
+            'config.py'
+        )
+        result_file = os.path.join(rdir, 'result_raw.pkl')
+        log_file = os.path.join(rdir, 'test.log')
+
+        command = "python3 tools/test_localizer.py {} {} --gpus {} --out {}".format(
+            config_file, checkpoint, gpus, result_file)
+        print (command, '\n')
+        command = shlex.split(command)
+        with open(log_file, 'w') as outfile:
+            process = subprocess.Popen(command, stdout=outfile)
+        process.wait()
+
+        if 'tag_pruning' in model and model['tag_pruning']:
+            # TAG Pruning
+            result_pr_file = os.path.join(rdir, 'result_pr.pkl')
+            pkl_data = pickle.load(open(result_file, 'rb'))
+
+            results = []
+            for data_idx, (props, act_scores, comp_scores, regs, task_scores) in enumerate(pkl_data):
+                keep = []
+                for idx, p in enumerate(props):
+                    if (prune_low_range < p[1] - p[0] < prune_high_range):
+                        keep.append(idx)
+                if len(keep) == 0:
+                    keep = [0] # Keep the first element
+                    print ('index {} is completely useless!!'.format(data_idx))
+                results.append((props[keep, :], act_scores[keep, :], comp_scores[keep, :], regs[keep, :, :], task_scores))
+
+            pickle.dump(results, open(result_pr_file, 'wb'))
+            result_file = result_pr_file
+
+        # Consistency Pruning
+        if 'TC' in model and model['TC'] == 'COIN':
+            result_tc_file = os.path.join(rdir, 'result_tc.pkl')
+            command = "python3 tools/localize_TC.py {} --out_pkl {} --pooling {}".format(
+                result_file, result_tc_file, 'mean')
+            print (command, '\n')
+            command = shlex.split(command)
+            process = subprocess.Popen(command)
+            process.wait()
+            result_file = result_tc_file
+        elif 'TC' in model and model['TC'] == 'MTL':
+            result_tc_file = os.path.join(rdir, 'result_tc.pkl')
+            command = "python3 tools/localize_TC.py {} --out_pkl {} --mtl".format(
+                result_file, result_tc_file)
+            print (command, '\n')
+            command = shlex.split(command)
+            process = subprocess.Popen(command)
+            process.wait()
+            result_file = result_tc_file
+
+        # Eval
+        log_file = os.path.join(rdir, 'eval.log')
+        command = "python3 tools/eval_localize_results.py {} {} --eval coin".format(
+            config_file, result_file)
+        print (command, '\n')
+        command = shlex.split(command)
+        with open(log_file, 'w') as outfile:
+            process = subprocess.Popen(command, stdout=outfile)
+        process.wait()
+
+        print ('\n==================================\n')
+
+
+    # Parse log files and extract task accuracy and map scores
+    test_scores = []
+    for name in models.keys():
+        log_file = os.path.join(result_dir, name, 'eval.log')
+        if not os.path.isfile(log_file):
+            continue
+
+        for line in open(log_file, 'r'):
+            if re.search("Task Classification Accuracy:", line):
+                task_acc_line = line
+            if re.search("mean AP", line):
+                map_line = line
+
+        float_regex = r"[-+]?\d*\.\d+|\d+"
+        task_acc = float(re.findall(float_regex, task_acc_line)[0])
+        map_scores = [float(s) for s in re.findall(float_regex, map_line)]
+
+        scores = [name]+map_scores+[task_acc]
+        test_scores.append(scores)
+
+    string = tt.to_string(
+        test_scores,
+        header=["model"]+['mAP @ 0.%d' % i for i in range(1, 10)]+["Task Acc."],
+        style=tt.styles.ascii_thin_double,
+        padding=(0, 1),
+        alignment="c"*11
+    )
+    print (string)
+
 if __name__ == '__main__':
     # time.sleep(1)
     args = parse_args()
@@ -274,5 +584,15 @@ if __name__ == '__main__':
         parse_scores (args.eval_dir)
     elif args.mode == 'plot':
         plot (args.eval_dirs, args.labels, args.plot_type, args.save_path, args.lo, args.hi, args.title)
+    elif args.mode == 'oback':
+        transfer_old_backbone(args.old, args.new, args.save)
+    elif args.mode == 'ro':
+        remove_optimizer(args.m, args.save)
+    elif args.mode == 'bs':
+        bootstrap(args.bs_mode, ssn=args.ssn, mtlssn=args.mtlssn, cons_arch=args.cons_arch, task_head=args.task_head, save_checkpoint_pth=args.save)
+    elif args.mode == 'tb':
+        transfer_backbone(args.a, args.b, args.save)
+    elif args.mode == 'finaltest':
+        test_best_models(args.eval_path)
     else:
         raise ValueError("Go Away")
