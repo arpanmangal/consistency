@@ -26,5 +26,5 @@ We will release a technical report later.
 If you have any question, please file an issue or contact the author:
 ```
 Arpan Mangal: mangalarpan@gmail.com
-Mankaran Singh: Mankaran.Singh.cs516@cse.iitd.ac.in 
+Soumen Basu: soumen.basu@cse.iitd.ac.in
 ```
